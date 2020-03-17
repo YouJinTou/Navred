@@ -4,7 +4,7 @@ using Amazon.Lambda.Serialization.Json;
 using System;
 using System.Threading.Tasks;
 
-namespace Navred.Providers.Boydevi
+namespace Navred.Providers.Bulgaria.Boydevi
 {
     public class Function
     {
@@ -34,7 +34,14 @@ namespace Navred.Providers.Boydevi
         /// <returns></returns>
         public static string FunctionHandler(string input, ILambdaContext context)
         {
-            return input?.ToUpper();
+            var crawler = new Crawler();
+            var task = crawler.GetItinerariesAsync();
+
+            task.Wait();
+
+            var result = task.Result;
+
+            return null;
         }
     }
 }
