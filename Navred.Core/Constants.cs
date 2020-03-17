@@ -1,4 +1,4 @@
-﻿using Navred.Core.Models;
+﻿using Navred.Core.Itineraries;
 
 namespace Navred.Core
 {

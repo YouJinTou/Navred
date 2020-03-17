@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Navred.Core.Models
+namespace Navred.Core.Itineraries
 {
     public class Stop
     {

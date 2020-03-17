@@ -1,7 +1,7 @@
 ﻿using HtmlAgilityPack;
 using Navred.Core;
 using Navred.Core.Abstractions;
-using Navred.Core.Models;
+using Navred.Core.Itineraries;
 using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;

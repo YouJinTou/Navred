@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Navred.Core.Models
+namespace Navred.Core.Itineraries
 {
     public class Itinerary : IEnumerable<Stop>
     {
