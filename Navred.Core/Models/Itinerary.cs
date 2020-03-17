@@ -1,5 +1,4 @@
-﻿using Navred.Core.Tools;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,7 +93,7 @@ namespace Navred.Core.Models
                     continue;
                 }
 
-                var diff = stop.ArrivalTimeToTimeSpan() - last.ArrivalTimeToTimeSpan();
+                var diff = stop.ArrivalTime - last.ArrivalTime;
                 span += diff;
                 last = stop;
             }

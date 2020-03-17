@@ -52,11 +52,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
                     var name = match.Groups[1].Value.Replace("АГ", string.Empty).Trim();
                     var arrivalTime = match.Groups[2].Value;
 
-                    stops.Add(new Stop
-                    {
-                        ArrivalTime = arrivalTime,
-                        Name = name
-                    });
+                    stops.Add(new Stop(name, arrivalTime));
                 }
 
                 var daysOfWeek = this.GetDaysOfWeek(scheduleString);
