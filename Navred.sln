@@ -5,10 +5,6 @@ VisualStudioVersion = 16.0.29411.108
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Core", "Navred.Core\Navred.Core.csproj", "{ABA47EB8-0565-482E-B01F-DD3B25E567E3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Boydevi.Tests", "Navred.Providers.Boydevi\test\Navred.Providers.Boydevi.Tests\Navred.Providers.Boydevi.Tests.csproj", "{83A00233-A547-4847-B0AF-0A068B56D549}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Boydevi", "Navred.Providers.Boydevi\src\Navred.Providers.Boydevi\Navred.Providers.Boydevi.csproj", "{9E05A7BB-2C91-4FC2-ABB5-644C80839C19}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,14 +15,6 @@ Global
 		{ABA47EB8-0565-482E-B01F-DD3B25E567E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABA47EB8-0565-482E-B01F-DD3B25E567E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABA47EB8-0565-482E-B01F-DD3B25E567E3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83A00233-A547-4847-B0AF-0A068B56D549}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83A00233-A547-4847-B0AF-0A068B56D549}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83A00233-A547-4847-B0AF-0A068B56D549}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83A00233-A547-4847-B0AF-0A068B56D549}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9E05A7BB-2C91-4FC2-ABB5-644C80839C19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9E05A7BB-2C91-4FC2-ABB5-644C80839C19}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9E05A7BB-2C91-4FC2-ABB5-644C80839C19}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9E05A7BB-2C91-4FC2-ABB5-644C80839C19}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
