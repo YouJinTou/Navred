@@ -2,6 +2,7 @@
 using Amazon.DynamoDBv2.Model;
 using Navred.Core.Cultures;
 using Navred.Core.Extensions;
+using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,8 +22,17 @@ namespace Navred.Core.Itineraries.DB
             this.settings = settings;
         }
 
+        public async Task GetItinerariesAsync(string from, string to)
+        {
+            Validator.ThrowIfAnyNullOrWhiteSpace(from, to);
+            
+
+        }
+
         public async Task UpdateItinerariesAsync(IEnumerable<Itinerary> itineraries)
         {
+            Validator.ThrowIfNull(itineraries);
+
             var dbItineraries = this.GetDBItineraries(itineraries);
 
             foreach (var dbi in dbItineraries)

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Navred.Core.Extensions;
+using System;
+using System.Collections.Generic;
 
 namespace Navred.Core.Tools
 {
@@ -33,6 +35,14 @@ namespace Navred.Core.Tools
             ThrowIfNullOrWhiteSpace(s);
 
             return s;
+        }
+
+        public static void ThrowIfNullOrEmpty<T>(IEnumerable<T> enumerable)
+        {
+            if (enumerable.IsNullOrEmpty())
+            {
+                throw new ArgumentNullException("Enumerable is null or empty.");
+            }
         }
     }
 }
