@@ -77,7 +77,7 @@ namespace Navred.Core.Itineraries
 
         public override string ToString()
         {
-            return $"{this.From} - {this.To} {this.Price}";
+            return $"{this.From} - {this.To} ({this.Departure} - {this.Arrival}) {this.Price}";
         }
 
         public IEnumerator<Stop> GetEnumerator()
