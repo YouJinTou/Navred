@@ -19,5 +19,12 @@ namespace Navred.Core.Tools
                 ThrowIfNullOrWhiteSpace(s);
             }
         }
+
+        public static string ReturnOrThrowIfNullOrWhiteSpace(string s)
+        {
+            ThrowIfNullOrWhiteSpace(s);
+
+            return s;
+        }
     }
 }
