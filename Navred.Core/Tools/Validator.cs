@@ -4,6 +4,14 @@ namespace Navred.Core.Tools
 {
     public static class Validator
     {
+        public static void ThrowIfNull(object obj)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException("Object is empty.");
+            }
+
+        }
         public static void ThrowIfNullOrWhiteSpace(string s)
         {
             if (string.IsNullOrWhiteSpace(s))

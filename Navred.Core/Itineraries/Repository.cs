@@ -23,7 +23,7 @@ namespace Navred.Core.Itineraries
                 Key = new Dictionary<string, AttributeValue>
                 {
                     { "from", new AttributeValue { S = i.From } },
-                    { "datestamp", new AttributeValue { N = i.} }
+                    { "datestamp", new AttributeValue { N = i.Departure.ToString() } }
                 }
             });
 

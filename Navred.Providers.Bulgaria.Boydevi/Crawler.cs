@@ -1,8 +1,10 @@
 ﻿using HtmlAgilityPack;
 using Navred.Core;
 using Navred.Core.Abstractions;
+using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -28,6 +30,9 @@ namespace Navred.Providers.Bulgaria.Boydevi
 
             itineraries.AddRange(toSvilengrad);
 
+            var finder = new ItineraryFinder();
+            var result = await finder.FindItinerariesAsync("Любимец", "София", itineraries);
+
             return itineraries;
         }
 
@@ -37,11 +42,15 @@ namespace Navred.Providers.Bulgaria.Boydevi
             var doc = await web.LoadFromWebAsync(url);
             var scheduleStrings = doc.DocumentNode.SelectNodes(
                 "//div[@class='entry-content']/p")[2].InnerText.Split("\n");
+            var daysAhead = 30;
             var itineraries = new List<Itinerary>();
 
             foreach (var scheduleString in scheduleStrings)
             {
-                var stops = new List<Stop>();
+                var currentItineraries = Enumerable.Range(0, daysAhead)
+                    .Select(i => new Itinerary("Бойдеви"))
+                    .ToList();
+                var daysOfWeek = this.GetDaysOfWeek(scheduleString);
                 var stopMatches = Regex.Matches(
                     scheduleString, @$"([{Bgr.Letters} .]+)\s*\((\d+:\d+)\)")
                     .ToList();
@@ -51,14 +60,19 @@ namespace Navred.Providers.Bulgaria.Boydevi
                     var match = stopMatches[i];
                     var name = match.Groups[1].Value.Replace("АГ", string.Empty).Trim();
                     var arrivalTime = match.Groups[2].Value;
+                    var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(arrivalTime, daysAhead)
+                        .ToList();
 
-                    stops.Add(new Stop(name, arrivalTime));
+                    for (int t = 0; t < arrivalTimes.Count(); t++)
+                    {
+                        currentItineraries[t].AddStop(new Stop(name, arrivalTimes[t]));
+                    }
                 }
 
-                var daysOfWeek = this.GetDaysOfWeek(scheduleString);
-                var currentItinerary = new Itinerary(stops, "Бойдеви", onDays: daysOfWeek);
-
-                itineraries.AddRange(currentItinerary.ChildrenAndSelf);
+                foreach (var itinerary in currentItineraries)
+                {
+                    itineraries.AddRange(itinerary.GetChildrenAndSelf());
+                }
             }
 
             return itineraries;
