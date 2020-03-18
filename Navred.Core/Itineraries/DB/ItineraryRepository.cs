@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2.Model;
 using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,18 +16,22 @@ namespace Navred.Core.Itineraries.DB
         private readonly ICultureProvider cultureProvider;
         private readonly Settings settings;
 
-        public ItineraryRepository(IAmazonDynamoDB db, ICultureProvider cultureProvider, Settings settings)
+        public ItineraryRepository(
+            IAmazonDynamoDB db, ICultureProvider cultureProvider, Settings settings)
         {
             this.db = new AmazonDynamoDBClient();
             this.cultureProvider = cultureProvider;
             this.settings = settings;
         }
 
-        public async Task GetItinerariesAsync(string from, string to)
+        public async Task<IEnumerable<Itinerary>> GetItinerariesAsync(
+            string from, string to, TimeWindow window)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to);
-            
 
+            var itineraries = await this.GetItinerariesRecursiveAsync(from, window);
+
+            return null;
         }
 
         public async Task UpdateItinerariesAsync(IEnumerable<Itinerary> itineraries)
@@ -80,6 +85,106 @@ namespace Navred.Core.Itineraries.DB
             }
 
             return dbItineraries;
+        }
+
+        private async Task<IEnumerable<DBItinerary>> GetEdges(string from, TimeWindow window)
+        {
+            var request = new QueryRequest();
+            request.TableName = this.settings.ItinerariesTable;
+            request.KeyConditionExpression =
+                "#source = :v_source AND UtcTimestamp BETWEEN :start AND :end";
+            request.ExpressionAttributeNames = new Dictionary<string, string>
+            {
+                { "#source", "From" }
+            };
+            request.ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                { ":v_source", new AttributeValue { S = from } },
+                { ":start", new AttributeValue { N = window.FromUtcTimestamp.ToString() } },
+                { ":end", new AttributeValue { N = window.ToUtcTimestmap.ToString() } },
+            };
+            var response = await this.db.QueryAsync(request);
+            var itineraries = new List<DBItinerary>();
+
+            foreach (var item in response.Items)
+            {
+                var itinerary = new DBItinerary
+                {
+                    Tos = new List<DBTo>()
+                };
+
+                foreach (var attr in item)
+                {
+                    if (attr.Key == "From")
+                    {
+                        itinerary.From = attr.Value.S;
+                    }
+                    else if (attr.Key == "UtcTimestamp")
+                    {
+                        itinerary.UtcTimestamp = long.Parse(attr.Value.N);
+                    }
+                    else
+                    {
+                        var dbTo = new DBTo();
+
+                        foreach (var kvp in attr.Value.M)
+                        {
+                            switch (kvp.Key)
+                            {
+                                case nameof(DBTo.Arrival):
+                                    dbTo.Arrival = DateTime.Parse(kvp.Value.S);
+                                    break;
+                                case nameof(DBTo.Carrier):
+                                    dbTo.Carrier = kvp.Value.S;
+                                    break;
+                                case nameof(dbTo.Departure):
+                                    dbTo.Departure = DateTime.Parse(kvp.Value.S);
+                                    break;
+                                case nameof(dbTo.Duration):
+                                    dbTo.Duration = TimeSpan.Parse(kvp.Value.S);
+                                    break;
+                                case nameof(dbTo.OnDays):
+                                    dbTo.OnDays = (DaysOfWeek)long.Parse(kvp.Value.N);
+                                    break;
+                                case nameof(dbTo.Price):
+                                    dbTo.Price = decimal.Parse(kvp.Value.N);
+                                    break;
+                                case nameof(dbTo.To):
+                                    dbTo.To = kvp.Value.S;
+                                    break;
+                                default:
+                                    throw new InvalidOperationException("Missing property.");
+                            }
+                        }
+
+                        itinerary.Tos.Add(dbTo);
+                    }
+                }
+
+                itineraries.Add(itinerary);
+            }
+
+            return itineraries;
+        }
+
+        private async Task<IEnumerable<DBItinerary>> GetItinerariesRecursiveAsync(
+            string from, TimeWindow window)
+        {
+            var itineraries = (await this.GetEdges(from, window)).ToList();
+            var toVertices = itineraries.SelectMany(i => i.Tos).Select(t => new
+            {
+                Vertex = t.To,
+                Window = new TimeWindow(window.LocalTo, window.LocalTo + t.Duration)
+            }).ToList();
+
+            foreach (var v in toVertices)
+            {
+                var nextItineraries = await this.GetItinerariesRecursiveAsync(v.Vertex, v.Window);
+
+                itineraries.AddRange(nextItineraries);
+            }
+
+            return itineraries;
         }
 
         private string GetUpdateExp(DBItinerary i)

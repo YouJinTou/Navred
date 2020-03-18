@@ -17,6 +17,10 @@ namespace Navred.Providers.Bulgaria.Boydevi
     {
         public async Task<IEnumerable<Itinerary>> GetItinerariesAsync()
         {
+            var repo = new ItineraryRepository(null, new BulgarianCultureProvider(), new Settings());
+            //var from = new System.DateTime(2020, 3, 19, 14, 0, 0);
+            //var to = new System.DateTime(2020, 3, 19, 15, 59, 0);
+            //var result = await repo.GetItinerariesAsync("Свиленград", "София", new TimeWindow(from, to));
             var itineraries = new List<Itinerary>();
             var svilengradSofia = await this.GetItinerariesAsync(
                 "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%be%d1%84%d0%b8%d1%8f/");
@@ -30,8 +34,6 @@ namespace Navred.Providers.Bulgaria.Boydevi
             itineraries.AddRange(svilengradHaskovo);
 
             itineraries.AddRange(toSvilengrad);
-
-            var repo = new ItineraryRepository(null, new BulgarianCultureProvider(), new Settings());
 
             await repo.UpdateItinerariesAsync(itineraries);
 

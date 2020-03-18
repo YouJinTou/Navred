@@ -7,24 +7,24 @@ namespace Navred.Core.Extensions
     public static class DateTimeExtensions
     {
         public static IEnumerable<DateTime> GetValidUtcTimesAhead(
-            this DaysOfWeek daysOfWeek, StopTime time, int daysAhead)
+            this DaysOfWeek daysOfWeek, StopTime stopTime, int daysAhead)
         {
-            var utc = DateTime.UtcNow;
-            var dates = new List<DateTime>();
+            var offset = DateTimeOffset.Now;
+            var times = new List<DateTime>();
 
             for (int d = 0; d < daysAhead; d++)
             {
-                var currentDate = utc.AddDays(d);
+                var currentDate = offset.UtcDateTime.AddDays(d);
 
                 if (currentDate.DayOfWeek.Matches(daysOfWeek))
                 {
-                    var date = currentDate.Date + time.Time;
+                    var time = currentDate.Date + stopTime.Time - offset.Offset;
 
-                    dates.Add(date);
+                    times.Add(time);
                 }
             }
 
-            return dates;
+            return times;
         }
 
         public static bool Matches(this DayOfWeek dayOfWeek, DaysOfWeek daysOfWeek)

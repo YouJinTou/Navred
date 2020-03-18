@@ -8,6 +8,6 @@ namespace Navred.Core.Itineraries.DB
 
         public long UtcTimestamp { get; set; }
 
-        public IEnumerable<DBTo> Tos { get; set; }
+        public IList<DBTo> Tos { get; set; }
     }
 }

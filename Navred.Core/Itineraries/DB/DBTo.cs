@@ -22,5 +22,10 @@ namespace Navred.Core.Itineraries.DB
         {
             return $"{this.To}_{this.Carrier}";
         }
+
+        public override string ToString()
+        {
+            return $"{this.To} {this.Departure} - {this.Arrival}";
+        }
     }
 }
