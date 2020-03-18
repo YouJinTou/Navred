@@ -49,5 +49,14 @@ namespace Navred.Core.Extensions
                     throw new ArgumentException($"{dayOfWeek} invalid.");
             }
         }
+
+        public static long ToUtcTimestamp(this DateTime dt)
+        {
+            var utcDt = TimeZoneInfo.ConvertTimeToUtc(dt);
+            var utcSpan = utcDt - DateTimeOffset.UnixEpoch;
+            var timestmap = (long)utcSpan.TotalSeconds;
+
+            return timestmap;
+        }
     }
 }

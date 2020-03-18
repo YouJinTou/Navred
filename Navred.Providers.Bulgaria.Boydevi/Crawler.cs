@@ -1,10 +1,11 @@
 ﻿using HtmlAgilityPack;
 using Navred.Core;
 using Navred.Core.Abstractions;
+using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
+using Navred.Core.Itineraries.DB;
 using Navred.Core.Tools;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -30,8 +31,9 @@ namespace Navred.Providers.Bulgaria.Boydevi
 
             itineraries.AddRange(toSvilengrad);
 
-            var finder = new ItineraryFinder();
-            var result = await finder.FindItinerariesAsync("Любимец", "София", itineraries);
+            var repo = new ItineraryRepository(null, new BulgarianCultureProvider(), new Settings());
+
+            await repo.UpdateItinerariesAsync(itineraries);
 
             return itineraries;
         }
@@ -47,12 +49,10 @@ namespace Navred.Providers.Bulgaria.Boydevi
 
             foreach (var scheduleString in scheduleStrings)
             {
-                var currentItineraries = Enumerable.Range(0, daysAhead)
-                    .Select(i => new Itinerary("Бойдеви"))
-                    .ToList();
+                var currentItineraries = new List<Itinerary>();
                 var daysOfWeek = this.GetDaysOfWeek(scheduleString);
                 var stopMatches = Regex.Matches(
-                    scheduleString, @$"([{Bgr.Letters} .]+)\s*\((\d+:\d+)\)")
+                    scheduleString, @$"([{BulgarianCultureProvider.Letters} .]+)\s*\((\d+:\d+)\)")
                     .ToList();
 
                 for (int i = 0; i < stopMatches.Count; i++)
@@ -62,6 +62,12 @@ namespace Navred.Providers.Bulgaria.Boydevi
                     var arrivalTime = match.Groups[2].Value;
                     var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(arrivalTime, daysAhead)
                         .ToList();
+
+                    if (currentItineraries.IsEmpty())
+                    {
+                        currentItineraries = Enumerable.Range(0, arrivalTimes.Count)
+                            .Select(i => new Itinerary("Бойдеви")).ToList();
+                    }
 
                     for (int t = 0; t < arrivalTimes.Count(); t++)
                     {

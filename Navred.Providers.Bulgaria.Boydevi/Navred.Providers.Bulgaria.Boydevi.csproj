@@ -15,4 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Navred.Core\Navred.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>
