@@ -41,6 +41,14 @@ namespace Navred.Core.Itineraries
         {
             Validator.ThrowIfNull(stop);
 
+            foreach (var s in this.stops)
+            {
+                if (s.ArrivalTime >= stop.ArrivalTime)
+                {
+                    throw new InvalidOperationException("Invalid arrival time.");
+                }
+            }
+
             this.stops.Add(stop);
 
             this.From = stops.First().Name;
