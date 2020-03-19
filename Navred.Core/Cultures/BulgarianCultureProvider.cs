@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using Navred.Core.Tools;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Navred.Core.Cultures
 {
-    public class BulgarianCultureProvider : ICultureProvider
+    public class BulgarianCultureProvider : IBulgarianCultureProvider
     {
         public static string Letters = "ѝабвгдежзийклмнопрстуфхцчшщъьыюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЮЯ" + "ь".ToUpper() + "ы".ToUpper();
+
+        public string Name => "Bulgaria";
 
         public string Latinize(string s)
         {
@@ -121,6 +125,42 @@ namespace Navred.Core.Cultures
             var result = string.Join(string.Empty, buffer);
 
             return result;
+        }
+
+        public string NormalizePlaceName(string place, string discerningCode = null)
+        {
+            var places = PlacesLoader.LoadPlacesFor<BulgarianPlace>(this.Name);
+            var normalizedPlace = place.Replace(" ", "").ToLower();
+            var matches = places
+                .Where(p => normalizedPlace.Contains(p.Place.Replace(" ", "").ToLower())).ToList();
+            var match = this.GetNormalizedPlaceName(matches, discerningCode);
+
+            if (string.IsNullOrWhiteSpace(match))
+            {
+                matches = places
+                    .Where(p => p.Place.Replace(" ", "").ToLower().Contains(normalizedPlace))
+                    .ToList();
+                match = this.GetNormalizedPlaceName(matches, discerningCode);
+            }
+
+            return string.IsNullOrWhiteSpace(match) ?
+                throw new KeyNotFoundException($"Could not find '{place}' in Bulgaria.") :
+                match;
+        }
+
+        private string GetNormalizedPlaceName(List<BulgarianPlace> places, string areaCode)
+        {
+            if (places.Count == 1)
+            {
+                return places.First().Place;
+            }
+
+            if (places.Count > 1)
+            {
+                return places.FirstOrDefault(m => m.AreaCode == areaCode)?.Place;
+            }
+
+            return null;
         }
     }
 }

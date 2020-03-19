@@ -15,10 +15,12 @@ namespace Navred.Providers.Bulgaria.Boydevi
     public class Crawler : ICrawler
     {
         private readonly IItineraryRepository repo;
+        private readonly IBulgarianCultureProvider provider;
 
-        public Crawler(IItineraryRepository repo)
+        public Crawler(IItineraryRepository repo, IBulgarianCultureProvider provider)
         {
             this.repo = repo;
+            this.provider = provider;
         }
 
         public async Task<IEnumerable<Itinerary>> GetItinerariesAsync()
@@ -62,7 +64,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
                 for (int i = 0; i < stopMatches.Count; i++)
                 {
                     var match = stopMatches[i];
-                    var name = match.Groups[1].Value.Replace("АГ", string.Empty).Trim();
+                    var name = this.provider.NormalizePlaceName(match.Groups[1].Value);
                     var arrivalTime = match.Groups[2].Value;
                     var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(arrivalTime, daysAhead)
                         .ToList();

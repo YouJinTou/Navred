@@ -2,6 +2,7 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries.DB;
 using System;
@@ -25,7 +26,8 @@ namespace Navred.Providers.Bulgaria.Boydevi
         {
             var provider = new ServiceCollection().AddCore().BuildServiceProvider();
             var repo = provider.GetService<IItineraryRepository>();
-            var crawler = new Crawler(repo);
+            var cultureProvider = provider.GetService<IBulgarianCultureProvider>();
+            var crawler = new Crawler(repo, cultureProvider);
             var task = crawler.GetItinerariesAsync();
 
             task.Wait();
