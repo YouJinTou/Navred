@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Navred.Core.Configuration;
+using Navred.Core.Cultures;
 using System.Linq;
 using System.Reflection;
 
@@ -23,7 +24,8 @@ namespace Navred.Core.Extensions
                 .AddSingleton(settings)
                 .AddDefaultAWSOptions(config.GetAWSOptions())
                 .AddAWSService<IAmazonDynamoDB>()
-                .AddByConvention(typeof(Constants).Assembly);
+                .AddByConvention(typeof(Constants).Assembly)
+                .AddTransient<ICultureProvider, BulgarianCultureProvider>();
 
             return services;
         }
