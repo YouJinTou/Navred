@@ -35,6 +35,8 @@ namespace Navred.Core.Itineraries
 
         public DateTime Arrival { get; private set; }
 
+        public bool IsZeroStops => this.From == this.To && this.Arrival == this.Departure;
+
         public void AddStop(Stop stop)
         {
             Validator.ThrowIfNull(stop);
@@ -58,21 +60,14 @@ namespace Navred.Core.Itineraries
 
         public IEnumerable<Itinerary> GetChildrenAndSelf()
         {
-            var subItineraries = new List<Itinerary>();
-            var stops = this.stops.ToList();
+            var itineraries = new List<Itinerary>();
 
-            subItineraries.Add(this);
-
-            for (int s = 1; s < stops.Count - 1; s++)
+            for (int s = this.stops.Count; s > 0; s--)
             {
-                var itinerary = new Itinerary(this.Carrier);
-
-                itinerary.AddStops(stops.Skip(s));
-
-                subItineraries.Add(itinerary);
+                itineraries.AddRange(this.GetChildrenAndSelf(this.stops.Take(s)));
             }
 
-            return subItineraries;
+            return itineraries;
         }
 
         public override string ToString()
@@ -110,6 +105,22 @@ namespace Navred.Core.Itineraries
             }
 
             return span;
+        }
+
+        private IEnumerable<Itinerary> GetChildrenAndSelf(IEnumerable<Stop> stops)
+        {
+            var subItineraries = new List<Itinerary>();
+
+            for (int s = 0; s < stops.Count(); s++)
+            {
+                var itinerary = new Itinerary(this.Carrier);
+
+                itinerary.AddStops(stops.Skip(s));
+
+                subItineraries.Add(itinerary);
+            }
+
+            return subItineraries;
         }
     }
 }

@@ -18,22 +18,22 @@ namespace Navred.Providers.Bulgaria.Boydevi
         public async Task<IEnumerable<Itinerary>> GetItinerariesAsync()
         {
             var repo = new ItineraryRepository(null, new BulgarianCultureProvider(), new Settings());
-            //var from = new System.DateTime(2020, 3, 19, 14, 0, 0);
-            //var to = new System.DateTime(2020, 3, 19, 15, 59, 0);
-            //var result = await repo.GetItinerariesAsync("Свиленград", "София", new TimeWindow(from, to));
+            var from = new System.DateTime(2020, 3, 19, 18, 0, 0);
+            var to = new System.DateTime(2020, 3, 19, 19, 0, 0);
+            //var result = await repo.GetItinerariesAsync("Харманли", "Любимец", new TimeWindow(from, to));
             var itineraries = new List<Itinerary>();
             var svilengradSofia = await this.GetItinerariesAsync(
                 "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%be%d1%84%d0%b8%d1%8f/");
-            var svilengradHaskovo = await this.GetItinerariesAsync(
-                "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%85%d0%b0%d1%81%d0%ba%d0%be%d0%b2%d0%be/");
-            var toSvilengrad = await this.GetItinerariesAsync(
-                "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%b2%d0%b8%d0%bb%d0%b5%d0%bd%d0%b3%d1%80%d0%b0%d0%b4/");
+            //var svilengradHaskovo = await this.GetItinerariesAsync(
+            //"http://boydevi-bg.com/%d0%b7%d0%b0-%d1%85%d0%b0%d1%81%d0%ba%d0%be%d0%b2%d0%be/");
+            //var toSvilengrad = await this.GetItinerariesAsync(
+            //    "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%b2%d0%b8%d0%bb%d0%b5%d0%bd%d0%b3%d1%80%d0%b0%d0%b4/");
 
-            itineraries.AddRange(svilengradSofia);
+            //itineraries.AddRange(svilengradSofia);
 
-            itineraries.AddRange(svilengradHaskovo);
+            //itineraries.AddRange(svilengradHaskovo);
 
-            itineraries.AddRange(toSvilengrad);
+            //itineraries.AddRange(toSvilengrad);
 
             await repo.UpdateItinerariesAsync(itineraries);
 
@@ -47,7 +47,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
             var scheduleStrings = doc.DocumentNode.SelectNodes(
                 "//div[@class='entry-content']/p")[2].InnerText.Split("\n");
             var daysAhead = 30;
-            var itineraries = new List<Itinerary>();
+            var schedule = new Schedule();
 
             foreach (var scheduleString in scheduleStrings)
             {
@@ -77,11 +77,10 @@ namespace Navred.Providers.Bulgaria.Boydevi
                     }
                 }
 
-                foreach (var itinerary in currentItineraries)
-                {
-                    itineraries.AddRange(itinerary.GetChildrenAndSelf());
-                }
+                schedule.AddItineraries(currentItineraries);
             }
+
+            var itineraries = schedule.GetWithChildren();
 
             return itineraries;
         }
