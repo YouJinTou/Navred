@@ -8,7 +8,7 @@ namespace Navred.Core.Itineraries
 {
     public class Itinerary : IEnumerable<Stop>
     {
-        private IList<Stop> stops;
+        private readonly IList<Stop> stops;
 
         public Itinerary(string carrier, decimal? price = null)
         {
@@ -66,18 +66,6 @@ namespace Navred.Core.Itineraries
             }
         }
 
-        public IEnumerable<Itinerary> GetChildrenAndSelf()
-        {
-            var itineraries = new List<Itinerary>();
-
-            for (int s = this.stops.Count; s > 0; s--)
-            {
-                itineraries.AddRange(this.GetChildrenAndSelf(this.stops.Take(s)));
-            }
-
-            return itineraries;
-        }
-
         public override string ToString()
         {
             return $"{this.From} - {this.To} ({this.Departure} - {this.Arrival}) {this.Price}";
@@ -113,22 +101,6 @@ namespace Navred.Core.Itineraries
             }
 
             return span;
-        }
-
-        private IEnumerable<Itinerary> GetChildrenAndSelf(IEnumerable<Stop> stops)
-        {
-            var subItineraries = new List<Itinerary>();
-
-            for (int s = 0; s < stops.Count(); s++)
-            {
-                var itinerary = new Itinerary(this.Carrier);
-
-                itinerary.AddStops(stops.Skip(s));
-
-                subItineraries.Add(itinerary);
-            }
-
-            return subItineraries;
         }
     }
 }
