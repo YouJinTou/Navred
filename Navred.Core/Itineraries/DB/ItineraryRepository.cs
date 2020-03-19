@@ -41,7 +41,7 @@ namespace Navred.Core.Itineraries.DB
 
                     itinerary.AddStop(new Stop(dbi.From, dbi.UtcTimestamp.ToUtcDateTime()));
 
-                    itinerary.AddStop(new Stop(dbTo.To, dbTo.Arrival));
+                    itinerary.AddStop(new Stop(dbTo.To, dbTo.UtcArrival));
 
                     itineraries.Add(itinerary);
                 }
@@ -88,9 +88,9 @@ namespace Navred.Core.Itineraries.DB
                         UtcTimestamp = stampGroup.Key,
                         Tos = stampGroup.Select(i => new DBTo
                         {
-                            Arrival = i.UtcArrival,
+                            UtcArrival = i.UtcArrival,
                             Carrier = i.Carrier,
-                            Departure = i.UtcDeparture,
+                            UtcDeparture = i.UtcDeparture,
                             Duration = i.Duration,
                             OnDays = i.OnDays,
                             Price = i.Price,
@@ -147,14 +147,14 @@ namespace Navred.Core.Itineraries.DB
                         {
                             switch (kvp.Key)
                             {
-                                case nameof(DBTo.Arrival):
-                                    dbTo.Arrival = DateTime.Parse(kvp.Value.S);
+                                case nameof(DBTo.UtcArrival):
+                                    dbTo.UtcArrival = DateTime.Parse(kvp.Value.S);
                                     break;
                                 case nameof(DBTo.Carrier):
                                     dbTo.Carrier = kvp.Value.S;
                                     break;
-                                case nameof(dbTo.Departure):
-                                    dbTo.Departure = DateTime.Parse(kvp.Value.S);
+                                case nameof(dbTo.UtcDeparture):
+                                    dbTo.UtcDeparture = DateTime.Parse(kvp.Value.S);
                                     break;
                                 case nameof(dbTo.Duration):
                                     dbTo.Duration = TimeSpan.Parse(kvp.Value.S);
@@ -205,17 +205,16 @@ namespace Navred.Core.Itineraries.DB
 
         private string GetUpdateExp(DBItinerary i)
         {
-            var equalities = i.Tos
-                .Select(t =>
-                {
-                    var id = t.GetUniqueId();
-                    var latinizedId = this.cultureProvider.Latinize(id);
-                    var left = latinizedId.Replace(" ", string.Empty);
-                    var result = $"{left} = {this.GetAttributeValueKey(t)}";
+            var equalities = i.Tos.Select(t =>
+            {
+                var id = t.GetUniqueId();
+                var latinizedId = this.cultureProvider.Latinize(id);
+                var left = latinizedId.Replace(" ", string.Empty);
+                var result = $"{left} = {this.GetAttributeValueKey(t)}";
 
-                    return result;
-                })
-                .ToList();
+                return result;
+            })
+            .ToList();
             var exp = $"SET {string.Join(", ", equalities)}";
 
             return exp;
@@ -228,9 +227,9 @@ namespace Navred.Core.Itineraries.DB
             foreach (var to in itinerary.Tos)
             {
                 var map = new Dictionary<string, AttributeValue>();
-                map[nameof(DBTo.Arrival)] = new AttributeValue { S = to.Arrival.ToString() };
+                map[nameof(DBTo.UtcArrival)] = new AttributeValue { S = to.UtcArrival.ToString() };
                 map[nameof(DBTo.Carrier)] = new AttributeValue { S = to.Carrier };
-                map[nameof(DBTo.Departure)] = new AttributeValue { S = to.Departure.ToString() };
+                map[nameof(DBTo.UtcDeparture)] = new AttributeValue { S = to.UtcDeparture.ToString() };
                 map[nameof(DBTo.Duration)] = new AttributeValue { S = to.Duration.ToString() };
                 map[nameof(DBTo.To)] = new AttributeValue { S = to.To };
 

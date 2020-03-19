@@ -14,9 +14,9 @@ namespace Navred.Core.Itineraries.DB
 
         public TimeSpan Duration { get; set; }
 
-        public DateTime Departure { get; set; }
+        public DateTime UtcDeparture { get; set; }
 
-        public DateTime Arrival { get; set; }
+        public DateTime UtcArrival { get; set; }
 
         public string GetUniqueId()
         {
@@ -25,7 +25,7 @@ namespace Navred.Core.Itineraries.DB
 
         public override string ToString()
         {
-            return $"{this.To} {this.Departure} - {this.Arrival}";
+            return $"{this.To} {this.UtcDeparture} - {this.UtcArrival}";
         }
     }
 }
