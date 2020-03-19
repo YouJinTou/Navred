@@ -13,17 +13,17 @@ namespace Navred.Core.Itineraries
                 x.Arrival == y.Arrival;
         }
 
-        public int GetHashCode(Itinerary obj)
+        public int GetHashCode(Itinerary i)
         {
             int prime = 83;
             int result = 1;
 
             unchecked
             {
-                result = result * prime + obj.Arrival.GetHashCode();
-                result = result * prime + obj.Departure.GetHashCode();
-                result = result * prime + obj.From.GetHashCode();
-                result = result * prime + obj.To.GetHashCode();
+                result = result * prime + i.Arrival.GetHashCode();
+                result = result * prime + i.Departure.GetHashCode();
+                result = result * prime + i.From.GetHashCode();
+                result = result * prime + i.To.GetHashCode();
             }
 
             return result;
