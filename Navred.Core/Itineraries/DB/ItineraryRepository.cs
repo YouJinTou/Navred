@@ -30,6 +30,7 @@ namespace Navred.Core.Itineraries.DB
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to);
 
+            var normalizedFrom = this.cultureProvider.NormalizePlaceName(from);
             var dbItineraries = await this.GetItinerariesRecursiveAsync(from, window);
             var itineraries = new List<Itinerary>();
 
@@ -121,61 +122,17 @@ namespace Navred.Core.Itineraries.DB
             };
             var response = await this.db.QueryAsync(request);
             var itineraries = new List<DBItinerary>();
+            var dbItineraryType = typeof(DBItinerary);
+            var dbToType = typeof(DBTo);
 
             foreach (var item in response.Items)
             {
-                var itinerary = new DBItinerary
-                {
-                    Tos = new List<DBTo>()
-                };
-
-                foreach (var attr in item)
-                {
-                    if (attr.Key == "From")
-                    {
-                        itinerary.From = attr.Value.S;
-                    }
-                    else if (attr.Key == "UtcTimestamp")
-                    {
-                        itinerary.UtcTimestamp = long.Parse(attr.Value.N);
-                    }
-                    else
-                    {
-                        var dbTo = new DBTo();
-
-                        foreach (var kvp in attr.Value.M)
-                        {
-                            switch (kvp.Key)
-                            {
-                                case nameof(DBTo.UtcArrival):
-                                    dbTo.UtcArrival = DateTime.Parse(kvp.Value.S);
-                                    break;
-                                case nameof(DBTo.Carrier):
-                                    dbTo.Carrier = kvp.Value.S;
-                                    break;
-                                case nameof(dbTo.UtcDeparture):
-                                    dbTo.UtcDeparture = DateTime.Parse(kvp.Value.S);
-                                    break;
-                                case nameof(dbTo.Duration):
-                                    dbTo.Duration = TimeSpan.Parse(kvp.Value.S);
-                                    break;
-                                case nameof(dbTo.OnDays):
-                                    dbTo.OnDays = (DaysOfWeek)long.Parse(kvp.Value.N);
-                                    break;
-                                case nameof(dbTo.Price):
-                                    dbTo.Price = decimal.Parse(kvp.Value.N);
-                                    break;
-                                case nameof(dbTo.To):
-                                    dbTo.To = kvp.Value.S;
-                                    break;
-                                default:
-                                    throw new InvalidOperationException("Missing property.");
-                            }
-                        }
-
-                        itinerary.Tos.Add(dbTo);
-                    }
-                }
+                var itinerary = (DBItinerary)item.ConvertTo(dbItineraryType);
+                itinerary.Tos = item
+                    .Where(kvp => kvp.Value.IsMSet)
+                    .Select(kvp => kvp.ConvertTo(dbToType))
+                    .Cast<DBTo>()
+                    .ToList();
 
                 itineraries.Add(itinerary);
             }
