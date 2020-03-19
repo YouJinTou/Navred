@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Navred.Core.Itineraries.DB
 {
-    public class ItineraryRepository
+    public class ItineraryRepository : IItineraryRepository
     {
         private readonly IAmazonDynamoDB db;
         private readonly ICultureProvider cultureProvider;

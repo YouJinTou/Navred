@@ -22,11 +22,18 @@ namespace Navred.Core.Tools
             }
         }
 
-        public static void ThrowIfAnyNullOrWhiteSpace(params string[] strings)
+        public static void ThrowIfAnyNullOrWhiteSpace(params object[] objects)
         {
-            foreach (var s in strings)
+            foreach (var o in objects)
             {
-                ThrowIfNullOrWhiteSpace(s);
+                if (o is string)
+                {
+                    ThrowIfNullOrWhiteSpace(o as string);
+                }
+                else
+                {
+                    ThrowIfNull(o);
+                }
             }
         }
 
