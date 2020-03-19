@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Bulgaria.B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Bulgaria.Boydevi.Tests", "Navred.Providers.Bulgaria.Boydevi.Tests\Navred.Providers.Bulgaria.Boydevi.Tests.csproj", "{B871458F-3640-435E-A19E-674DF859FFAD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Api", "Navred.Api\Navred.Api.csproj", "{67898FAC-926B-4577-B371-EE783C537C62}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Api.Tests", "Navred.Api.Tests\Navred.Api.Tests.csproj", "{62B3DC7B-E6BD-4788-A7A4-767FEECD6C06}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{B871458F-3640-435E-A19E-674DF859FFAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B871458F-3640-435E-A19E-674DF859FFAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B871458F-3640-435E-A19E-674DF859FFAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67898FAC-926B-4577-B371-EE783C537C62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67898FAC-926B-4577-B371-EE783C537C62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67898FAC-926B-4577-B371-EE783C537C62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67898FAC-926B-4577-B371-EE783C537C62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62B3DC7B-E6BD-4788-A7A4-767FEECD6C06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62B3DC7B-E6BD-4788-A7A4-767FEECD6C06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62B3DC7B-E6BD-4788-A7A4-767FEECD6C06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62B3DC7B-E6BD-4788-A7A4-767FEECD6C06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
