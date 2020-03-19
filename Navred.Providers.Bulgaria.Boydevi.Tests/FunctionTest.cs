@@ -11,7 +11,8 @@ namespace Navred.Providers.Bulgaria.Boydevi.Tests
         {
 
             var context = new TestLambdaContext();
-            var upperCase = Function.FunctionHandler("hello world", context);
+            
+            Function.FunctionHandler("hello world", context);
         }
     }
 }

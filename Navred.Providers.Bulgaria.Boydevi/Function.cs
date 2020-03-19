@@ -14,7 +14,8 @@ namespace Navred.Providers.Bulgaria.Boydevi
     {
         private static async Task Main(string[] args)
         {
-            Func<string, ILambdaContext, string> func = FunctionHandler;
+            Action<string, ILambdaContext> func = FunctionHandler;
+
             using(var handlerWrapper = HandlerWrapper.GetHandlerWrapper(func, new JsonSerializer()))
             using(var bootstrap = new LambdaBootstrap(handlerWrapper))
             {
@@ -22,7 +23,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
             }
         }
 
-        public static string FunctionHandler(string input, ILambdaContext context)
+        public static void FunctionHandler(string input, ILambdaContext context)
         {
             var provider = new ServiceCollection().AddCore().BuildServiceProvider();
             var repo = provider.GetService<IItineraryRepository>();
@@ -31,10 +32,6 @@ namespace Navred.Providers.Bulgaria.Boydevi
             var task = crawler.GetItinerariesAsync();
 
             task.Wait();
-
-            var result = task.Result;
-
-            return null;
         }
     }
 }
