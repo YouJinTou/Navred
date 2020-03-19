@@ -10,10 +10,12 @@ namespace Navred.Core.Itineraries
     public class ItineraryFinder : IItineraryFinder
     {
         private readonly IItineraryRepository repo;
+        private readonly IPathFinder pathFinder;
 
-        public ItineraryFinder(IItineraryRepository repo)
+        public ItineraryFinder(IItineraryRepository repo, IPathFinder pathFinder)
         {
             this.repo = repo;
+            this.pathFinder = pathFinder;
         }
 
         public async Task<IEnumerable<Itinerary>> FindItinerariesAsync(
@@ -38,13 +40,16 @@ namespace Navred.Core.Itineraries
                     Price = i.Price
                 }
             }).ToList();
-            var graph = new Graph
-            {
-                Edges = edges,
-                Vertices = vertices
-            };
 
-            return itineraries;
+            foreach (var vertex in vertices)
+            {
+                vertex.Edges = edges.Where(e => e.Source.Name == vertex.Name).ToList();
+            }
+
+            var graph = new Graph(vertices.First(v => v.Name == from), vertices, edges);
+            var result = this.pathFinder.FindItineraries(graph);
+
+            return result;
         }
     }
 }

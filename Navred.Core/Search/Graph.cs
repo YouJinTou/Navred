@@ -2,10 +2,19 @@
 
 namespace Navred.Core.Search
 {
-    internal class Graph
+    public class Graph
     {
-        public IEnumerable<Vertex> Vertices { get; set; }
+        public Graph(Vertex source, IEnumerable<Vertex> vertices, IEnumerable<Edge> edges)
+        {
+            this.Source = source;
+            this.Vertices = vertices;
+            this.Edges = edges;
+        }
 
-        public IEnumerable<Edge> Edges { get; set; }
+        public Vertex Source { get; }
+
+        public IEnumerable<Vertex> Vertices { get; }
+
+        public IEnumerable<Edge> Edges { get; }
     }
 }

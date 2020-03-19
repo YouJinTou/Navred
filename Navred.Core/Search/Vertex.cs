@@ -1,10 +1,14 @@
-﻿namespace Navred.Core.Search
+﻿using System.Collections.Generic;
+
+namespace Navred.Core.Search
 {
-    internal class Vertex
+    public class Vertex
     {
         public object Data { get; set; }
 
         public string Name { get; set; }
+
+        public IEnumerable<Edge> Edges { get; set; }
 
         public override string ToString()
         {

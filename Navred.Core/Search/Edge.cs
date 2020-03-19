@@ -1,6 +1,6 @@
 ﻿namespace Navred.Core.Search
 {
-    internal class Edge
+    public class Edge
     {
         public Vertex Source { get; set; }
 
