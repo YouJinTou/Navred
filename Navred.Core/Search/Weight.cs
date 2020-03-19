@@ -2,7 +2,7 @@
 
 namespace Navred.Core.Search
 {
-    public class Weight
+    public class Weight : IComparable<Weight>
     {
         public TimeSpan Duration { get; set; }
 
@@ -15,6 +15,16 @@ namespace Navred.Core.Search
                 Duration = TimeSpan.MaxValue,
                 Price = decimal.MaxValue
             };
+        }
+
+        public int CompareTo(Weight other)
+        {
+            if (other == null)
+            {
+                return -1;
+            }
+
+            return this.Duration.CompareTo(other.Duration);
         }
 
         public override string ToString()
