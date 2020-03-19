@@ -9,7 +9,7 @@
 		"All the command line options for the Lambda command can be specified in this file."
 	],
 	
-    "profile":"beachrankings",
+    "profile":"navred",
     "region" : "eu-central-1",
 	"configuration" : "Release",
 	"framework"     : "netcoreapp2.1",
