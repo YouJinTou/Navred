@@ -8,9 +8,9 @@ namespace Navred.Core.Itineraries
         {
             return
                 x.From == y.From &&
-                x.Departure == y.Departure &&
+                x.UtcDeparture == y.UtcDeparture &&
                 x.To == y.To &&
-                x.Arrival == y.Arrival;
+                x.UtcArrival == y.UtcArrival;
         }
 
         public int GetHashCode(Itinerary i)
@@ -20,8 +20,8 @@ namespace Navred.Core.Itineraries
 
             unchecked
             {
-                result = result * prime + i.Arrival.GetHashCode();
-                result = result * prime + i.Departure.GetHashCode();
+                result = result * prime + i.UtcArrival.GetHashCode();
+                result = result * prime + i.UtcDeparture.GetHashCode();
                 result = result * prime + i.From.GetHashCode();
                 result = result * prime + i.To.GetHashCode();
             }

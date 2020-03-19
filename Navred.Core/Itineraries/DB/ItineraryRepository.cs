@@ -78,7 +78,7 @@ namespace Navred.Core.Itineraries.DB
 
             foreach (var fromGroup in fromGroups)
             {
-                var stampGroups = fromGroup.GroupBy(fg => fg.Departure.ToUtcTimestamp());
+                var stampGroups = fromGroup.GroupBy(fg => fg.UtcDeparture.ToUtcTimestamp());
 
                 foreach (var stampGroup in stampGroups)
                 {
@@ -88,9 +88,9 @@ namespace Navred.Core.Itineraries.DB
                         UtcTimestamp = stampGroup.Key,
                         Tos = stampGroup.Select(i => new DBTo
                         {
-                            Arrival = i.Arrival,
+                            Arrival = i.UtcArrival,
                             Carrier = i.Carrier,
-                            Departure = i.Departure,
+                            Departure = i.UtcDeparture,
                             Duration = i.Duration,
                             OnDays = i.OnDays,
                             Price = i.Price,

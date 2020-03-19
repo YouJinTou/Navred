@@ -31,11 +31,11 @@ namespace Navred.Core.Itineraries
 
         public TimeSpan Duration { get; private set; }
 
-        public DateTime Departure { get; private set; }
+        public DateTime UtcDeparture { get; private set; }
 
-        public DateTime Arrival { get; private set; }
+        public DateTime UtcArrival { get; private set; }
 
-        public bool IsZeroStops => this.From == this.To && this.Arrival == this.Departure;
+        public bool IsZeroStops => this.From == this.To && this.UtcArrival == this.UtcDeparture;
 
         public void AddStop(Stop stop)
         {
@@ -43,7 +43,7 @@ namespace Navred.Core.Itineraries
 
             foreach (var s in this.stops)
             {
-                if (s.ArrivalTime >= stop.ArrivalTime)
+                if (s.UtcArrivalTime >= stop.UtcArrivalTime)
                 {
                     throw new InvalidOperationException("Invalid arrival time.");
                 }
@@ -53,8 +53,8 @@ namespace Navred.Core.Itineraries
 
             this.From = stops.First().Name;
             this.To = stops.Last().Name;
-            this.Departure = stops.First().ArrivalTime;
-            this.Arrival = stops.Last().ArrivalTime;
+            this.UtcDeparture = stops.First().UtcArrivalTime;
+            this.UtcArrival = stops.Last().UtcArrivalTime;
             this.Duration = this.GetDuration();
         }
 
@@ -68,7 +68,7 @@ namespace Navred.Core.Itineraries
 
         public override string ToString()
         {
-            return $"{this.From} - {this.To} ({this.Departure} - {this.Arrival}) {this.Price}";
+            return $"{this.From} - {this.To} ({this.UtcDeparture} - {this.UtcArrival}) {this.Price}";
         }
 
         public IEnumerator<Stop> GetEnumerator()
@@ -95,7 +95,7 @@ namespace Navred.Core.Itineraries
                     continue;
                 }
 
-                var diff = stop.ArrivalTime - last.ArrivalTime;
+                var diff = stop.UtcArrivalTime - last.UtcArrivalTime;
                 span += diff;
                 last = stop;
             }
