@@ -1,6 +1,9 @@
 using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Navred.Core.Extensions;
+using Navred.Core.Itineraries.DB;
 using System;
 using System.Threading.Tasks;
 
@@ -20,7 +23,9 @@ namespace Navred.Providers.Bulgaria.Boydevi
 
         public static string FunctionHandler(string input, ILambdaContext context)
         {
-            var crawler = new Crawler();
+            var provider = new ServiceCollection().AddCore().BuildServiceProvider();
+            var repo = provider.GetService<IItineraryRepository>();
+            var crawler = new Crawler(repo);
             var task = crawler.GetItinerariesAsync();
 
             task.Wait();

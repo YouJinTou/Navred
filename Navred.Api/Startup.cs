@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Navred.Core.Extensions;
 
 namespace Navred.Api
 {
@@ -19,6 +20,7 @@ namespace Navred.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services
+                .AddCore()
                 .AddAWSService<IAmazonDynamoDB>()
                 .AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);

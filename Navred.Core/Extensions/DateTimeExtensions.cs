@@ -58,5 +58,12 @@ namespace Navred.Core.Extensions
 
             return timestmap;
         }
+
+        public static DateTime ToUtcDateTime(this long utcTimestamp)
+        {
+            var utcDt = DateTimeOffset.FromUnixTimeSeconds(utcTimestamp).UtcDateTime;
+
+            return utcDt;
+        }
     }
 }

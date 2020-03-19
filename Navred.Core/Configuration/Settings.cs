@@ -1,6 +1,6 @@
 ﻿using Navred.Core.Tools;
 
-namespace Navred.Core
+namespace Navred.Core.Configuration
 {
     public class Settings
     {

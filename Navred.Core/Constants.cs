@@ -4,6 +4,8 @@ namespace Navred.Core
 {
     public static class Constants
     {
+        public const string StageUpper = "STAGE";
+
         public const DaysOfWeek AllWeek =
             DaysOfWeek.Friday |
             DaysOfWeek.Monday |

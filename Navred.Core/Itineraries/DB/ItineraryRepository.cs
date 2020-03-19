@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
+using Navred.Core.Configuration;
 using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Tools;
@@ -19,7 +20,7 @@ namespace Navred.Core.Itineraries.DB
         public ItineraryRepository(
             IAmazonDynamoDB db, ICultureProvider cultureProvider, Settings settings)
         {
-            this.db = new AmazonDynamoDBClient();
+            this.db = db;
             this.cultureProvider = cultureProvider;
             this.settings = settings;
         }
@@ -29,9 +30,24 @@ namespace Navred.Core.Itineraries.DB
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to);
 
-            var itineraries = await this.GetItinerariesRecursiveAsync(from, window);
+            var dbItineraries = await this.GetItinerariesRecursiveAsync(from, window);
+            var itineraries = new List<Itinerary>();
 
-            return null;
+            foreach (var dbi in dbItineraries)
+            {
+                foreach (var dbTo in dbi.Tos)
+                {
+                    var itinerary = new Itinerary(dbTo.Carrier, dbTo.Price);
+
+                    itinerary.AddStop(new Stop(dbi.From, dbi.UtcTimestamp.ToUtcDateTime()));
+
+                    itinerary.AddStop(new Stop(dbTo.To, dbTo.Arrival));
+
+                    itineraries.Add(itinerary);
+                }
+            }
+
+            return itineraries;
         }
 
         public async Task UpdateItinerariesAsync(IEnumerable<Itinerary> itineraries)

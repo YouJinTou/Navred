@@ -5,7 +5,6 @@ using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
-using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,25 +14,28 @@ namespace Navred.Providers.Bulgaria.Boydevi
 {
     public class Crawler : ICrawler
     {
+        private readonly IItineraryRepository repo;
+
+        public Crawler(IItineraryRepository repo)
+        {
+            this.repo = repo;
+        }
+
         public async Task<IEnumerable<Itinerary>> GetItinerariesAsync()
         {
-            var repo = new ItineraryRepository(null, new BulgarianCultureProvider(), new Settings());
-            var from = new System.DateTime(2020, 3, 19, 18, 0, 0);
-            var to = new System.DateTime(2020, 3, 19, 19, 0, 0);
-            //var result = await repo.GetItinerariesAsync("Харманли", "Любимец", new TimeWindow(from, to));
             var itineraries = new List<Itinerary>();
             var svilengradSofia = await this.GetItinerariesAsync(
                 "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%be%d1%84%d0%b8%d1%8f/");
-            //var svilengradHaskovo = await this.GetItinerariesAsync(
-            //"http://boydevi-bg.com/%d0%b7%d0%b0-%d1%85%d0%b0%d1%81%d0%ba%d0%be%d0%b2%d0%be/");
-            //var toSvilengrad = await this.GetItinerariesAsync(
-            //    "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%b2%d0%b8%d0%bb%d0%b5%d0%bd%d0%b3%d1%80%d0%b0%d0%b4/");
+            var svilengradHaskovo = await this.GetItinerariesAsync(
+            "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%85%d0%b0%d1%81%d0%ba%d0%be%d0%b2%d0%be/");
+            var toSvilengrad = await this.GetItinerariesAsync(
+                "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%b2%d0%b8%d0%bb%d0%b5%d0%bd%d0%b3%d1%80%d0%b0%d0%b4/");
 
-            //itineraries.AddRange(svilengradSofia);
+            itineraries.AddRange(svilengradSofia);
 
-            //itineraries.AddRange(svilengradHaskovo);
+            itineraries.AddRange(svilengradHaskovo);
 
-            //itineraries.AddRange(toSvilengrad);
+            itineraries.AddRange(toSvilengrad);
 
             await repo.UpdateItinerariesAsync(itineraries);
 

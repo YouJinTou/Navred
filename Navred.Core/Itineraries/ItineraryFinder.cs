@@ -19,7 +19,9 @@ namespace Navred.Core.Itineraries
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to, window);
 
-            return null;
+            var itinieraries = await this.repo.GetItinerariesAsync(from, to, window);
+
+            return itinieraries;
         }
     }
 }
