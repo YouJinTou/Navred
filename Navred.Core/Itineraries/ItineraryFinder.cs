@@ -60,7 +60,7 @@ namespace Navred.Core.Itineraries
 
                 foreach (var edge in path.Path)
                 {
-                    //itinerary.AddStop(new Stop(edge.Source.Name, edge.UtcArrival, edge));
+                    itinerary.AddStop(new Stop(edge.Source.Name, edge.UtcArrival, edge.Carrier, edge.Weight.Price));
                 }
 
                 resultItineraries.Add(itinerary);
