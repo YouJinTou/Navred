@@ -39,7 +39,7 @@ namespace Navred.Core.Itineraries.DB
                 {
                     var itinerary = new Itinerary();
 
-                    itinerary.AddStops(dbTo.Stops);
+                    itinerary.AddLegs(dbTo.Legs);
 
                     itineraries.Add(itinerary);
                 }
@@ -91,7 +91,7 @@ namespace Navred.Core.Itineraries.DB
                             Duration = i.Duration,
                             Price = i.Price,
                             To = i.To,
-                            Stops = i.Stops
+                            Legs = i.Legs
                         }).ToList()
                     });
                 }
@@ -192,26 +192,28 @@ namespace Navred.Core.Itineraries.DB
                 map[nameof(DBTo.UtcDeparture)] = new AttributeValue { S = to.UtcDeparture.ToString() };
                 map[nameof(DBTo.Duration)] = new AttributeValue { S = to.Duration.ToString() };
                 map[nameof(DBTo.To)] = new AttributeValue { S = to.To };
-                map[nameof(DBTo.Stops)] = new AttributeValue { L = new List<AttributeValue>() };
+                map[nameof(DBTo.Legs)] = new AttributeValue { L = new List<AttributeValue>() };
 
-                foreach (var s in to.Stops)
+                foreach (var l in to.Legs)
                 {
-                    var stopValue = new AttributeValue
+                    var legValue = new AttributeValue
                     {
                         M = new Dictionary<string, AttributeValue>
                         {
-                            { nameof(Stop.Carrier), new AttributeValue { S = s.Carrier } },
-                            { nameof(Stop.Name), new AttributeValue { S = s.Name } },
-                            { nameof(Stop.UtcArrivalTime), new AttributeValue { S = s.UtcArrivalTime.ToString() } },
+                            { nameof(Leg.From), new AttributeValue { S = l.From } },
+                            { nameof(Leg.To), new AttributeValue { S = l.To } },
+                            { nameof(Leg.UtcArrival), new AttributeValue { S = l.UtcArrival.ToString() } },
+                            { nameof(Leg.UtcDeparture), new AttributeValue { S = l.UtcDeparture.ToString() } },
+                            { nameof(Leg.Carrier), new AttributeValue { S = l.Carrier } },
                         }
                     };
 
-                    if (s.Price.HasValue)
+                    if (l.Price.HasValue)
                     {
-                        stopValue.M[nameof(Stop.Price)] = new AttributeValue { N = s.Price.ToString() };
+                        legValue.M[nameof(Leg.Price)] = new AttributeValue { N = l.Price.ToString() };
                     }
 
-                    map[nameof(DBTo.Stops)].L.Add(stopValue);
+                    map[nameof(DBTo.Legs)].L.Add(legValue);
                 }
 
                 if (to.Price.HasValue)

@@ -6,13 +6,13 @@ using System.Linq;
 
 namespace Navred.Core.Itineraries
 {
-    public class Itinerary : IEnumerable<Stop>
+    public class Itinerary : IEnumerable<Leg>
     {
-        private readonly IList<Stop> stops;
+        private readonly IList<Leg> legs;
 
         public Itinerary()
         {
-            this.stops = new List<Stop>();
+            this.legs = new List<Leg>();
             this.Carriers = new HashSet<string>();
         }
 
@@ -22,7 +22,7 @@ namespace Navred.Core.Itineraries
 
         public string To { get; private set; }
 
-        public IEnumerable<Stop> Stops => this.stops.ToList();
+        public IEnumerable<Leg> Legs => this.legs.ToList();
 
         public decimal? Price { get; private set; }
 
@@ -32,37 +32,37 @@ namespace Navred.Core.Itineraries
 
         public DateTime UtcArrival { get; private set; }
 
-        public bool IsZeroStops => this.From == this.To && this.UtcArrival == this.UtcDeparture;
+        public bool IsZeroLeg => this.From == this.To && this.UtcArrival == this.UtcDeparture;
 
-        public void AddStop(Stop stop)
+        public void AddLeg(Leg leg)
         {
-            Validator.ThrowIfNull(stop);
+            Validator.ThrowIfNull(leg);
 
-            foreach (var s in this.stops)
+            foreach (var l in this.legs)
             {
-                if (s.UtcArrivalTime >= stop.UtcArrivalTime)
+                if (l.UtcArrival >= leg.UtcArrival)
                 {
                     throw new InvalidOperationException("Invalid arrival time.");
                 }
             }
 
-            this.stops.Add(stop);
+            this.legs.Add(leg);
 
-            this.From = stops.First().Name;
-            this.To = stops.Last().Name;
-            this.UtcDeparture = stops.First().UtcArrivalTime;
-            this.UtcArrival = stops.Last().UtcArrivalTime;
+            this.From = legs.First().From;
+            this.To = legs.Last().From;
+            this.UtcDeparture = legs.First().UtcArrival;
+            this.UtcArrival = legs.Last().UtcArrival;
             this.Duration = this.GetDuration();
-            this.Price += stop.Price;
+            this.Price += leg.Price;
 
-            this.Carriers.Add(stop.Carrier);
+            this.Carriers.Add(leg.Carrier);
         }
 
-        public void AddStops(IEnumerable<Stop> stops)
+        public void AddLegs(IEnumerable<Leg> legs)
         {
-            foreach (var stop in stops)
+            foreach (var leg in legs)
             {
-                this.AddStop(stop);
+                this.AddLeg(leg);
             }
         }
 
@@ -71,33 +71,33 @@ namespace Navred.Core.Itineraries
             return $"{this.From} - {this.To} ({this.UtcDeparture} - {this.UtcArrival}) {this.Price}";
         }
 
-        public IEnumerator<Stop> GetEnumerator()
+        public IEnumerator<Leg> GetEnumerator()
         {
-            return this.stops.GetEnumerator();
+            return this.legs.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.stops.GetEnumerator();
+            return this.legs.GetEnumerator();
         }
 
         private TimeSpan GetDuration()
         {
             var span = new TimeSpan();
-            var last = default(Stop);
+            var last = default(Leg);
 
-            foreach (var stop in this.stops)
+            foreach (var leg in this.legs)
             {
                 if (last == null)
                 {
-                    last = stop;
+                    last = leg;
 
                     continue;
                 }
 
-                var diff = stop.UtcArrivalTime - last.UtcArrivalTime;
+                var diff = leg.UtcArrival - last.UtcArrival;
                 span += diff;
-                last = stop;
+                last = leg;
             }
 
             return span;

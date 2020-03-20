@@ -3,18 +3,18 @@ using System.Text.RegularExpressions;
 
 namespace Navred.Core.Itineraries
 {
-    public class StopTime
+    public class LegTime
     {
-        public StopTime(string time)
+        public LegTime(string time)
         {
             this.Time = this.ArrivalTimeToTimeSpan(time);
         }
 
         public TimeSpan Time { get; }
 
-        public static implicit operator StopTime(string time)
+        public static implicit operator LegTime(string time)
         {
-            return new StopTime(time);
+            return new LegTime(time);
         }
 
         private TimeSpan ArrivalTimeToTimeSpan(string arrivalTime)

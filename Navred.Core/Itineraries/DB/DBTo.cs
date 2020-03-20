@@ -16,11 +16,11 @@ namespace Navred.Core.Itineraries.DB
 
         public DateTime UtcArrival { get; set; }
 
-        public IEnumerable<Stop> Stops { get; set; }
+        public IEnumerable<Leg> Legs { get; set; }
 
         public string GetUniqueId()
         {
-            var carriers = this.Stops.Select(s => s.Carrier).Distinct();
+            var carriers = this.Legs.Select(s => s.Carrier).Distinct();
             var id = $"{this.To}_{string.Join('_', carriers)}";
 
             return id;

@@ -35,9 +35,9 @@ namespace Navred.Providers.Bulgaria.Boydevi
 
             itineraries.AddRange(svilengradSofia);
 
-            itineraries.AddRange(svilengradHaskovo);
+            //itineraries.AddRange(svilengradHaskovo);
 
-            itineraries.AddRange(toSvilengrad);
+            //itineraries.AddRange(toSvilengrad);
 
             await repo.UpdateItinerariesAsync(itineraries);
 
@@ -61,13 +61,16 @@ namespace Navred.Providers.Bulgaria.Boydevi
                     scheduleString, @$"([{BulgarianCultureProvider.Letters} .]+)\s*\((\d+:\d+)\)")
                     .ToList();
 
-                for (int i = 0; i < stopMatches.Count; i++)
+                for (int i = 0; i < stopMatches.Count - 1; i++)
                 {
-                    var match = stopMatches[i];
-                    var name = this.provider.NormalizePlaceName(match.Groups[1].Value);
-                    var arrivalTime = match.Groups[2].Value;
-                    var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(arrivalTime, daysAhead)
-                        .ToList();
+                    var fromMatch = stopMatches[i];
+                    var toMatch = stopMatches[i + 1];
+                    var from = this.provider.NormalizePlaceName(fromMatch.Groups[1].Value);
+                    var to = this.provider.NormalizePlaceName(toMatch.Groups[1].Value);
+                    var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
+                        fromMatch.Groups[2].Value, daysAhead).ToList();
+                    var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(
+                        toMatch.Groups[2].Value, daysAhead).ToList();
 
                     if (currentItineraries.IsEmpty())
                     {
@@ -77,7 +80,8 @@ namespace Navred.Providers.Bulgaria.Boydevi
 
                     for (int t = 0; t < arrivalTimes.Count(); t++)
                     {
-                        currentItineraries[t].AddStop(new Stop(name, arrivalTimes[t], "Бойдеви"));
+                        currentItineraries[t].AddLeg(
+                            new Leg(from, to, departureTimes[t], arrivalTimes[t], "Бойдеви"));
                     }
                 }
 

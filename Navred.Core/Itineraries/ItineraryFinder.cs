@@ -28,17 +28,17 @@ namespace Navred.Core.Itineraries
                 .Distinct()
                 .Select(s => new Vertex { Name = s })
                 .ToList();
-            var edges = itineraries.Select(i => new Edge
+            var edges = itineraries.SelectMany(i => i.Legs).Select(l => new Edge
             {
-                Source = vertices.First(v => v.Name == i.From),
-                Destination = vertices.First(v => v.Name == i.To),
+                Source = vertices.Single(v => v.Name == l.From),
+                Destination = vertices.Single(v => v.Name == l.To),
                 Weight = new Weight
                 {
-                    Duration = i.Duration,
-                    Price = i.Price,
+                    Duration = l.Duration,
+                    Price = l.Price,
                 },
-                UtcArrival = i.UtcArrival,
-                UtcDeparture = i.UtcDeparture
+                UtcArrival = l.UtcArrival,
+                UtcDeparture = l.UtcDeparture
             }).ToList();
 
             foreach (var vertex in vertices)
@@ -60,7 +60,13 @@ namespace Navred.Core.Itineraries
 
                 foreach (var edge in path.Path)
                 {
-                    itinerary.AddStop(new Stop(edge.Source.Name, edge.UtcArrival, edge.Carrier, edge.Weight.Price));
+                    itinerary.AddLeg(new Leg(
+                        edge.Source.Name, 
+                        edge.Destination.Name, 
+                        edge.UtcArrival, 
+                        edge.UtcDeparture, 
+                        edge.Carrier, 
+                        edge.Weight.Price));
                 }
 
                 resultItineraries.Add(itinerary);

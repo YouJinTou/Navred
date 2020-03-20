@@ -51,8 +51,8 @@ namespace Navred.Core.Search
         public override string ToString()
         {
             var destination = this.Path.Last().Destination.ToString();
-            var stops = string.Join(" - ", this.Path.Select(p => p.Source));
-            var result = $"{stops} - {destination} | {this.Weight}";
+            var legs = string.Join(" - ", this.Path.Select(p => p.Source));
+            var result = $"{legs} - {destination} | {this.Weight}";
 
             return result;
         }

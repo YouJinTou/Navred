@@ -26,8 +26,7 @@ namespace Navred.Core.Extensions
                 .AddDefaultAWSOptions(config.GetAWSOptions())
                 .AddAWSService<IAmazonDynamoDB>()
                 .AddByConvention(typeof(Constants).Assembly)
-                .AddTransient<ICultureProvider, BulgarianCultureProvider>()
-                .AddTransient<IPathFinder, Dijkstra>();
+                .AddTransient<ICultureProvider, BulgarianCultureProvider>();
 
             return services;
         }

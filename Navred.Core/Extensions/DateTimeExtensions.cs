@@ -7,7 +7,7 @@ namespace Navred.Core.Extensions
     public static class DateTimeExtensions
     {
         public static IEnumerable<DateTime> GetValidUtcTimesAhead(
-            this DaysOfWeek daysOfWeek, StopTime stopTime, int daysAhead)
+            this DaysOfWeek daysOfWeek, LegTime legTime, int daysAhead)
         {
             var offset = DateTimeOffset.Now;
             var times = new List<DateTime>();
@@ -18,7 +18,7 @@ namespace Navred.Core.Extensions
 
                 if (currentDate.DayOfWeek.Matches(daysOfWeek))
                 {
-                    var time = currentDate.Date + stopTime.Time - offset.Offset;
+                    var time = currentDate.Date + legTime.Time - offset.Offset;
 
                     times.Add(time);
                 }

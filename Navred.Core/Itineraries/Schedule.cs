@@ -36,7 +36,7 @@ namespace Navred.Core.Itineraries
             {
                 foreach (var child in this.GetWithChildren(i))
                 {
-                    if (!child.IsZeroStops)
+                    if (!child.IsZeroLeg)
                     {
                         all.Add(child);
                     }
@@ -50,15 +50,15 @@ namespace Navred.Core.Itineraries
         {
             var all = new List<Itinerary>();
 
-            for (int s = 0; s < i.Stops.Count(); s++)
+            for (int s = 0; s < i.Legs.Count(); s++)
             {
-                var stops = i.Stops.Skip(s).ToList();
+                var legs = i.Legs.Skip(s).ToList();
 
-                for (int x = stops.Count(); x > 0; x--)
+                for (int x = legs.Count(); x > 0; x--)
                 {
                     var itinerary = new Itinerary();
 
-                    itinerary.AddStops(stops.Take(x));
+                    itinerary.AddLegs(legs.Take(x));
 
                     all.Add(itinerary);
                 }
