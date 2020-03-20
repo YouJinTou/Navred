@@ -13,7 +13,8 @@ namespace Navred.Api.Controllers
         private readonly IItineraryFinder finder;
         private readonly ILogger<ItinerariesController> logger;
 
-        public ItinerariesController(IItineraryFinder finder, ILogger<ItinerariesController> logger)
+        public ItinerariesController(
+            IItineraryFinder finder, ILogger<ItinerariesController> logger)
         {
             this.finder = finder;
             this.logger = logger;
