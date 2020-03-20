@@ -56,7 +56,7 @@ namespace Navred.Core.Itineraries
 
                 for (int x = stops.Count(); x > 0; x--)
                 {
-                    var itinerary = new Itinerary(i.Carrier);
+                    var itinerary = new Itinerary();
 
                     itinerary.AddStops(stops.Take(x));
 

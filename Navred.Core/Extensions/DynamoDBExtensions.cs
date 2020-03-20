@@ -85,10 +85,11 @@ namespace Navred.Core.Extensions
 
             if (attr.IsLSet)
             {
-                var listType = type.GenericTypeArguments[1];
+                var listType = type.GenericTypeArguments[0];
                 var list = attr.L.Select(i => GetValueRecursive(i, listType)).ToList();
+                var genericList = list.ToGenericEnumerable(listType);
 
-                return list;
+                return genericList;
             }
 
             throw new InvalidOperationException("Could not map DynamoDB value.");

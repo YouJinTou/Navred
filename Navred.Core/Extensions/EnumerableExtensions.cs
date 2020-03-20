@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Navred.Core.Extensions
@@ -19,5 +20,20 @@ namespace Navred.Core.Extensions
 
             return false;
         }
+
+        public static System.Collections.IEnumerable ToGenericEnumerable(
+            this System.Collections.IEnumerable enumerable, Type type)
+        {
+            var genericList = typeof(List<>).MakeGenericType(type);
+            var list = Activator.CreateInstance(genericList) as System.Collections.IList;
+
+            foreach (var item in enumerable)
+            {
+                list.Add(item);
+            }
+
+            return list;
+        }
+
     }
 }

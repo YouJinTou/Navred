@@ -37,11 +37,9 @@ namespace Navred.Core.Itineraries.DB
             {
                 foreach (var dbTo in dbi.Tos)
                 {
-                    var itinerary = new Itinerary(dbTo.Carrier, dbTo.Price);
+                    var itinerary = new Itinerary();
 
-                    itinerary.AddStop(new Stop(dbi.From, dbi.UtcTimestamp.ToUtcDateTime()));
-
-                    itinerary.AddStop(new Stop(dbTo.To, dbTo.UtcArrival));
+                    itinerary.AddStops(dbTo.Stops);
 
                     itineraries.Add(itinerary);
                 }
@@ -89,12 +87,11 @@ namespace Navred.Core.Itineraries.DB
                         Tos = stampGroup.Select(i => new DBTo
                         {
                             UtcArrival = i.UtcArrival,
-                            Carrier = i.Carrier,
                             UtcDeparture = i.UtcDeparture,
                             Duration = i.Duration,
-                            OnDays = i.OnDays,
                             Price = i.Price,
-                            To = i.To
+                            To = i.To,
+                            Stops = i.Stops
                         }).ToList()
                     });
                 }
@@ -192,22 +189,34 @@ namespace Navred.Core.Itineraries.DB
             {
                 var map = new Dictionary<string, AttributeValue>();
                 map[nameof(DBTo.UtcArrival)] = new AttributeValue { S = to.UtcArrival.ToString() };
-                map[nameof(DBTo.Carrier)] = new AttributeValue { S = to.Carrier };
                 map[nameof(DBTo.UtcDeparture)] = new AttributeValue { S = to.UtcDeparture.ToString() };
                 map[nameof(DBTo.Duration)] = new AttributeValue { S = to.Duration.ToString() };
                 map[nameof(DBTo.To)] = new AttributeValue { S = to.To };
+                map[nameof(DBTo.Stops)] = new AttributeValue { L = new List<AttributeValue>() };
 
-                if (to.OnDays.HasValue)
+                foreach (var s in to.Stops)
                 {
-                    map[nameof(DBTo.OnDays)] = new AttributeValue
+                    var stopValue = new AttributeValue
                     {
-                        N = ((long)to.OnDays).ToString()
+                        M = new Dictionary<string, AttributeValue>
+                        {
+                            { nameof(Stop.Carrier), new AttributeValue { S = s.Carrier } },
+                            { nameof(Stop.Name), new AttributeValue { S = s.Name } },
+                            { nameof(Stop.UtcArrivalTime), new AttributeValue { S = s.UtcArrivalTime.ToString() } },
+                        }
                     };
+
+                    if (s.Price.HasValue)
+                    {
+                        stopValue.M[nameof(Stop.Price)] = new AttributeValue { N = s.Price.ToString() };
+                    }
+
+                    map[nameof(DBTo.Stops)].L.Add(stopValue);
                 }
 
                 if (to.Price.HasValue)
                 {
-                    map[nameof(DBTo.Price)] = new AttributeValue { N = to.Price.Value.ToString() };
+                    map[nameof(DBTo.Price)] = new AttributeValue { N = to.Price.ToString() };
                 }
 
                 values[this.GetAttributeValueKey(to)] = new AttributeValue { M = map };

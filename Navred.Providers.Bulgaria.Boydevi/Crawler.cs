@@ -72,12 +72,12 @@ namespace Navred.Providers.Bulgaria.Boydevi
                     if (currentItineraries.IsEmpty())
                     {
                         currentItineraries = Enumerable.Range(0, arrivalTimes.Count)
-                            .Select(i => new Itinerary("Бойдеви")).ToList();
+                            .Select(i => new Itinerary()).ToList();
                     }
 
                     for (int t = 0; t < arrivalTimes.Count(); t++)
                     {
-                        currentItineraries[t].AddStop(new Stop(name, arrivalTimes[t]));
+                        currentItineraries[t].AddStop(new Stop(name, arrivalTimes[t], "Бойдеви"));
                     }
                 }
 

@@ -14,8 +14,6 @@ namespace Navred.Core.Search
 
         public DateTime UtcDeparture { get; set; }
 
-        public string Carrier { get; set; }
-
         public override string ToString()
         {
             return 

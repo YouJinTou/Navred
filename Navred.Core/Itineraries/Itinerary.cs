@@ -10,14 +10,13 @@ namespace Navred.Core.Itineraries
     {
         private readonly IList<Stop> stops;
 
-        public Itinerary(string carrier, decimal? price = null)
+        public Itinerary()
         {
             this.stops = new List<Stop>();
-            this.Carrier = carrier;
-            this.Price = price;
+            this.Carriers = new HashSet<string>();
         }
 
-        public string Carrier { get; }
+        public ICollection<string> Carriers { get; }
 
         public string From { get; private set; }
 
@@ -25,9 +24,7 @@ namespace Navred.Core.Itineraries
 
         public IEnumerable<Stop> Stops => this.stops.ToList();
 
-        public decimal? Price { get; }
-
-        public DaysOfWeek? OnDays { get; }
+        public decimal? Price { get; private set; }
 
         public TimeSpan Duration { get; private set; }
 
@@ -56,6 +53,9 @@ namespace Navred.Core.Itineraries
             this.UtcDeparture = stops.First().UtcArrivalTime;
             this.UtcArrival = stops.Last().UtcArrivalTime;
             this.Duration = this.GetDuration();
+            this.Price += stop.Price;
+
+            this.Carriers.Add(stop.Carrier);
         }
 
         public void AddStops(IEnumerable<Stop> stops)
