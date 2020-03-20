@@ -29,8 +29,8 @@ namespace Navred.Core.Itineraries.DB
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to);
 
-            var normalizedFrom = this.cultureProvider.NormalizePlaceName(from);
-            var dbItineraries = await this.GetItinerariesRecursiveAsync(from, window);
+            var dbItineraries = await this.GetItinerariesRecursiveAsync(
+                from, window, new HashSet<string>());
             var itineraries = new List<Itinerary>();
 
             foreach (var dbi in dbItineraries)
@@ -140,7 +140,7 @@ namespace Navred.Core.Itineraries.DB
         }
 
         private async Task<IEnumerable<DBItinerary>> GetItinerariesRecursiveAsync(
-            string from, TimeWindow window)
+            string from, TimeWindow window, ICollection<string> queried)
         {
             var itineraries = (await this.GetEdges(from, window)).ToList();
             var toVertices = itineraries.SelectMany(i => i.Tos).Select(t => new
@@ -151,9 +151,17 @@ namespace Navred.Core.Itineraries.DB
 
             foreach (var v in toVertices)
             {
-                var nextItineraries = await this.GetItinerariesRecursiveAsync(v.Vertex, v.Window);
+                if (queried.Contains(v.Vertex))
+                {
+                    continue;
+                }
+
+                var nextItineraries = await this.GetItinerariesRecursiveAsync(
+                    v.Vertex, v.Window, queried);
 
                 itineraries.AddRange(nextItineraries);
+
+                queried.Add(v.Vertex);
             }
 
             return itineraries;

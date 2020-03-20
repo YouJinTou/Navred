@@ -1,5 +1,4 @@
 ﻿using Navred.Core.Extensions;
-using Navred.Core.Itineraries;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,23 +6,24 @@ namespace Navred.Core.Search
 {
     internal class Dijkstra : IPathFinder
     {
-        public IEnumerable<Itinerary> FindItineraries(Graph graph)
+        public GraphSearchResult FindPaths(Graph graph)
         {
-            var distances = graph.Vertices.ToDictionary(
-                kvp => kvp.Name, kvp => Weight.CreateMax());
-            distances[graph.Source.Name] = new Weight
-            {
-                UtcArrival = graph.Source.Edges.First().Weight.UtcArrival
-            };
-            var unvisited = new HashSet<Vertex>(graph.Vertices);
-            var previous = graph.Vertices.ToDictionary(
-                kvp => kvp.Name, kvp => kvp.Name);
+            return null;
+            //var distances = graph.Vertices.ToDictionary(
+            //    kvp => kvp.Name, kvp => Weight.CreateMax());
+            //distances[graph.Source.Name] = new Weight();
+            //var unvisited = new HashSet<Vertex>(graph.Vertices);
+            //var previous = graph.Vertices.ToDictionary(
+            //    kvp => kvp.Name, kvp => kvp.Name);
 
-            this.UpdateDistancesRecursive(graph.Source, unvisited, distances, previous);
+            //this.UpdateDistancesRecursive(graph.Source, unvisited, distances, previous);
 
-            var itineraries = this.GetItineraries(graph, previous, distances);
+            //var result = new GraphSearchResult
+            //{
+            //    Paths = this.GetPaths(graph, previous, distances)
+            //};
 
-            return itineraries;
+            //return result;
         }
 
         private void UpdateDistancesRecursive(
@@ -67,35 +67,33 @@ namespace Navred.Core.Search
             this.UpdateDistancesRecursive(minVertex, unvisited, distances, previous);
         }
 
-        private IEnumerable<Itinerary> GetItineraries(
+        private IEnumerable<GraphSearchPath> GetPaths(
             Graph graph,
-            IDictionary<string, string> previous, 
+            IDictionary<string, string> previous,
             IDictionary<string, Weight> distances)
         {
-            var last = previous[graph.Destination.Name];
-            var stops = new List<Stop>
-            {
-                new Stop(graph.Destination.Name, distances[graph.Destination.Name].UtcArrival)
-            };
+            return null;
+            //var last = previous[graph.Destination.Name];
+            //var path = new GraphSearchPath
+            //{
+            //    Path = new List<Vertex>()
+            //};
 
-            while (last != graph.Source.Name)
-            {
-                var distance = distances[last];
+            //path.Path.Add(graph.Vertices.First(v => v.Name == graph.Destination.Name));
 
-                stops.Add(new Stop(last, distance.UtcArrival));
+            //while (last != graph.Source.Name)
+            //{
+            //    var distance = distances[last];
+            //    last = previous[last];
 
-                last = previous[last];
-            }
+            //    path.Path.Add(graph.Vertices.First(v => v.Name == last));
+            //}
 
-            stops.Add(new Stop(graph.Source.Name, distances[graph.Source.Name].UtcArrival));
+            //path.Path.Add(graph.Vertices.First(v => v.Name == graph.Source.Name));
 
-            stops.Reverse();
+            //path.Path.Reverse();
 
-            var bestItinerary = new Itinerary("AN ITINERARY CAN CONTAIN MORE THAN ONE CARRIER...");
-
-            bestItinerary.AddStops(stops);
-
-            return new List<Itinerary> { bestItinerary };
+            //return new List<GraphSearchPath> { path };
         }
     }
 }

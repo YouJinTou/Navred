@@ -2,15 +2,11 @@
 
 namespace Navred.Core.Search
 {
-    public class Weight
+    public class Weight : IComparable<Weight>
     {
         public TimeSpan Duration { get; set; }
 
         public decimal? Price { get; set; }
-
-        public DateTime UtcArrival { get; set; }
-
-        public string Carrier { get; set; }
 
         public static Weight CreateMax()
         {
@@ -36,14 +32,23 @@ namespace Navred.Core.Search
             return new Weight
             {
                 Duration = w1.Duration + w2.Duration,
-                Price = w1.Price + w2.Price,
-                UtcArrival = w2.UtcArrival
+                Price = w1.Price + w2.Price
             };
         }
 
         public override string ToString()
         {
             return $"{this.Duration}" + (this.Price.HasValue ? $" | {this.Price}" : string.Empty);
+        }
+
+        public int CompareTo(Weight other)
+        {
+            if (other == null)
+            {
+                return -1;
+            }
+
+            return this.Duration.CompareTo(other.Duration);
         }
     }
 }
