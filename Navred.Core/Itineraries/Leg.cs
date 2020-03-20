@@ -41,7 +41,8 @@ namespace Navred.Core.Itineraries
 
         public override string ToString()
         {
-            return $"{this.From} - {this.To} ({this.UtcDeparture} - {this.UtcArrival}) {this.Price}";
+            return 
+                $"{this.From} - {this.To} ({this.UtcDeparture} - {this.UtcArrival}) {this.Price}";
         }
     }
 }
