@@ -15,7 +15,7 @@ namespace Navred.Playground
             var from = new DateTime(2020, 3, 25, 6, 0, 0);
             var to = new DateTime(2020, 3, 25, 11, 30, 0);
             var window = new TimeWindow(from, to);
-            var result = finder.FindItinerariesAsync("Свиленград", "Любимец", window).Result;
+            var result = finder.FindItinerariesAsync("Свиленград", "София", window).Result;
         }
     }
 }

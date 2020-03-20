@@ -6,6 +6,6 @@ namespace Navred.Core.Itineraries
 {
     public interface IItineraryFinder
     {
-        Task<IEnumerable<Itinerary>> FindItinerariesAsync(string from, string to, TimeWindow window);
+        Task<IEnumerable<Leg>> FindItinerariesAsync(string from, string to, TimeWindow window);
     }
 }

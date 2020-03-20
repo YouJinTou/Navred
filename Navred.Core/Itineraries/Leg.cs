@@ -33,16 +33,27 @@ namespace Navred.Core.Itineraries
 
         public DateTime UtcDeparture { get; private set; }
 
-        public TimeSpan Duration => this.UtcArrival - this.UtcDeparture;
+        public TimeSpan Duration
+        {
+            get => this.UtcArrival - this.UtcDeparture;
+            private set { }
+        }
 
         public string Carrier { get; private set; }
 
         public decimal? Price { get; private set; }
 
+        public string GetUniqueId()
+        {
+            var id = $"{this.To}_{this.Carrier}";
+
+            return id;
+        }
+
         public override string ToString()
         {
             return 
-                $"{this.From} - {this.To} ({this.UtcDeparture} - {this.UtcArrival}) {this.Price}";
+                $"{this.From} {this.UtcDeparture} - {this.To} {this.UtcArrival} {this.Price}";
         }
     }
 }

@@ -1,44 +1,49 @@
 ﻿using Navred.Core.Tools;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Navred.Core.Itineraries
 {
     public class Schedule
     {
-        private ICollection<Itinerary> itineraries;
+        private IList<Leg> legs;
 
         public Schedule()
         {
-            this.itineraries = new HashSet<Itinerary>(new ItineraryEqualityComparer());
+            this.legs = new List<Leg>();
         }
 
-        public void AddItinerary(Itinerary itinerary)
+        public void AddLeg(Leg Leg)
         {
-            Validator.ThrowIfNull(itinerary);
+            Validator.ThrowIfNull(Leg);
 
-            this.itineraries.Add(itinerary);
+            this.legs.Add(Leg);
         }
 
-        public void AddItineraries(IEnumerable<Itinerary> itineraries)
+        public void AddLegs(IEnumerable<Leg> legs)
         {
-            foreach (var i in itineraries)
+            foreach (var l in legs)
             {
-                this.AddItinerary(i);
+                this.AddLeg(l);
             }
         }
 
-        public IEnumerable<Itinerary> GetWithChildren()
+        public IEnumerable<Leg> GetWithChildren(int legTimeSpread)
         {
-            var all = new HashSet<Itinerary>(new ItineraryEqualityComparer());
+            var all = new HashSet<Leg>(new LegEqualityComparer());
 
-            foreach (var i in this.itineraries)
+            for (int t = 0; t < legTimeSpread; t++)
             {
-                foreach (var child in this.GetWithChildren(i))
+                for (int i = t; i < this.legs.Count; i += legTimeSpread)
                 {
-                    if (!child.IsZeroLeg)
+                    for (int j = i; j < this.legs.Count; j += legTimeSpread)
                     {
-                        all.Add(child);
+                        all.Add(new Leg(
+                            this.legs[i].From,
+                            this.legs[j].To,
+                            this.legs[i].UtcDeparture,
+                            this.legs[j].UtcArrival,
+                            this.legs[i].Carrier,
+                            this.GetLegsPrice(i, j, legTimeSpread)));
                     }
                 }
             }
@@ -46,25 +51,16 @@ namespace Navred.Core.Itineraries
             return all;
         }
 
-        private IEnumerable<Itinerary> GetWithChildren(Itinerary i)
+        private decimal? GetLegsPrice(int start, int end, int legTimeSpread)
         {
-            var all = new List<Itinerary>();
+            var sum = default(decimal?);
 
-            for (int s = 0; s < i.Legs.Count(); s++)
+            for (int i = start; i <= end; i += legTimeSpread)
             {
-                var legs = i.Legs.Skip(s).ToList();
-
-                for (int x = legs.Count(); x > 0; x--)
-                {
-                    var itinerary = new Itinerary();
-
-                    itinerary.AddLegs(legs.Take(x));
-
-                    all.Add(itinerary);
-                }
+                sum += this.legs[i].Price;
             }
 
-            return all;
+            return sum;
         }
     }
 }

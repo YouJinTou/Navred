@@ -26,7 +26,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
         public static void FunctionHandler(string input, ILambdaContext context)
         {
             var provider = new ServiceCollection().AddCore().BuildServiceProvider();
-            var repo = provider.GetService<IItineraryRepository>();
+            var repo = provider.GetService<ILegRepository>();
             var cultureProvider = provider.GetService<IBulgarianCultureProvider>();
             var crawler = new Crawler(repo, cultureProvider);
             var task = crawler.GetItinerariesAsync();

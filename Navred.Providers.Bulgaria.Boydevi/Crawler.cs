@@ -14,52 +14,53 @@ namespace Navred.Providers.Bulgaria.Boydevi
 {
     public class Crawler : ICrawler
     {
-        private readonly IItineraryRepository repo;
+        private readonly ILegRepository repo;
         private readonly IBulgarianCultureProvider provider;
 
-        public Crawler(IItineraryRepository repo, IBulgarianCultureProvider provider)
+        public Crawler(ILegRepository repo, IBulgarianCultureProvider provider)
         {
             this.repo = repo;
             this.provider = provider;
         }
 
-        public async Task<IEnumerable<Itinerary>> GetItinerariesAsync()
+        public async Task<IEnumerable<Leg>> GetItinerariesAsync()
         {
-            var itineraries = new List<Itinerary>();
-            var svilengradSofia = await this.GetItinerariesAsync(
+            var legs = new List<Leg>();
+            var svilengradSofia = await this.GetLegsAsync(
                 "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%be%d1%84%d0%b8%d1%8f/");
-            var svilengradHaskovo = await this.GetItinerariesAsync(
+            var svilengradHaskovo = await this.GetLegsAsync(
             "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%85%d0%b0%d1%81%d0%ba%d0%be%d0%b2%d0%be/");
-            var toSvilengrad = await this.GetItinerariesAsync(
+            var toSvilengrad = await this.GetLegsAsync(
                 "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%b2%d0%b8%d0%bb%d0%b5%d0%bd%d0%b3%d1%80%d0%b0%d0%b4/");
 
-            itineraries.AddRange(svilengradSofia);
+            legs.AddRange(svilengradSofia);
 
-            //itineraries.AddRange(svilengradHaskovo);
+            legs.AddRange(svilengradHaskovo);
 
-            //itineraries.AddRange(toSvilengrad);
+            legs.AddRange(toSvilengrad);
 
-            await repo.UpdateItinerariesAsync(itineraries);
+            await repo.UpdateLegsAsync(legs);
 
-            return itineraries;
+            return legs;
         }
 
-        private async Task<IEnumerable<Itinerary>> GetItinerariesAsync(string url)
+        private async Task<IEnumerable<Leg>> GetLegsAsync(string url)
         {
             var web = new HtmlWeb();
             var doc = await web.LoadFromWebAsync(url);
             var scheduleStrings = doc.DocumentNode.SelectNodes(
                 "//div[@class='entry-content']/p")[2].InnerText.Split("\n");
             var daysAhead = 30;
-            var schedule = new Schedule();
+            var legs = new List<Leg>();
 
             foreach (var scheduleString in scheduleStrings)
             {
-                var currentItineraries = new List<Itinerary>();
+                var schedule = new Schedule();
                 var daysOfWeek = this.GetDaysOfWeek(scheduleString);
                 var stopMatches = Regex.Matches(
                     scheduleString, @$"([{BulgarianCultureProvider.Letters} .]+)\s*\((\d+:\d+)\)")
                     .ToList();
+                var legSpread = daysAhead;
 
                 for (int i = 0; i < stopMatches.Count - 1; i++)
                 {
@@ -71,26 +72,19 @@ namespace Navred.Providers.Bulgaria.Boydevi
                         fromMatch.Groups[2].Value, daysAhead).ToList();
                     var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(
                         toMatch.Groups[2].Value, daysAhead).ToList();
+                    legSpread = arrivalTimes.Count;
 
-                    if (currentItineraries.IsEmpty())
+                    for (int t = 0; t < arrivalTimes.Count; t++)
                     {
-                        currentItineraries = Enumerable.Range(0, arrivalTimes.Count)
-                            .Select(i => new Itinerary()).ToList();
-                    }
-
-                    for (int t = 0; t < arrivalTimes.Count(); t++)
-                    {
-                        currentItineraries[t].AddLeg(
+                        schedule.AddLeg(
                             new Leg(from, to, departureTimes[t], arrivalTimes[t], "Бойдеви"));
                     }
                 }
 
-                schedule.AddItineraries(currentItineraries);
+                legs.AddRange(schedule.GetWithChildren(legSpread));
             }
 
-            var itineraries = schedule.GetWithChildren();
-
-            return itineraries;
+            return legs;
         }
 
         private DaysOfWeek GetDaysOfWeek(string scheduleString)

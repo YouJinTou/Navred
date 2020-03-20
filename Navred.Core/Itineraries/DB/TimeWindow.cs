@@ -23,5 +23,10 @@ namespace Navred.Core.Itineraries.DB
         public long FromUtcTimestamp => this.LocalFrom.ToUtcTimestamp();
 
         public long ToUtcTimestmap => this.LocalTo.ToUtcTimestamp();
+
+        public override string ToString()
+        {
+            return $"{this.LocalFrom} - {this.LocalTo}";
+        }
     }
 }
