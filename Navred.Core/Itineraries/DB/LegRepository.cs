@@ -189,6 +189,15 @@ namespace Navred.Core.Itineraries.DB
                 map[nameof(Leg.UtcDeparture)] = new AttributeValue { S = to.UtcDeparture.ToString() };
                 map[nameof(Leg.Duration)] = new AttributeValue { S = to.Duration.ToString() };
 
+                if (!string.IsNullOrWhiteSpace(to.FromSpecific))
+                {
+                    map[nameof(Leg.ToSpecific)] = new AttributeValue { S = to.FromSpecific };
+                }
+
+                if (!string.IsNullOrWhiteSpace(to.ToSpecific))
+                {
+                    map[nameof(Leg.ToSpecific)] = new AttributeValue { S = to.ToSpecific };
+                }
 
                 if (to.Price.HasValue)
                 {
