@@ -36,8 +36,10 @@ namespace Navred.Core.Itineraries
                 Destination = vertices.First(v => v.Name == i.To),
                 Weight = new Weight
                 {
+                    Carrier = i.Carrier,
                     Duration = i.Duration,
-                    Price = i.Price
+                    Price = i.Price,
+                    UtcArrival = i.UtcArrival
                 }
             }).ToList();
 
@@ -46,7 +48,11 @@ namespace Navred.Core.Itineraries
                 vertex.Edges = edges.Where(e => e.Source.Name == vertex.Name).ToList();
             }
 
-            var graph = new Graph(vertices.First(v => v.Name == from), vertices, edges);
+            var graph = new Graph(
+                vertices.Single(v => v.Name == from), 
+                vertices.Single(v => v.Name == to),
+                vertices, 
+                edges);
             var result = this.pathFinder.FindItineraries(graph);
 
             return result;

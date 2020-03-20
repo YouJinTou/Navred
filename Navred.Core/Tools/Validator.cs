@@ -44,6 +44,13 @@ namespace Navred.Core.Tools
             return s;
         }
 
+        public static T ReturnOrThrowIfNull<T>(T item)
+        {
+            ThrowIfNull(item);
+
+            return item;
+        }
+
         public static void ThrowIfNullOrEmpty<T>(IEnumerable<T> enumerable)
         {
             if (enumerable.IsNullOrEmpty())
