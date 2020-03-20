@@ -191,7 +191,7 @@ namespace Navred.Core.Itineraries.DB
 
                 if (!string.IsNullOrWhiteSpace(to.FromSpecific))
                 {
-                    map[nameof(Leg.ToSpecific)] = new AttributeValue { S = to.FromSpecific };
+                    map[nameof(Leg.FromSpecific)] = new AttributeValue { S = to.FromSpecific };
                 }
 
                 if (!string.IsNullOrWhiteSpace(to.ToSpecific))
