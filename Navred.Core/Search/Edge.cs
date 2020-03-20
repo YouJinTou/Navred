@@ -16,6 +16,10 @@ namespace Navred.Core.Search
 
         public string Carrier { get; set; }
 
+        public string FromSpecific { get; set; }
+
+        public string ToSpecific { get; set; }
+
         public override string ToString()
         {
             return 

@@ -35,7 +35,14 @@ namespace Navred.Core.Itineraries.DB
             foreach (var dbl in dbLegs)
             {
                 legs.AddRange(dbl.Tos.Select(dl => new Leg(
-                    dl.From, dl.To, dl.UtcDeparture, dl.UtcArrival, dl.Carrier, dl.Price)));
+                    dl.From, 
+                    dl.To, 
+                    dl.UtcDeparture, 
+                    dl.UtcArrival,
+                    dl.Carrier, 
+                    dl.Price, 
+                    dl.FromSpecific, 
+                    dl.ToSpecific)));
             }
 
             return legs;
