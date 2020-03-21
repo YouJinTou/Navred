@@ -29,7 +29,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
             var repo = provider.GetService<ILegRepository>();
             var cultureProvider = provider.GetService<IBulgarianCultureProvider>();
             var crawler = new Crawler(repo, cultureProvider);
-            var task = crawler.GetItinerariesAsync();
+            var task = crawler.GetLegsAsync();
 
             task.Wait();
         }

@@ -23,7 +23,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
             this.provider = provider;
         }
 
-        public async Task<IEnumerable<Leg>> GetItinerariesAsync()
+        public async Task<IEnumerable<Leg>> GetLegsAsync()
         {
             var legs = new List<Leg>();
             var svilengradSofia = await this.GetLegsAsync(

@@ -6,6 +6,6 @@ namespace Navred.Core.Abstractions
 {
     public interface ICrawler
     {
-        Task<IEnumerable<Leg>> GetItinerariesAsync();
+        Task<IEnumerable<Leg>> GetLegsAsync();
     }
 }
