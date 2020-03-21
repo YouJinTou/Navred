@@ -9,7 +9,6 @@ namespace Navred.Providers.SofiaCentralBusStation.Tests
         [Fact]
         public void RunsCrawler()
         {
-
             var context = new TestLambdaContext();
             
             Function.FunctionHandler("hello world", context);

@@ -9,7 +9,6 @@ namespace Navred.Providers.Bulgaria.Boydevi.Tests
         [Fact]
         public void RunsCrawler()
         {
-
             var context = new TestLambdaContext();
             
             Function.FunctionHandler("hello world", context);

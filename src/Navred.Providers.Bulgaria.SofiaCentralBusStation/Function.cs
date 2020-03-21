@@ -44,9 +44,16 @@ namespace Navred.Providers.SofiaCentralBusStation
 
         public static void FunctionHandler(string input, ILambdaContext context)
         {
-            var task = crawler.UpdateLegsAsync();
+            try
+            {
+                var task = crawler.UpdateLegsAsync();
 
-            task.Wait();
+                task.Wait();
+            }
+            catch (Exception ex)
+            {
+                context.Logger.Log(ex.ToString());
+            }
         }
     }
 }
