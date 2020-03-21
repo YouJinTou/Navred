@@ -79,7 +79,13 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                     }
                     catch (Exception ex)
                     {
+                        Console.OutputEncoding = this.windows1251;
+
                         Console.WriteLine(ex.Message);
+                    }
+                    finally
+                    {
+                        await Task.Delay(250);
                     }
                 }
             }
