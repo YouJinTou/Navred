@@ -15,18 +15,22 @@ namespace Navred.Core.Itineraries
             DateTime utcDeparture, 
             DateTime utcArrival, 
             string carrier, 
+            Mode mode,
             decimal? price = null,
             string fromSpecific = null,
-            string toSpecific = null)
+            string toSpecific = null,
+            bool arrivalEstimated = false)
         {
             this.From = Validator.ReturnOrThrowIfNullOrWhiteSpace(from);
             this.To = Validator.ReturnOrThrowIfNullOrWhiteSpace(to);
             this.UtcDeparture = utcDeparture;
             this.UtcArrival = utcArrival;
             this.Carrier = Validator.ReturnOrThrowIfNullOrWhiteSpace(carrier);
+            this.Mode = Mode;
             this.Price = price;
             this.FromSpecific = fromSpecific?.Trim();
             this.ToSpecific = toSpecific?.Trim();
+            this.ArrivalEstimated = arrivalEstimated;
         }
 
         public string From { get; private set; }
@@ -45,11 +49,15 @@ namespace Navred.Core.Itineraries
 
         public string Carrier { get; private set; }
 
+        public Mode Mode { get; private set; }
+
         public decimal? Price { get; private set; }
 
         public string FromSpecific { get; private set; }
 
         public string ToSpecific { get; private set; }
+
+        public bool ArrivalEstimated { get; private set; }
 
         public string GetUniqueId()
         {

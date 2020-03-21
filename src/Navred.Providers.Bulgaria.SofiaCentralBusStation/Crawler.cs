@@ -4,6 +4,8 @@ using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
+using Navred.Core.Piecing;
+using Navred.Core.Places;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,16 +24,22 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
         private readonly ILegRepository repo;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IBulgarianCultureProvider provider;
+        private readonly IPlacesManager placesManager;
+        private readonly ITimeEstimator estimator;
         private readonly Encoding windows1251;
 
         public Crawler(
             ILegRepository repo, 
             IHttpClientFactory httpClientFactory, 
-            IBulgarianCultureProvider provider)
+            IBulgarianCultureProvider provider,
+            IPlacesManager placesManager,
+            ITimeEstimator estimator)
         {
             this.repo = repo;
             this.httpClientFactory = httpClientFactory;
             this.provider = provider;
+            this.placesManager = placesManager;
+            this.estimator = estimator;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -121,17 +129,25 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 fromTo = (fromTo.Length == 1) ? 
                     dataRow.FirstChild.InnerText.Split('-') : fromTo;
                 var from = this.provider.NormalizePlaceName(
-                    fromTo[0], this.GetDiscerningCode(fromTo[0]));
+                    fromTo[0], this.GetRegionCode(fromTo[0]));
                 var to = this.provider.NormalizePlaceName(
-                    fromTo[1], this.GetDiscerningCode(fromTo[1]));
+                    fromTo[1], this.GetRegionCode(fromTo[1]));
                 var carrier = dataRow.ChildNodes[1].InnerText;
                 var departureTimeString =
                     Regex.Match(dataRow.ChildNodes[3].InnerText, @"(\d+:\d+)").Groups[1].Value;
                 var departure = date + TimeSpan.Parse(departureTimeString);
-                var arrival = DateTime.Now;
+                var arrival = this.GetArrival(from, to, departure);
                 var priceString = dataRow.ChildNodes[5].InnerText;
                 var price = decimal.Parse(Regex.Match(priceString, @"(\d+\.\d+)").Groups[1].Value);
-                var leg = new Leg(from, to, departure, arrival, carrier, price);
+                var leg = new Leg(
+                    from, 
+                    to, 
+                    departure, 
+                    arrival, 
+                    carrier, 
+                    Mode.Bus, 
+                    price, 
+                    arrivalEstimated: true);
 
                 legs.Add(leg);
             }
@@ -139,7 +155,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             return legs;
         }
 
-        private string GetDiscerningCode(string place)
+        private string GetRegionCode(string place)
         {
             place = place.ToLower().Trim();
             var codeByPlace = new Dictionary<string, string>
@@ -149,6 +165,20 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             };
 
             return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
+        }
+
+        private DateTime GetArrival(string from, string to, DateTime departure)
+        {
+            var fromCode = this.GetRegionCode(from);
+            var toCode = this.GetRegionCode(to);
+            var fromPlace = this.placesManager.GetPlace<BulgarianPlace>(
+                BulgarianCultureProvider.CountryName, from, fromCode);
+            var toPlace = this.placesManager.GetPlace<BulgarianPlace>(
+                BulgarianCultureProvider.CountryName, to, toCode);
+            var arrival = this.estimator.EstimateArrivalTime(
+                fromPlace, toPlace, departure, Mode.Bus);
+
+            return arrival;
         }
     }
 }

@@ -21,5 +21,7 @@ namespace Navred.Core
             DaysOfWeek.Wednesday |
             DaysOfWeek.Thursday |
             DaysOfWeek.Friday;
+
+        public const double EarthRadiusInKm = 6371;
     }
 }

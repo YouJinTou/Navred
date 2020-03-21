@@ -40,6 +40,7 @@ namespace Navred.Core.Itineraries.DB
                     dl.UtcDeparture, 
                     dl.UtcArrival,
                     dl.Carrier, 
+                    dl.Mode,
                     dl.Price, 
                     dl.FromSpecific, 
                     dl.ToSpecific)));
@@ -185,9 +186,11 @@ namespace Navred.Core.Itineraries.DB
                 map[nameof(Leg.From)] = new AttributeValue { S = to.From };
                 map[nameof(Leg.To)] = new AttributeValue { S = to.To };
                 map[nameof(Leg.Carrier)] = new AttributeValue { S = to.Carrier };
+                map[nameof(Leg.Mode)] = new AttributeValue { N = ((int)to.Mode).ToString() };
                 map[nameof(Leg.UtcArrival)] = new AttributeValue { S = to.UtcArrival.ToString() };
                 map[nameof(Leg.UtcDeparture)] = new AttributeValue { S = to.UtcDeparture.ToString() };
                 map[nameof(Leg.Duration)] = new AttributeValue { S = to.Duration.ToString() };
+                map[nameof(Leg.ArrivalEstimated)] = new AttributeValue { BOOL = to.ArrivalEstimated };
 
                 if (!string.IsNullOrWhiteSpace(to.FromSpecific))
                 {

@@ -11,5 +11,7 @@ namespace Navred.Core.Places
         Task<IEnumerable<T>> UpdateCoordinatesForCountryAsync<T>(string country) where T : IPlace;
 
         void UpdatePlacesFor<T>(string country, IEnumerable<T> places) where T : IPlace;
+
+        T GetPlace<T>(string country, string name, string regionCode = null) where T : IPlace;
     }
 }

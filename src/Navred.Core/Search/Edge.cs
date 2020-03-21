@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Navred.Core.Itineraries;
+using System;
 
 namespace Navred.Core.Search
 {
@@ -15,6 +16,8 @@ namespace Navred.Core.Search
         public DateTime UtcDeparture { get; set; }
 
         public string Carrier { get; set; }
+
+        public Mode Mode { get; set; }
 
         public string FromSpecific { get; set; }
 

@@ -6,8 +6,10 @@
 
         string RegionCode { get; set; }
 
-        float? Longitude { get; set; }
+        double? Longitude { get; set; }
 
-        float? Latitude { get; set; }
+        double? Latitude { get; set; }
+
+        double DistanceToInKm(IPlace other);
     }
 }

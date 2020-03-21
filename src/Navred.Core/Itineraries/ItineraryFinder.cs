@@ -62,6 +62,7 @@ namespace Navred.Core.Itineraries
                     e.UtcDeparture,
                     e.UtcArrival,
                     e.Carrier,
+                    e.Mode,
                     e.Weight.Price,
                     e.FromSpecific,
                     e.ToSpecific))

@@ -2,6 +2,7 @@
 using Navred.Core.Models;
 using Navred.Core.Tools;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -94,6 +95,31 @@ namespace Navred.Core.Places
             this.UpdatePlacesFor(country, places);
 
             return notUpdated;
+        }
+
+        public T GetPlace<T>(
+            string country, string name, string regionCode = null) where T : IPlace
+        {
+            Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
+
+            var places = this.LoadPlacesFor<T>(country);
+            var results = places.Where(p => p.Name == name).ToList();
+
+            if (results.Count == 1)
+            {
+                return results.First();
+            }
+
+            var result = default(T);
+
+            if (results.Count > 1)
+            {
+                result = results.FirstOrDefault(r => r.RegionCode == regionCode);
+            }
+
+            return (result == null) ?
+                throw new ArgumentException($"Could not find a match for {country}/{name}.") :
+                result;
         }
     }
 }

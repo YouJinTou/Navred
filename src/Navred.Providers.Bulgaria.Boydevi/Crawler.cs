@@ -74,15 +74,15 @@ namespace Navred.Providers.Bulgaria.Boydevi
 
                     for (int t = 0; t < arrivalTimes.Count; t++)
                     {
-                        schedule.AddLeg(
-                            new Leg(
-                                from, 
-                                to, 
-                                departureTimes[t], 
-                                arrivalTimes[t], 
-                                "Бойдеви", 
-                                fromSpecific: fromMatch.Groups[1].Value,
-                                toSpecific: toMatch.Groups[1].Value));
+                        schedule.AddLeg(new Leg(
+                            from, 
+                            to, 
+                            departureTimes[t], 
+                            arrivalTimes[t], 
+                            "Бойдеви", 
+                            Mode.Bus,
+                            fromSpecific: fromMatch.Groups[1].Value,
+                            toSpecific: toMatch.Groups[1].Value));
                     }
                 }
 
