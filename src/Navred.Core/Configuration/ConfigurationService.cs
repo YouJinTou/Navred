@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Navred.Core.Tools;
+using Newtonsoft.Json.Linq;
+using System;
 using System.IO;
 
 namespace Navred.Core.Configuration
@@ -20,6 +22,27 @@ namespace Navred.Core.Configuration
                 .Build();
 
             return configuration;
+        }
+
+        public void TrySetEnvVarsFromLaunchSettings()
+        {
+            var path = Path.Combine(
+                Directory.GetCurrentDirectory(), "Properties/launchSettings.json");
+
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
+            var settings = JObject.Parse(File.ReadAllText(path));
+            var vars = settings["profiles"]["Navred.Core.Tests"]["environmentVariables"];
+
+            foreach (var envVar in vars)
+            {
+                var prop = (JProperty)envVar;
+
+                Environment.SetEnvironmentVariable(prop.Name, prop.Value.ToString());
+            }
         }
     }
 }

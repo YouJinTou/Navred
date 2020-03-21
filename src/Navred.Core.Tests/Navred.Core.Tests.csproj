@@ -13,6 +13,11 @@
     <ProjectReference Include="..\Navred.Providers.Template\Navred.Providers.Template.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Cultures\" />
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Properties\launchSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

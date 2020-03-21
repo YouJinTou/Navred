@@ -1,15 +1,54 @@
-﻿using Navred.Core.Tools;
+﻿using Navred.Core.Places;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace Navred.Core.Cultures
 {
     public class BulgarianCultureProvider : IBulgarianCultureProvider
     {
         public static string Letters = "ѝабвгдежзийклмнопрстуфхцчшщъьыюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЮЯ" + "ь".ToUpper() + "ы".ToUpper();
+        public const string CountryName = "Bulgaria";
 
-        public string Name => "Bulgaria";
+        public class Region
+        {
+            public const string BLG = "Благоевград";
+            public const string BGS = "Бургас";
+            public const string VAR = "Варна";
+            public const string VTR = "Велико Търново";
+            public const string VID = "Видин";
+            public const string VRC = "Враца";
+            public const string GAB = "Габрово";
+            public const string DOB = "Добрич";
+            public const string KRZ = "Кърджали";
+            public const string KNL = "Кюстендил";
+            public const string LOV = "Ловеч";
+            public const string MON = "Монтана";
+            public const string PAZ = "Пазарджик";
+            public const string PER = "Перник";
+            public const string PVN = "Плевен";
+            public const string PDV = "Пловдив";
+            public const string RAZ = "Разград";
+            public const string RSE = "Русе";
+            public const string SLS = "Силистра";
+            public const string SLV = "Сливен";
+            public const string SML = "Смолян";
+            public const string SFO = "София";
+            public const string SOF = "София (столица)";
+            public const string SZR = "Стара Загора";
+            public const string TGV = "Търговище";
+            public const string HKV = "Хасково";
+            public const string SHU = "Шумен";
+            public const string JAM = "Ямбол";
+        }
+
+        private readonly IPlacesManager placesManager;
+
+        public BulgarianCultureProvider(IPlacesManager placesManager)
+        {
+            this.placesManager = placesManager;
+        }
+
+        public string Name => CountryName;
 
         public string Latinize(string s)
         {
@@ -128,20 +167,20 @@ namespace Navred.Core.Cultures
             return result;
         }
 
-        public string NormalizePlaceName(string place, string discerningCode = null)
+        public string NormalizePlaceName(string place, string regionCode = null)
         {
-            var places = PlacesLoader.LoadPlacesFor<BulgarianPlace>(this.Name);
+            var places = this.placesManager.LoadPlacesFor<BulgarianPlace>(this.Name);
             var normalizedPlace = place.Replace(" ", "").Trim().ToLower();
             var matches = places
                 .Where(p => normalizedPlace.Contains(p.Name.Replace(" ", "").ToLower())).ToList();
-            var match = this.GetNormalizedPlaceName(matches, discerningCode);
+            var match = this.GetNormalizedPlaceName(matches, regionCode);
 
             if (string.IsNullOrWhiteSpace(match))
             {
                 matches = places
                     .Where(p => p.Name.Replace(" ", "").ToLower().Contains(normalizedPlace))
                     .ToList();
-                match = this.GetNormalizedPlaceName(matches, discerningCode);
+                match = this.GetNormalizedPlaceName(matches, regionCode);
             }
 
             match = (match == null) ? this.DoFuzzyMatch(normalizedPlace) : match;
@@ -151,7 +190,7 @@ namespace Navred.Core.Cultures
                 match;
         }
 
-        private string GetNormalizedPlaceName(List<BulgarianPlace> places, string areaCode)
+        private string GetNormalizedPlaceName(List<BulgarianPlace> places, string areaName)
         {
             if (places.Count == 1)
             {
@@ -160,7 +199,7 @@ namespace Navred.Core.Cultures
 
             if (places.Count > 1)
             {
-                return places.FirstOrDefault(m => m.AreaCode == areaCode)?.Name;
+                return places.FirstOrDefault(m => m.RegionCode == areaName)?.Name;
             }
 
             return null;
@@ -179,7 +218,7 @@ namespace Navred.Core.Cultures
                     continue;
                 }
 
-                var places = PlacesLoader.LoadPlacesFor<BulgarianPlace>(this.Name);
+                var places = this.placesManager.LoadPlacesFor<BulgarianPlace>(this.Name);
 
                 foreach (var p in places)
                 {

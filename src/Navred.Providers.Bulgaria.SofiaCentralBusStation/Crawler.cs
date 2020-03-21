@@ -144,8 +144,8 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             place = place.ToLower().Trim();
             var codeByPlace = new Dictionary<string, string>
             {
-                { "добрич", "DOB" },
-                { "априлци", "LOV" },
+                { "добрич", BulgarianCultureProvider.Region.DOB },
+                { "априлци", BulgarianCultureProvider.Region.LOV },
             };
 
             return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;

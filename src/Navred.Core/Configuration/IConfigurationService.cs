@@ -5,5 +5,7 @@ namespace Navred.Core.Configuration
     public interface IConfigurationService
     {
         IConfiguration GetConfiguration();
+
+        void TrySetEnvVarsFromLaunchSettings();
     }
 }
