@@ -23,7 +23,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
             this.provider = provider;
         }
 
-        public async Task<IEnumerable<Leg>> GetLegsAsync()
+        public async Task UpdateLegsAsync()
         {
             var legs = new List<Leg>();
             var svilengradSofia = await this.GetLegsAsync(
@@ -40,8 +40,6 @@ namespace Navred.Providers.Bulgaria.Boydevi
             legs.AddRange(toSvilengrad);
 
             await repo.UpdateLegsAsync(legs);
-
-            return legs;
         }
 
         private async Task<IEnumerable<Leg>> GetLegsAsync(string url)

@@ -2,34 +2,48 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.Json;
 using Microsoft.Extensions.DependencyInjection;
-using Navred.Core.Cultures;
+using Navred.Core.Abstractions;
 using Navred.Core.Extensions;
-using Navred.Core.Itineraries.DB;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Navred.Providers.Bulgaria.Boydevi
 {
     public class Function
     {
+        private static readonly ICrawler crawler;
+
+        static Function()
+        {
+            var provider = new ServiceCollection()
+                .AddCore()
+                .AddTransient<ICrawler, Crawler>()
+                .BuildServiceProvider();
+            crawler = provider.GetService<ICrawler>();
+        }
+
         private static async Task Main(string[] args)
         {
-            Action<string, ILambdaContext> func = FunctionHandler;
-
-            using(var handlerWrapper = HandlerWrapper.GetHandlerWrapper(func, new JsonSerializer()))
-            using(var bootstrap = new LambdaBootstrap(handlerWrapper))
+            if (Debugger.IsAttached)
             {
-                await bootstrap.RunAsync();
+                crawler.UpdateLegsAsync().Wait();
+            }
+            else
+            {
+                Action<string, ILambdaContext> func = FunctionHandler;
+
+                using (var handlerWrapper = HandlerWrapper.GetHandlerWrapper(func, new JsonSerializer()))
+                using (var bootstrap = new LambdaBootstrap(handlerWrapper))
+                {
+                    await bootstrap.RunAsync();
+                }
             }
         }
 
         public static void FunctionHandler(string input, ILambdaContext context)
         {
-            var provider = new ServiceCollection().AddCore().BuildServiceProvider();
-            var repo = provider.GetService<ILegRepository>();
-            var cultureProvider = provider.GetService<IBulgarianCultureProvider>();
-            var crawler = new Crawler(repo, cultureProvider);
-            var task = crawler.GetLegsAsync();
+            var task = crawler.UpdateLegsAsync();
 
             task.Wait();
         }

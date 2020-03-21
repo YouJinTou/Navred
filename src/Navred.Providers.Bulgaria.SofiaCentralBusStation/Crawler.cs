@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using Navred.Core.Abstractions;
 using Navred.Core.Itineraries;
+using Navred.Core.Itineraries.DB;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,11 +9,18 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
 {
     public class Crawler : ICrawler
     {
-        public async Task<IEnumerable<Leg>> GetLegsAsync()
-        {
-            var legs = await this.GetLegsAsync("URL");
+        private readonly ILegRepository repo;
 
-            return legs;
+        public Crawler(ILegRepository repo)
+        {
+            this.repo = repo;
+        }
+
+        public async Task UpdateLegsAsync()
+        {
+            var legs = await this.GetLegsAsync("https://www.centralnaavtogara.bg/index.php#b");
+
+            await this.repo.UpdateLegsAsync(legs);
         }
 
         private async Task<IEnumerable<Leg>> GetLegsAsync(string url)

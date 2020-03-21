@@ -1,11 +1,9 @@
-﻿using Navred.Core.Itineraries;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Navred.Core.Abstractions
 {
     public interface ICrawler
     {
-        Task<IEnumerable<Leg>> GetLegsAsync();
+        Task UpdateLegsAsync();
     }
 }

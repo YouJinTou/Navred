@@ -2,28 +2,51 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Navred.Core.Abstractions;
 using Navred.Core.Extensions;
+using Navred.Providers.Bulgaria.SofiaCentralBusStation;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Navred.Providers.SofiaCentralBusStation
 {
     public class Function
     {
+        private static readonly ICrawler crawler;
+
+        static Function()
+        {
+            var provider = new ServiceCollection()
+                .AddCore()
+                .AddTransient<ICrawler, Crawler>()
+                .BuildServiceProvider();
+            crawler = provider.GetService<ICrawler>();
+        }
+
         private static async Task Main(string[] args)
         {
-            Action<string, ILambdaContext> func = FunctionHandler;
-
-            using(var handlerWrapper = HandlerWrapper.GetHandlerWrapper(func, new JsonSerializer()))
-            using(var bootstrap = new LambdaBootstrap(handlerWrapper))
+            if (Debugger.IsAttached)
             {
-                await bootstrap.RunAsync();
+                crawler.UpdateLegsAsync().Wait();
+            }
+            else
+            {
+                Action<string, ILambdaContext> func = FunctionHandler;
+
+                using (var handlerWrapper = HandlerWrapper.GetHandlerWrapper(func, new JsonSerializer()))
+                using (var bootstrap = new LambdaBootstrap(handlerWrapper))
+                {
+                    await bootstrap.RunAsync();
+                }
             }
         }
 
         public static void FunctionHandler(string input, ILambdaContext context)
         {
-            var provider = new ServiceCollection().AddCore().BuildServiceProvider();
+            var task = crawler.UpdateLegsAsync();
+
+            task.Wait();
         }
     }
 }
