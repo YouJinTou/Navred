@@ -1,6 +1,7 @@
 ﻿using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Navred.Core.Cultures
 {
@@ -130,18 +131,20 @@ namespace Navred.Core.Cultures
         public string NormalizePlaceName(string place, string discerningCode = null)
         {
             var places = PlacesLoader.LoadPlacesFor<BulgarianPlace>(this.Name);
-            var normalizedPlace = place.Replace(" ", "").ToLower();
+            var normalizedPlace = place.Replace(" ", "").Trim().ToLower();
             var matches = places
-                .Where(p => normalizedPlace.Contains(p.Place.Replace(" ", "").ToLower())).ToList();
+                .Where(p => normalizedPlace.Contains(p.Name.Replace(" ", "").ToLower())).ToList();
             var match = this.GetNormalizedPlaceName(matches, discerningCode);
 
             if (string.IsNullOrWhiteSpace(match))
             {
                 matches = places
-                    .Where(p => p.Place.Replace(" ", "").ToLower().Contains(normalizedPlace))
+                    .Where(p => p.Name.Replace(" ", "").ToLower().Contains(normalizedPlace))
                     .ToList();
                 match = this.GetNormalizedPlaceName(matches, discerningCode);
             }
+
+            match = (match == null) ? this.DoFuzzyMatch(normalizedPlace) : match;
 
             return string.IsNullOrWhiteSpace(match) ?
                 throw new KeyNotFoundException($"Could not find '{place}' in Bulgaria.") :
@@ -152,12 +155,56 @@ namespace Navred.Core.Cultures
         {
             if (places.Count == 1)
             {
-                return places.First().Place;
+                return places.First().Name;
             }
 
             if (places.Count > 1)
             {
-                return places.FirstOrDefault(m => m.AreaCode == areaCode)?.Place;
+                return places.FirstOrDefault(m => m.AreaCode == areaCode)?.Name;
+            }
+
+            return null;
+        }
+
+        private string DoFuzzyMatch(string normalizedPlace)
+        {
+            var separators = new char[] { '.', '-', ' ' };
+
+            foreach (var separator in separators)
+            {
+                var tokens = normalizedPlace.Split(separator);
+
+                if (tokens.Length <= 1)
+                {
+                    continue;
+                }
+
+                var places = PlacesLoader.LoadPlacesFor<BulgarianPlace>(this.Name);
+
+                foreach (var p in places)
+                {
+                    foreach (var sep in separators)
+                    {
+                        var storedPlaceTokens = p.Name.Split(sep);
+
+                        if (storedPlaceTokens.Length == tokens.Length)
+                        {
+                            var allMatch = true;
+
+                            for (int t = 0; t < tokens.Length; t++)
+                            {
+                                var tokenMatches =
+                                    storedPlaceTokens[t].ToLower().Trim().Contains(tokens[t]);
+                                allMatch = allMatch && tokenMatches;
+                            }
+
+                            if (allMatch)
+                            {
+                                return p.Name;
+                            }
+                        }
+                    }
+                }
             }
 
             return null;

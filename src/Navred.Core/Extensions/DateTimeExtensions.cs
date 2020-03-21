@@ -65,5 +65,21 @@ namespace Navred.Core.Extensions
 
             return utcDt;
         }
+
+        public static IEnumerable<DateTime> GetDateTimesAhead(
+            this DateTime dt, int daysAhead, bool currentInclusive = false)
+        {
+            var dates = new List<DateTime>();
+
+            for (
+                int d = currentInclusive ? 0 : 1; 
+                d < (currentInclusive ? daysAhead : daysAhead + 1); 
+                d++)
+            {
+                dates.Add(dt.AddDays(d));
+            }
+
+            return dates;
+        }
     }
 }

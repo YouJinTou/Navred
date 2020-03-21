@@ -7,6 +7,7 @@ using Navred.Core.Extensions;
 using Navred.Providers.Bulgaria.SofiaCentralBusStation;
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Navred.Providers.SofiaCentralBusStation
