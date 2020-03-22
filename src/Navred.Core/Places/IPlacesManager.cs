@@ -13,7 +13,15 @@ namespace Navred.Core.Places
 
         void UpdatePlacesFor<T>(string country, IEnumerable<T> places) where T : IPlace;
 
+        string FormatPlace(string place);
+
         T GetPlace<T>(
+            string country, 
+            string name, 
+            string regionCode = null, 
+            string municipalityCode = null) where T : IPlace;
+
+        string NormalizePlaceName<T>(
             string country, 
             string name, 
             string regionCode = null, 

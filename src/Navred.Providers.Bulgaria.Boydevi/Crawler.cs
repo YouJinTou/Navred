@@ -5,6 +5,7 @@ using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
+using Navred.Core.Places;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,12 +16,12 @@ namespace Navred.Providers.Bulgaria.Boydevi
     public class Crawler : ICrawler
     {
         private readonly ILegRepository repo;
-        private readonly IBulgarianCultureProvider provider;
+        private readonly IPlacesManager placesManager;
 
-        public Crawler(ILegRepository repo, IBulgarianCultureProvider provider)
+        public Crawler(ILegRepository repo, IPlacesManager placesManager)
         {
             this.repo = repo;
-            this.provider = provider;
+            this.placesManager = placesManager;
         }
 
         public async Task UpdateLegsAsync()
@@ -56,7 +57,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
                 var schedule = new Schedule();
                 var daysOfWeek = this.GetDaysOfWeek(scheduleString);
                 var stopMatches = Regex.Matches(
-                    scheduleString, @$"([{BulgarianCultureProvider.Letters} .]+)\s*\((\d+:\d+)\)")
+                    scheduleString, @$"([{BulgarianCultureProvider.AllLetters} .]+)\s*\((\d+:\d+)\)")
                     .ToList();
                 var legSpread = daysAhead;
 
@@ -64,8 +65,10 @@ namespace Navred.Providers.Bulgaria.Boydevi
                 {
                     var fromMatch = stopMatches[i];
                     var toMatch = stopMatches[i + 1];
-                    var from = this.provider.NormalizePlaceName(fromMatch.Groups[1].Value);
-                    var to = this.provider.NormalizePlaceName(toMatch.Groups[1].Value);
+                    var from = this.placesManager.NormalizePlaceName<BulgarianPlace>(
+                        BulgarianCultureProvider.CountryName, fromMatch.Groups[1].Value);
+                    var to = this.placesManager.NormalizePlaceName<BulgarianPlace>(
+                        BulgarianCultureProvider.CountryName, toMatch.Groups[1].Value);
                     var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
                         fromMatch.Groups[2].Value, daysAhead).ToList();
                     var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(

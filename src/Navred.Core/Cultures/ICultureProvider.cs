@@ -4,8 +4,8 @@
     {
         string Name { get; }
 
-        string Latinize(string s);
+        string Letters { get; }
 
-        string NormalizePlaceName(string place, string discerningCode = null);
+        string Latinize(string s);
     }
 }

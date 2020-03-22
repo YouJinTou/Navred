@@ -18,6 +18,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
 {
     public class Crawler : ICrawler
     {
+        private const string From = "София";
         private const string Url = 
             "https://www.centralnaavtogara.bg/index.php?mod=0461ebd2b773878eac9f78a891912d65";
 
@@ -74,14 +75,14 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                     try
                     {
                         var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
-                    {
-                        new KeyValuePair<string, string>("city_menu", destination),
-                        new KeyValuePair<string, string>("for_date", date),
-                    });
+                        {
+                            new KeyValuePair<string, string>("city_menu", destination),
+                            new KeyValuePair<string, string>("for_date", date),
+                        });
                         var response = await httpClient.PostAsync(Url, content);
                         var responseText = await response.Content.ReadAsByteArrayAsync();
                         var encodedText = this.windows1251.GetString(responseText);
-                        var currentLegs = await this.GetLegsAsync(encodedText, date);
+                        var currentLegs = await this.GetLegsAsync(encodedText, date, destination);
 
                         legs.AddRange(currentLegs);
                     }
@@ -101,11 +102,13 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             return legs;
         }
 
-        private async Task<IEnumerable<Leg>> GetLegsAsync(string encodedText, string dateString)
+        private async Task<IEnumerable<Leg>> GetLegsAsync(
+            string encodedText, string dateString, string destination)
         {
             var legs = new List<Leg>();
             var doc = new HtmlDocument();
             encodedText = encodedText.Replace("\t", "").Replace("\n", "");
+            var formattedDestination = this.placesManager.FormatPlace(destination);
 
             doc.LoadHtml(encodedText);
 
@@ -125,22 +128,20 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             foreach (var table in tables)
             {
                 var dataRow = table.FirstChild;
-                var fromTo = dataRow.FirstChild.FirstChild.InnerText.Split('-');
-                fromTo = fromTo.ContainsOne() ? 
-                    dataRow.FirstChild.InnerText.Split('-') : fromTo;
-                var from = this.provider.NormalizePlaceName(
-                    fromTo[0], this.GetRegionCode(fromTo[0]));
-                var to = this.provider.NormalizePlaceName(
-                    fromTo[1], this.GetRegionCode(fromTo[1]));
+                var to = this.placesManager.NormalizePlaceName<BulgarianPlace>(
+                    BulgarianCultureProvider.CountryName,
+                    formattedDestination, 
+                    this.GetRegionCode(formattedDestination), 
+                    this.GetMunicipalityCode(formattedDestination));
                 var carrier = dataRow.ChildNodes[1].InnerText;
                 var departureTimeString =
                     Regex.Match(dataRow.ChildNodes[3].InnerText, @"(\d+:\d+)").Groups[1].Value;
                 var departure = date + TimeSpan.Parse(departureTimeString);
-                var arrival = await this.GetArrivalAsync(from, to, departure);
+                var arrival = await this.GetArrivalAsync(to, departure);
                 var priceString = dataRow.ChildNodes[5].InnerText;
                 var price = decimal.Parse(Regex.Match(priceString, @"(\d+\.\d+)").Groups[1].Value);
                 var leg = new Leg(
-                    from, 
+                    From, 
                     to, 
                     departure, 
                     arrival, 
@@ -160,22 +161,45 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             place = place.ToLower().Trim();
             var codeByPlace = new Dictionary<string, string>
             {
+                { "абланица", BulgarianCultureProvider.Region.LOV },
                 { "добрич", BulgarianCultureProvider.Region.DOB },
                 { "априлци", BulgarianCultureProvider.Region.LOV },
                 { "габрово", BulgarianCultureProvider.Region.GAB },
+                { "падина", BulgarianCultureProvider.Region.KRZ },
+                { "оряхово", BulgarianCultureProvider.Region.VRC },
+                { "батак", BulgarianCultureProvider.Region.PAZ },
+                { "копиловци", BulgarianCultureProvider.Region.MON },
+                { "искър", BulgarianCultureProvider.Region.PVN },
+                { "огняново", BulgarianCultureProvider.Region.BLG },
+                { "разград", BulgarianCultureProvider.Region.RAZ },
+                { "елхово", BulgarianCultureProvider.Region.JAM },
+                { "петрич", BulgarianCultureProvider.Region.BLG },
+                { "рибарица", BulgarianCultureProvider.Region.LOV },
+                { "троян", BulgarianCultureProvider.Region.LOV },
             };
 
             return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
         }
 
-        private async Task<DateTime> GetArrivalAsync(string from, string to, DateTime departure)
+        private string GetMunicipalityCode(string place)
         {
-            var fromRegionCode = this.GetRegionCode(from);
+            place = place.ToLower().Trim();
+            var codeByPlace = new Dictionary<string, string>
+            {
+                { "искър", "Искър" }
+            };
+
+            return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
+        }
+
+        private async Task<DateTime> GetArrivalAsync(string to, DateTime departure)
+        {
             var toRegionCode = this.GetRegionCode(to);
+            var toMunicipalityCode = this.GetMunicipalityCode(to);
             var fromPlace = this.placesManager.GetPlace<BulgarianPlace>(
-                BulgarianCultureProvider.CountryName, from, fromRegionCode);
+                BulgarianCultureProvider.CountryName, From);
             var toPlace = this.placesManager.GetPlace<BulgarianPlace>(
-                BulgarianCultureProvider.CountryName, to, toRegionCode);
+                BulgarianCultureProvider.CountryName, to, toRegionCode, toMunicipalityCode);
             var arrival = await this.estimator.EstimateArrivalTimeAsync(
                 fromPlace, toPlace, departure, Mode.Bus);
 

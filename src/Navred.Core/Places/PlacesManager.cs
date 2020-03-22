@@ -1,4 +1,5 @@
 ﻿using Navred.Core.Configuration;
+using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Models;
 using Navred.Core.Tools;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Navred.Core.Places
@@ -17,16 +19,19 @@ namespace Navred.Core.Places
         private readonly IDictionary<string, object> cache;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IPlaceGeneratorFactory placeGeneratorFactory;
+        private readonly ICultureProvider cultureProvider;
         private readonly Settings settings;
 
         public PlacesManager(
             IHttpClientFactory httpClientFactory, 
             IPlaceGeneratorFactory placeGeneratorFactory, 
+            ICultureProvider cultureProvider,
             Settings settings)
         {
             this.cache = new Dictionary<string, object>();
             this.httpClientFactory = httpClientFactory;
             this.placeGeneratorFactory = placeGeneratorFactory;
+            this.cultureProvider = cultureProvider;
             this.settings = settings;
         }
 
@@ -112,6 +117,17 @@ namespace Navred.Core.Places
             return notUpdated;
         }
 
+        public string FormatPlace(string place)
+        {
+            var formattedPlace = place
+                .Replace(".", " ")
+                .Replace("-", " ");
+            formattedPlace = Regex.Replace(
+                place, $@"[^{this.cultureProvider.Letters}\s]", "").Trim().ToLower();
+
+            return formattedPlace;
+        }
+
         public T GetPlace<T>(
             string country, 
             string name, 
@@ -121,8 +137,41 @@ namespace Navred.Core.Places
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
 
             var places = this.LoadPlacesFor<T>(country);
-            var results = places.Where(p => p.Name == name).ToList();
+            var normalizedName = this.FormatPlace(name);
+            var results = places
+                .Where(p => normalizedName.Contains(this.FormatPlace(p.Name)))
+                .ToList();
+            var result = this.GetPlace(results, regionCode, municipalityCode);
 
+            if (result == null)
+            {
+                results = places
+                    .Where(p => this.FormatPlace(p.Name).Contains(normalizedName))
+                    .ToList();
+                result = this.GetPlace(results, regionCode, municipalityCode);
+            }
+
+            result = (result == null) ? this.DoFuzzyMatch(places, normalizedName) : result;
+
+            return (result == null) ?
+                throw new ArgumentException($"Could not find a match for {country}/{name}.") :
+                result;
+        }
+
+        public string NormalizePlaceName<T>(
+            string country, 
+            string name, 
+            string regionCode = null, 
+            string municipalityCode = null) where T : IPlace
+        {
+            var place = this.GetPlace<T>(country, name, regionCode, municipalityCode);
+
+            return place.Name;
+        }
+
+        private T GetPlace<T>(
+            IEnumerable<T> results, string regionCode, string municipalityCode) where T : IPlace
+        {
             if (results.ContainsOne())
             {
                 return results.First();
@@ -130,17 +179,40 @@ namespace Navred.Core.Places
 
             var result = default(T);
 
-            if (results.Count > 1)
+            if (results.Count() > 1)
             {
-                result = results.FirstOrDefault(r => 
-                    r.Region == regionCode && 
-                    string.IsNullOrWhiteSpace(municipalityCode) ? 
-                        true : r.Municipality == municipalityCode);
+                result = results.FirstOrDefault(r =>
+                    r.Region == regionCode &&
+                    string.IsNullOrWhiteSpace(municipalityCode) ?
+                    true : r.Municipality == municipalityCode);
             }
 
-            return (result == null) ?
-                throw new ArgumentException($"Could not find a match for {country}/{name}.") :
-                result;
+            return result;
+        }
+
+        private T DoFuzzyMatch<T>(IEnumerable<T> places, string normalizedPlace) where T : IPlace
+        {
+            var separators = new char[] { '.', '-', ' ' };
+
+            foreach (var separator in separators)
+            {
+                var tokens = normalizedPlace.Split(separator);
+
+                if (tokens.Length <= 1)
+                {
+                    continue;
+                }
+
+                foreach (var p in places)
+                {
+                    if (p.Name.IsFuzzyMatch(normalizedPlace))
+                    {
+                        return p;
+                    }
+                }
+            }
+
+            return default;
         }
     }
 }

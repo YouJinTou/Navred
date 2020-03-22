@@ -1,13 +1,10 @@
-﻿using Navred.Core.Extensions;
-using Navred.Core.Places;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace Navred.Core.Cultures
 {
     public class BulgarianCultureProvider : IBulgarianCultureProvider
     {
-        public static string Letters = "ѝабвгдежзийклмнопрстуфхцчшщъьыюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЮЯ" + "ь".ToUpper() + "ы".ToUpper();
+        public static string AllLetters = "ѝабвгдежзийклмнопрстуфхцчшщъьыюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЮЯ" + "ь".ToUpper() + "ы".ToUpper();
         public const string CountryName = "Bulgaria";
 
         public class Region
@@ -74,14 +71,9 @@ namespace Navred.Core.Cultures
             };
         }
 
-        private readonly IPlacesManager placesManager;
-
-        public BulgarianCultureProvider(IPlacesManager placesManager)
-        {
-            this.placesManager = placesManager;
-        }
-
         public string Name => CountryName;
+
+        public string Letters => AllLetters;
 
         public string Latinize(string s)
         {
@@ -198,71 +190,6 @@ namespace Navred.Core.Cultures
             var result = string.Join(string.Empty, buffer);
 
             return result;
-        }
-
-        public string NormalizePlaceName(string place, string regionCode = null)
-        {
-            var places = this.placesManager.LoadPlacesFor<BulgarianPlace>(this.Name);
-            var normalizedPlace = place.Replace(" ", "").Trim().ToLower();
-            var matches = places
-                .Where(p => normalizedPlace.Contains(p.Name.Replace(" ", "").ToLower())).ToList();
-            var match = this.GetNormalizedPlaceName(matches, regionCode);
-
-            if (string.IsNullOrWhiteSpace(match))
-            {
-                matches = places
-                    .Where(p => p.Name.Replace(" ", "").ToLower().Contains(normalizedPlace))
-                    .ToList();
-                match = this.GetNormalizedPlaceName(matches, regionCode);
-            }
-
-            match = (match == null) ? this.DoFuzzyMatch(normalizedPlace) : match;
-
-            return string.IsNullOrWhiteSpace(match) ?
-                throw new KeyNotFoundException($"Could not find '{place}' in Bulgaria.") :
-                match;
-        }
-
-        private string GetNormalizedPlaceName(List<BulgarianPlace> places, string areaName)
-        {
-            if (places.ContainsOne())
-            {
-                return places.First().Name;
-            }
-
-            if (places.Count > 1)
-            {
-                return places.FirstOrDefault(m => m.Region == areaName)?.Name;
-            }
-
-            return null;
-        }
-
-        private string DoFuzzyMatch(string normalizedPlace)
-        {
-            var separators = new char[] { '.', '-', ' ' };
-
-            foreach (var separator in separators)
-            {
-                var tokens = normalizedPlace.Split(separator);
-
-                if (tokens.Length <= 1)
-                {
-                    continue;
-                }
-
-                var places = this.placesManager.LoadPlacesFor<BulgarianPlace>(this.Name);
-
-                foreach (var p in places)
-                {
-                    if (p.Name.IsFuzzyMatch(normalizedPlace))
-                    {
-                        return p.Name;
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }

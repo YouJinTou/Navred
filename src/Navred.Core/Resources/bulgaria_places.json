@@ -34617,6 +34617,14 @@
   },
   {
     "Country": "Bulgaria",
+    "Name": "Слънчев Бряг",
+    "Region": "Бургас",
+    "Municipality": "Несебър",
+    "Longitude": 27.7139,
+    "Latitude": 42.6883
+  },
+  {
+    "Country": "Bulgaria",
     "Name": "Слънчево",
     "Region": "Варна",
     "Municipality": "Аксаково",
