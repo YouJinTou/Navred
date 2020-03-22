@@ -170,12 +170,12 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
 
         private async Task<DateTime> GetArrivalAsync(string from, string to, DateTime departure)
         {
-            var fromCode = this.GetRegionCode(from);
-            var toCode = this.GetRegionCode(to);
+            var fromRegionCode = this.GetRegionCode(from);
+            var toRegionCode = this.GetRegionCode(to);
             var fromPlace = this.placesManager.GetPlace<BulgarianPlace>(
-                BulgarianCultureProvider.CountryName, from, fromCode);
+                BulgarianCultureProvider.CountryName, from, fromRegionCode);
             var toPlace = this.placesManager.GetPlace<BulgarianPlace>(
-                BulgarianCultureProvider.CountryName, to, toCode);
+                BulgarianCultureProvider.CountryName, to, toRegionCode);
             var arrival = await this.estimator.EstimateArrivalTimeAsync(
                 fromPlace, toPlace, departure, Mode.Bus);
 

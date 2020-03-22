@@ -38,6 +38,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Resources\bulgaria_ekatte.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\bulgaria_ekatte_obst.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\bulgaria_places.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

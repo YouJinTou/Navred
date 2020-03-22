@@ -40,6 +40,38 @@ namespace Navred.Core.Cultures
             public const string HKV = "Хасково";
             public const string SHU = "Шумен";
             public const string JAM = "Ямбол";
+
+            public static IReadOnlyDictionary<string, string> NameByCode => new Dictionary<string, string>
+            {
+                { nameof(BLG), BLG },
+                { nameof(BGS), BGS },
+                { nameof(VAR), VAR },
+                { nameof(VTR), VTR },
+                { nameof(VID), VID },
+                { nameof(VRC), VRC },
+                { nameof(GAB), GAB },
+                { nameof(DOB), DOB },
+                { nameof(KRZ), KRZ },
+                { nameof(KNL), KNL },
+                { nameof(LOV), LOV },
+                { nameof(MON), MON },
+                { nameof(PAZ), PAZ },
+                { nameof(PER), PER },
+                { nameof(PVN), PVN },
+                { nameof(PDV), PDV },
+                { nameof(RAZ), RAZ },
+                { nameof(RSE), RSE },
+                { nameof(SLS), SLS },
+                { nameof(SLV), SLV },
+                { nameof(SML), SML },
+                { nameof(SFO), SFO },
+                { nameof(SOF), SOF },
+                { nameof(SZR), SZR },
+                { nameof(TGV), TGV },
+                { nameof(HKV), HKV },
+                { nameof(SHU), SHU },
+                { nameof(JAM), JAM }
+            };
         }
 
         private readonly IPlacesManager placesManager;
@@ -200,7 +232,7 @@ namespace Navred.Core.Cultures
 
             if (places.Count > 1)
             {
-                return places.FirstOrDefault(m => m.RegionCode == areaName)?.Name;
+                return places.FirstOrDefault(m => m.Region == areaName)?.Name;
             }
 
             return null;

@@ -23,5 +23,15 @@ namespace Navred.Core.Tests.Tools
             await placesManager.UpdateCoordinatesForCountryAsync<BulgarianPlace>(
                 country);
         }
+
+        [Theory]
+        [InlineData(BulgarianCultureProvider.CountryName)]
+        public void GenerateAllPlaces(string country)
+        {
+            var provider = new ServiceCollection().AddCore().BuildServiceProvider();
+            var placesManager = provider.GetService<IPlacesManager>();
+
+            placesManager.GeneratePlacesFor(country);
+        }
     }
 }

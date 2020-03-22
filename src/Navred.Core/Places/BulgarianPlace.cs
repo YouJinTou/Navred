@@ -15,7 +15,9 @@ namespace Navred.Core.Places
 
         public string Name { get; set; }
 
-        public string RegionCode { get; set; }
+        public string Region { get; set; }
+
+        public string Municipality { get; set; }
 
         public double? Longitude { get; set; }
 
@@ -39,7 +41,8 @@ namespace Navred.Core.Places
 
         public override string ToString()
         {
-            return this.Name;
+            return 
+                this.Name + (string.IsNullOrEmpty(this.Region) ? "" : $" {this.Region}");
         }
     }
 }

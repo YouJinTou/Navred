@@ -16,13 +16,25 @@ namespace Navred.Core.Places
     {
         private readonly IDictionary<string, object> cache;
         private readonly IHttpClientFactory httpClientFactory;
+        private readonly IPlaceGeneratorFactory placeGeneratorFactory;
         private readonly Settings settings;
 
-        public PlacesManager(IHttpClientFactory httpClientFactory, Settings settings)
+        public PlacesManager(
+            IHttpClientFactory httpClientFactory, 
+            IPlaceGeneratorFactory placeGeneratorFactory, 
+            Settings settings)
         {
             this.cache = new Dictionary<string, object>();
             this.httpClientFactory = httpClientFactory;
+            this.placeGeneratorFactory = placeGeneratorFactory;
             this.settings = settings;
+        }
+
+        public void GeneratePlacesFor(string country)
+        {
+            var generator = this.placeGeneratorFactory.CreateGenerator(country);
+
+            generator.GeneratePlaces();
         }
 
         public IEnumerable<T> LoadPlacesFor<T>(string country) where T : IPlace
@@ -66,8 +78,10 @@ namespace Navred.Core.Places
                     continue;
                 }
 
+                var regionMunicipality = place.Region.Equals(place.Municipality) ? 
+                    place.Region : $"{place.Region}, {place.Municipality}";
                 var url = this.settings.BuildGeocodingUrl(
-                    $"{country}, {place.RegionCode}, {place.Name}");
+                    $"{country}, {regionMunicipality}, {place.Name}");
                 var result = await client.GetAsync(url);
                 var resultString = await result.Content.ReadAsStringAsync();
                 var model = JsonConvert.DeserializeObject<GeocodingResult>(resultString);
@@ -99,7 +113,10 @@ namespace Navred.Core.Places
         }
 
         public T GetPlace<T>(
-            string country, string name, string regionCode = null) where T : IPlace
+            string country, 
+            string name, 
+            string regionCode = null, 
+            string municipalityCode = null) where T : IPlace
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
 
@@ -115,7 +132,10 @@ namespace Navred.Core.Places
 
             if (results.Count > 1)
             {
-                result = results.FirstOrDefault(r => r.RegionCode == regionCode);
+                result = results.FirstOrDefault(r => 
+                    r.Region == regionCode && 
+                    string.IsNullOrWhiteSpace(municipalityCode) ? 
+                        true : r.Municipality == municipalityCode);
             }
 
             return (result == null) ?
