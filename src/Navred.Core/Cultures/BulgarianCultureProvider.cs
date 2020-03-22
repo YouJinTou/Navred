@@ -1,4 +1,5 @@
-﻿using Navred.Core.Places;
+﻿using Navred.Core.Extensions;
+using Navred.Core.Places;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -192,7 +193,7 @@ namespace Navred.Core.Cultures
 
         private string GetNormalizedPlaceName(List<BulgarianPlace> places, string areaName)
         {
-            if (places.Count == 1)
+            if (places.ContainsOne())
             {
                 return places.First().Name;
             }
@@ -222,26 +223,9 @@ namespace Navred.Core.Cultures
 
                 foreach (var p in places)
                 {
-                    foreach (var sep in separators)
+                    if (p.Name.IsFuzzyMatch(normalizedPlace))
                     {
-                        var storedPlaceTokens = p.Name.Split(sep);
-
-                        if (storedPlaceTokens.Length == tokens.Length)
-                        {
-                            var allMatch = true;
-
-                            for (int t = 0; t < tokens.Length; t++)
-                            {
-                                var tokenMatches =
-                                    storedPlaceTokens[t].ToLower().Trim().Contains(tokens[t]);
-                                allMatch = allMatch && tokenMatches;
-                            }
-
-                            if (allMatch)
-                            {
-                                return p.Name;
-                            }
-                        }
+                        return p.Name;
                     }
                 }
             }

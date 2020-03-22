@@ -1,4 +1,5 @@
-﻿using Navred.Core.Extensions;
+﻿using Navred.Core.Cultures;
+using Navred.Core.Extensions;
 using Navred.Core.Tools;
 using System;
 
@@ -6,6 +7,12 @@ namespace Navred.Core.Places
 {
     public class BulgarianPlace : IPlace
     {
+        public string Country
+        {
+            get => BulgarianCultureProvider.CountryName;
+            set { }
+        }
+
         public string Name { get; set; }
 
         public string RegionCode { get; set; }

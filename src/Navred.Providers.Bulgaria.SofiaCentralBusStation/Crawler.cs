@@ -81,7 +81,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                         var response = await httpClient.PostAsync(Url, content);
                         var responseText = await response.Content.ReadAsByteArrayAsync();
                         var encodedText = this.windows1251.GetString(responseText);
-                        var currentLegs = this.GetLegs(encodedText, date);
+                        var currentLegs = await this.GetLegsAsync(encodedText, date);
 
                         legs.AddRange(currentLegs);
                     }
@@ -101,7 +101,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             return legs;
         }
 
-        private IEnumerable<Leg> GetLegs(string encodedText, string dateString)
+        private async Task<IEnumerable<Leg>> GetLegsAsync(string encodedText, string dateString)
         {
             var legs = new List<Leg>();
             var doc = new HtmlDocument();
@@ -126,7 +126,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             {
                 var dataRow = table.FirstChild;
                 var fromTo = dataRow.FirstChild.FirstChild.InnerText.Split('-');
-                fromTo = (fromTo.Length == 1) ? 
+                fromTo = fromTo.ContainsOne() ? 
                     dataRow.FirstChild.InnerText.Split('-') : fromTo;
                 var from = this.provider.NormalizePlaceName(
                     fromTo[0], this.GetRegionCode(fromTo[0]));
@@ -136,7 +136,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 var departureTimeString =
                     Regex.Match(dataRow.ChildNodes[3].InnerText, @"(\d+:\d+)").Groups[1].Value;
                 var departure = date + TimeSpan.Parse(departureTimeString);
-                var arrival = this.GetArrival(from, to, departure);
+                var arrival = await this.GetArrivalAsync(from, to, departure);
                 var priceString = dataRow.ChildNodes[5].InnerText;
                 var price = decimal.Parse(Regex.Match(priceString, @"(\d+\.\d+)").Groups[1].Value);
                 var leg = new Leg(
@@ -167,7 +167,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
         }
 
-        private DateTime GetArrival(string from, string to, DateTime departure)
+        private async Task<DateTime> GetArrivalAsync(string from, string to, DateTime departure)
         {
             var fromCode = this.GetRegionCode(from);
             var toCode = this.GetRegionCode(to);
@@ -175,7 +175,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 BulgarianCultureProvider.CountryName, from, fromCode);
             var toPlace = this.placesManager.GetPlace<BulgarianPlace>(
                 BulgarianCultureProvider.CountryName, to, toCode);
-            var arrival = this.estimator.EstimateArrivalTime(
+            var arrival = await this.estimator.EstimateArrivalTimeAsync(
                 fromPlace, toPlace, departure, Mode.Bus);
 
             return arrival;

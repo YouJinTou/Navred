@@ -1,4 +1,5 @@
 ﻿using Navred.Core.Configuration;
+using Navred.Core.Extensions;
 using Navred.Core.Models;
 using Navred.Core.Tools;
 using Newtonsoft.Json;
@@ -105,7 +106,7 @@ namespace Navred.Core.Places
             var places = this.LoadPlacesFor<T>(country);
             var results = places.Where(p => p.Name == name).ToList();
 
-            if (results.Count == 1)
+            if (results.ContainsOne())
             {
                 return results.First();
             }

@@ -11,6 +11,11 @@ namespace Navred.Core.Extensions
             return enumerable.Count() == 0;
         }
 
+        public static bool ContainsOne<T>(this IEnumerable<T> enumerable)
+        {
+            return enumerable.Count() == 1;
+        }
+
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> enumerable)
         {
             if (enumerable == null || IsEmpty(enumerable))
