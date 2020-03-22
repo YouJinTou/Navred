@@ -162,6 +162,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             {
                 { "добрич", BulgarianCultureProvider.Region.DOB },
                 { "априлци", BulgarianCultureProvider.Region.LOV },
+                { "габрово", BulgarianCultureProvider.Region.GAB },
             };
 
             return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
