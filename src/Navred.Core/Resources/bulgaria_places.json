@@ -15849,6 +15849,14 @@
   },
   {
     "Country": "Bulgaria",
+    "Name": "Златни Пясъци",
+    "Region": "Варна",
+    "Municipality": "Варна",
+    "Longitude": 28.0406,
+    "Latitude": 43.2856
+  },
+  {
+    "Country": "Bulgaria",
     "Name": "Златовръх",
     "Region": "Пловдив",
     "Municipality": "Асеновград",

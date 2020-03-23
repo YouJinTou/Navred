@@ -6,6 +6,7 @@ using Navred.Core.Extensions;
 using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Navred.Core.Itineraries.DB
@@ -49,31 +50,31 @@ namespace Navred.Core.Itineraries.DB
             return legs;
         }
 
-        public async Task UpdateLegsAsync(IEnumerable<Leg> itineraries)
+        public async Task UpdateLegsAsync(IEnumerable<Leg> legs)
         {
-            Validator.ThrowIfNull(itineraries);
+            Validator.ThrowIfNull(legs);
 
-            var dbItineraries = this.GetDBItineraries(itineraries);
+            var dbLegs = this.GetDBLegs(legs);
 
-            foreach (var dbi in dbItineraries)
+            foreach (var dbl in dbLegs)
             {
                 var request = new UpdateItemRequest();
                 request.TableName = this.settings.ItinerariesTable;
                 request.Key = new Dictionary<string, AttributeValue>
                 {
-                    { "From", new AttributeValue { S = dbi.From } },
-                    { "UtcTimestamp", new AttributeValue { N = dbi.UtcTimestamp.ToString() } }
+                    { "From", new AttributeValue { S = dbl.From } },
+                    { "UtcTimestamp", new AttributeValue { N = dbl.UtcTimestamp.ToString() } }
                 };
-                request.UpdateExpression = this.GetUpdateExp(dbi);
-                request.ExpressionAttributeValues = this.GetExpAttributeValues(dbi);
+                request.UpdateExpression = this.GetUpdateExp(dbl);
+                request.ExpressionAttributeValues = this.GetExpAttributeValues(dbl);
                 var response = await this.db.UpdateItemAsync(request);
             }
         }
 
-        private IEnumerable<DBLeg> GetDBItineraries(IEnumerable<Leg> legs)
+        private IEnumerable<DBLeg> GetDBLegs(IEnumerable<Leg> legs)
         {
             var fromGroups = legs.GroupBy(i => i.From);
-            var dbItineraries = new List<DBLeg>();
+            var dbLegs = new List<DBLeg>();
 
             foreach (var fromGroup in fromGroups)
             {
@@ -81,7 +82,7 @@ namespace Navred.Core.Itineraries.DB
 
                 foreach (var stampGroup in stampGroups)
                 {
-                    dbItineraries.Add(new DBLeg
+                    dbLegs.Add(new DBLeg
                     {
                         From = fromGroup.Key,
                         UtcTimestamp = stampGroup.Key,
@@ -90,7 +91,7 @@ namespace Navred.Core.Itineraries.DB
                 }
             }
 
-            return dbItineraries;
+            return dbLegs;
         }
 
         private async Task<IEnumerable<DBLeg>> GetLegs(string from, TimeWindow window)
@@ -163,10 +164,8 @@ namespace Navred.Core.Itineraries.DB
         {
             var equalities = i.Tos.Select(l =>
             {
-                var id = l.GetUniqueId();
-                var latinizedId = this.cultureProvider.Latinize(id);
-                var left = latinizedId.Replace(" ", string.Empty);
-                var result = $"{left} = {this.GetAttributeValueKey(l)}";
+                var value = this.FormatLegId(l);
+                var result = $"{value} = :{value}";
 
                 return result;
             })
@@ -207,17 +206,17 @@ namespace Navred.Core.Itineraries.DB
                     map[nameof(Leg.Price)] = new AttributeValue { N = to.Price.ToString() };
                 }
 
-                values[this.GetAttributeValueKey(to)] = new AttributeValue { M = map };
+                values[$":{this.FormatLegId(to)}"] = new AttributeValue { M = map };
             }
 
             return values;
         }
 
-        private string GetAttributeValueKey(Leg leg)
+        private string FormatLegId(Leg leg)
         {
             var id = leg.GetUniqueId();
             var latinizedId = this.cultureProvider.Latinize(id);
-            var result = $":{latinizedId.Replace(" ", "").ToLower()}";
+            var result = Regex.Replace(latinizedId, "[^a-zA-Z]", "_");
 
             return result;
         }

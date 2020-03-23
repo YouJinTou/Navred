@@ -8,6 +8,7 @@ using Navred.Core.Piecing;
 using Navred.Core.Places;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -19,26 +20,23 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
     public class Crawler : ICrawler
     {
         private const string From = "София";
-        private const string Url = 
+        private const string Url =
             "https://www.centralnaavtogara.bg/index.php?mod=0461ebd2b773878eac9f78a891912d65";
 
         private readonly ILegRepository repo;
         private readonly IHttpClientFactory httpClientFactory;
-        private readonly IBulgarianCultureProvider provider;
         private readonly IPlacesManager placesManager;
         private readonly ITimeEstimator estimator;
         private readonly Encoding windows1251;
 
         public Crawler(
-            ILegRepository repo, 
-            IHttpClientFactory httpClientFactory, 
-            IBulgarianCultureProvider provider,
+            ILegRepository repo,
+            IHttpClientFactory httpClientFactory,
             IPlacesManager placesManager,
             ITimeEstimator estimator)
         {
             this.repo = repo;
             this.httpClientFactory = httpClientFactory;
-            this.provider = provider;
             this.placesManager = placesManager;
             this.estimator = estimator;
 
@@ -49,57 +47,59 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
 
         public async Task UpdateLegsAsync()
         {
-            var legs = await this.GetLegsAsync(Url);
-
-            await this.repo.UpdateLegsAsync(legs);
+            await this.UpdateAsync();
         }
 
-        private async Task<IEnumerable<Leg>> GetLegsAsync(string url)
+        private async Task UpdateAsync()
         {
-            var web = new HtmlWeb();
-            var doc = await web.LoadFromWebAsync(url, encoding: this.windows1251);
-            var destinations = doc.DocumentNode
-                .SelectNodes("//form[@id='iq_form']/select[@id='city_menu']/option")
-                .Skip(3)
-                .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
-                .ToList();
-            var httpClient = this.httpClientFactory.CreateClient();
-            var dates = DateTime.UtcNow.GetDateTimesAhead(30)
-                .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
-            var legs = new List<Leg>();
-
-            foreach (var date in dates)
+            try
             {
-                foreach (var destination in destinations)
+                var web = new HtmlWeb();
+                var doc = await web.LoadFromWebAsync(Url, encoding: this.windows1251);
+                var destinations = doc.DocumentNode
+                    .SelectNodes("//form[@id='iq_form']/select[@id='city_menu']/option")
+                    .Skip(3)
+                    .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
+                    .ToList();
+                var httpClient = this.httpClientFactory.CreateClient();
+                var dates = DateTime.UtcNow.GetDateTimesAhead(30)
+                    .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
+
+                foreach (var date in dates)
                 {
-                    try
+                    var legs = new List<Leg>();
+
+                    await destinations.RunBatchesAsync(20, async (d) =>
                     {
-                        var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+                        try
                         {
-                            new KeyValuePair<string, string>("city_menu", destination),
+                            var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+                        {
+                            new KeyValuePair<string, string>("city_menu", d),
                             new KeyValuePair<string, string>("for_date", date),
                         });
-                        var response = await httpClient.PostAsync(Url, content);
-                        var responseText = await response.Content.ReadAsByteArrayAsync();
-                        var encodedText = this.windows1251.GetString(responseText);
-                        var currentLegs = await this.GetLegsAsync(encodedText, date, destination);
+                            var response = await httpClient.PostAsync(Url, content);
+                            var responseText = await response.Content.ReadAsByteArrayAsync();
+                            var encodedText = this.windows1251.GetString(responseText);
+                            var currentLegs = await this.GetLegsAsync(encodedText, date, d);
 
-                        legs.AddRange(currentLegs);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.OutputEncoding = this.windows1251;
+                            legs.AddRange(currentLegs);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.OutputEncoding = this.windows1251;
 
-                        Console.WriteLine(ex.Message);
-                    }
-                    finally
-                    {
-                        await Task.Delay(250);
-                    }
+                            Console.WriteLine(ex.Message);
+                        }
+                    }, 200, 5);
+
+                    await this.repo.UpdateLegsAsync(legs);
                 }
             }
-
-            return legs;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private async Task<IEnumerable<Leg>> GetLegsAsync(
@@ -114,8 +114,8 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
 
             var oddTables = doc.DocumentNode.SelectNodes("//table[@class='result_table_odd']");
             var evenTables = doc.DocumentNode.SelectNodes("//table[@class='result_table_even']");
-            var tables = (oddTables == null) ? 
-                new List<HtmlNode>() : evenTables == null ? oddTables : 
+            var tables = (oddTables == null) ?
+                new List<HtmlNode>() : evenTables == null ? oddTables :
                 oddTables.Concat(evenTables);
 
             if (tables.IsNullOrEmpty())
@@ -130,8 +130,8 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 var dataRow = table.FirstChild;
                 var to = this.placesManager.NormalizePlaceName<BulgarianPlace>(
                     BulgarianCultureProvider.CountryName,
-                    formattedDestination, 
-                    this.GetRegionCode(formattedDestination), 
+                    formattedDestination,
+                    this.GetRegionCode(formattedDestination),
                     this.GetMunicipalityCode(formattedDestination));
                 var carrier = dataRow.ChildNodes[1].InnerText;
                 var departureTimeString =
@@ -141,13 +141,13 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 var priceString = dataRow.ChildNodes[5].InnerText;
                 var price = decimal.Parse(Regex.Match(priceString, @"(\d+\.\d+)").Groups[1].Value);
                 var leg = new Leg(
-                    From, 
-                    to, 
-                    departure, 
-                    arrival, 
-                    carrier, 
-                    Mode.Bus, 
-                    price, 
+                    From,
+                    to,
+                    departure,
+                    arrival,
+                    carrier,
+                    Mode.Bus,
+                    price,
                     arrivalEstimated: true);
 
                 legs.Add(leg);
