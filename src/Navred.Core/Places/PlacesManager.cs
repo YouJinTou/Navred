@@ -122,8 +122,8 @@ namespace Navred.Core.Places
             var formattedPlace = place
                 .Replace(".", " ")
                 .Replace("-", " ");
-            formattedPlace = Regex.Replace(
-                place, $@"[^{this.cultureProvider.Letters}\s]", "").Trim().ToLower();
+            var pattern = $@"[^{this.cultureProvider.Letters}\s]";
+            formattedPlace = Regex.Replace(formattedPlace, pattern, "").Trim().ToLower();
 
             return formattedPlace;
         }
@@ -192,7 +192,7 @@ namespace Navred.Core.Places
 
         private T DoFuzzyMatch<T>(IEnumerable<T> places, string normalizedPlace) where T : IPlace
         {
-            var separators = new char[] { '.', '-', ' ' };
+            var separators = new string[] { ".", "-", " " };
 
             foreach (var separator in separators)
             {
@@ -206,6 +206,17 @@ namespace Navred.Core.Places
                 foreach (var p in places)
                 {
                     if (p.Name.IsFuzzyMatch(normalizedPlace))
+                    {
+                        return p;
+                    }
+                }
+            }
+
+            if (normalizedPlace.Split(" ").Length > 1)
+            {
+                foreach (var p in places)
+                {
+                    if (p.Name.Replace(" ", "").ToLower() == normalizedPlace.Replace(" ", ""))
                     {
                         return p;
                     }

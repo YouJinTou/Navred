@@ -8,8 +8,8 @@ namespace Navred.Core.Extensions
     {
         public static bool IsFuzzyMatch(this string s, string other)
         {
-            var separators = new char[] { '.', '-', ' ', ',' };
-            var otherTokens = other.Split(separators);
+            var separators = new string[] { ".", "-", " ", "," };
+            var otherTokens = other.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var sep in separators)
             {
@@ -37,12 +37,15 @@ namespace Navred.Core.Extensions
             return false;
         }
 
-        public static bool SubstringMatchesPartially(this string s, string other)
+        public static bool SubstringMatchesPartially(
+            this string s, string other, double threshold = 0.6)
         {
             var source = Regex.Replace(s.Trim().ToLower(), "[().,]", "");
             var target = Regex.Replace(other.Trim().ToLower(), "[().,]", "");
-            var sourceTokens = source.Split(new char[] { ' ', '-' }).ToArray();
-            var targetTokens = target.Split(new char[] { ' ', '-' }).ToArray();
+            var sourceTokens = source.Split(
+                new string[] { " ", "-" }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+            var targetTokens = target.Split(
+                new string[] { " ", "-" }, StringSplitOptions.RemoveEmptyEntries).ToArray();
             var matchMatrix = new double[sourceTokens.Length, targetTokens.Length];
 
             for (int i = 0; i < sourceTokens.Length; i++)
@@ -74,7 +77,7 @@ namespace Navred.Core.Extensions
 
             var percentage = matchMatrix.GetMatrixSum() / targetTokens.Length;
             
-            return percentage > 0.6d;
+            return percentage > threshold;
         }
     }
 }

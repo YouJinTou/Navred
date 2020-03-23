@@ -145,6 +145,14 @@
   },
   {
     "Country": "Bulgaria",
+    "Name": "Албена",
+    "Region": "Добрич",
+    "Municipality": "Балчик",
+    "Longitude": 28.0818,
+    "Latitude": 43.3664
+  },
+  {
+    "Country": "Bulgaria",
     "Name": "Алваново",
     "Region": "Търговище",
     "Municipality": "Търговище",
@@ -27670,6 +27678,14 @@
     "Municipality": "Лесичово",
     "Longitude": 24.217802047729492,
     "Latitude": 42.276710510253906
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Пампорово",
+    "Region": "Смолян",
+    "Municipality": "Смолян",
+    "Longitude": 24.6954,
+    "Latitude": 41.6568
   },
   {
     "Country": "Bulgaria",
