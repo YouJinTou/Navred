@@ -62,7 +62,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                     .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
                     .ToList();
                 var httpClient = this.httpClientFactory.CreateClient();
-                var dates = DateTime.UtcNow.GetDateTimesAhead(3)
+                var dates = DateTime.UtcNow.GetDateTimesAhead(7)
                     .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
 
                 foreach (var date in dates)
@@ -73,10 +73,6 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                     {
                         try
                         {
-                            if (!d.Contains("ЛОВЕЧ"))
-                            {
-                                return;
-                            }
                             var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
                             {
                                 new KeyValuePair<string, string>("city_menu", d),
@@ -132,6 +128,12 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             foreach (var table in tables)
             {
                 var dataRow = table.FirstChild;
+                
+                if (!this.IsValidDate(date, dataRow))
+                {
+                    continue;
+                }
+
                 var neighbors = this.TryGetNeighbors(table, formattedDestination);
                 var to = this.placesManager.NormalizePlaceName<BulgarianPlace>(
                     BulgarianCultureProvider.CountryName,
@@ -160,6 +162,32 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             }
 
             return legs;
+        }
+
+        private bool IsValidDate(DateTime date, HtmlNode dataRow)
+        {
+            var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
+                .Select(n => n.InnerText).ToList();
+
+            switch (date.DayOfWeek)
+            {
+                case DayOfWeek.Sunday:
+                    return resultDays.Contains("нд");
+                case DayOfWeek.Monday:
+                    return resultDays.Contains("пн");
+                case DayOfWeek.Tuesday:
+                    return resultDays.Contains("вт");
+                case DayOfWeek.Wednesday:
+                    return resultDays.Contains("ср");
+                case DayOfWeek.Thursday:
+                    return resultDays.Contains("чт");
+                case DayOfWeek.Friday:
+                    return resultDays.Contains("пк");
+                case DayOfWeek.Saturday:
+                    return resultDays.Contains("сб");
+                default:
+                    return true;
+            }
         }
 
         private string GetRegionCode(string place)
