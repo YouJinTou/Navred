@@ -16,6 +16,7 @@ namespace Navred.Core.Itineraries
             DateTime utcArrival, 
             string carrier, 
             Mode mode,
+            string info,
             decimal? price = null,
             string fromSpecific = null,
             string toSpecific = null,
@@ -27,6 +28,7 @@ namespace Navred.Core.Itineraries
             this.UtcArrival = utcArrival;
             this.Carrier = Validator.ReturnOrThrowIfNullOrWhiteSpace(carrier);
             this.Mode = mode;
+            this.Info = info;
             this.Price = price;
             this.FromSpecific = fromSpecific?.Trim();
             this.ToSpecific = toSpecific?.Trim();
@@ -50,6 +52,8 @@ namespace Navred.Core.Itineraries
         public string Carrier { get; private set; }
 
         public Mode Mode { get; private set; }
+
+        public string Info { get; private set; }
 
         public decimal? Price { get; private set; }
 

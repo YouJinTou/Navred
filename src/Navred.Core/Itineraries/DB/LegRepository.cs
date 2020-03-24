@@ -43,6 +43,7 @@ namespace Navred.Core.Itineraries.DB
                     dl.UtcArrival,
                     dl.Carrier, 
                     dl.Mode,
+                    dl.Info,
                     dl.Price, 
                     dl.FromSpecific, 
                     dl.ToSpecific)));

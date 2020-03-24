@@ -30,7 +30,6 @@ namespace Navred.Core.Itineraries
                 .ToList();
             var edges = legs.Select(l => new Edge
             {
-                Carrier = l.Carrier,
                 Source = vertices.Single(v => v.Name == l.From),
                 Destination = vertices.Single(v => v.Name == l.To),
                 Weight = new Weight
@@ -38,8 +37,7 @@ namespace Navred.Core.Itineraries
                     Duration = l.Duration,
                     Price = l.Price,
                 },
-                UtcArrival = l.UtcArrival,
-                UtcDeparture = l.UtcDeparture
+                Leg = l
             }).ToList();
 
             foreach (var vertex in vertices)
@@ -56,16 +54,7 @@ namespace Navred.Core.Itineraries
             var resultLegs = result.Paths
                 .Select(p => p.Path)
                 .SelectMany(e => e)
-                .Select(e => new Leg(
-                    e.Source.Name,
-                    e.Destination.Name,
-                    e.UtcDeparture,
-                    e.UtcArrival,
-                    e.Carrier,
-                    e.Mode,
-                    e.Weight.Price,
-                    e.FromSpecific,
-                    e.ToSpecific))
+                .Select(e => e.Leg)
                 .ToList();
 
             return resultLegs;

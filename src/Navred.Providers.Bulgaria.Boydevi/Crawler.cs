@@ -84,6 +84,7 @@ namespace Navred.Providers.Bulgaria.Boydevi
                             arrivalTimes[t], 
                             "Бойдеви", 
                             Mode.Bus,
+                            url,
                             fromSpecific: fromMatch.Groups[1].Value,
                             toSpecific: toMatch.Groups[1].Value));
                     }

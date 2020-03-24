@@ -155,6 +155,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                     arrival.ToUtcDateTime(Constants.BulgariaTimeZone),
                     carrier,
                     Mode.Bus,
+                    Url,
                     price,
                     arrivalEstimated: true);
 

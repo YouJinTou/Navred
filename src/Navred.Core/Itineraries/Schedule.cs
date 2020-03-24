@@ -44,6 +44,7 @@ namespace Navred.Core.Itineraries
                             this.legs[j].UtcArrival,
                             this.legs[i].Carrier,
                             this.legs[i].Mode,
+                            this.legs[i].Info,
                             this.GetLegsPrice(i, j, legTimeSpread),
                             this.legs[i].FromSpecific,
                             this.legs[j].ToSpecific));
