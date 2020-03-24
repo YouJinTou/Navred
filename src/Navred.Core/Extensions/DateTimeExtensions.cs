@@ -50,9 +50,19 @@ namespace Navred.Core.Extensions
             }
         }
 
-        public static long ToUtcTimestamp(this DateTime dt)
+        public static long ToUtcTimestamp(this DateTime utcDt)
         {
-            var utcDt = TimeZoneInfo.ConvertTimeToUtc(dt);
+            var realUtcDt = DateTime.SpecifyKind(utcDt, DateTimeKind.Utc);
+            var utcSpan = realUtcDt - DateTimeOffset.UnixEpoch;
+            var timestamp = (long)utcSpan.TotalSeconds;
+
+            return timestamp;
+        }
+
+        public static long ToUtcTimestamp(this DateTime dt, string fromTimeZone)
+        {
+            var sourceTimeZone = TimeZoneInfo.FindSystemTimeZoneById(fromTimeZone);
+            var utcDt = TimeZoneInfo.ConvertTimeToUtc(dt, sourceTimeZone);
             var utcSpan = utcDt - DateTimeOffset.UnixEpoch;
             var timestmap = (long)utcSpan.TotalSeconds;
 
@@ -62,6 +72,15 @@ namespace Navred.Core.Extensions
         public static DateTime ToUtcDateTime(this long utcTimestamp)
         {
             var utcDt = DateTimeOffset.FromUnixTimeSeconds(utcTimestamp).UtcDateTime;
+
+            return utcDt;
+        }
+
+        public static DateTime ToUtcDateTime(this DateTime dt, string fromTimeZone)
+        {
+            var unspecified = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
+            var sourceTimeZone = TimeZoneInfo.FindSystemTimeZoneById(fromTimeZone);
+            var utcDt = TimeZoneInfo.ConvertTimeToUtc(unspecified, sourceTimeZone);
 
             return utcDt;
         }

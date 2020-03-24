@@ -26,7 +26,7 @@ namespace Navred.Core.Itineraries
             this.UtcDeparture = utcDeparture;
             this.UtcArrival = utcArrival;
             this.Carrier = Validator.ReturnOrThrowIfNullOrWhiteSpace(carrier);
-            this.Mode = Mode;
+            this.Mode = mode;
             this.Price = price;
             this.FromSpecific = fromSpecific?.Trim();
             this.ToSpecific = toSpecific?.Trim();

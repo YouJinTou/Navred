@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using Navred.Core;
 using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
 using Navred.Core.Extensions;
@@ -8,7 +9,6 @@ using Navred.Core.Piecing;
 using Navred.Core.Places;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -62,7 +62,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                     .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
                     .ToList();
                 var httpClient = this.httpClientFactory.CreateClient();
-                var dates = DateTime.UtcNow.GetDateTimesAhead(30)
+                var dates = DateTime.UtcNow.GetDateTimesAhead(3)
                     .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
 
                 foreach (var date in dates)
@@ -73,6 +73,10 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                     {
                         try
                         {
+                            if (!d.Contains("ЛОВЕЧ"))
+                            {
+                                return;
+                            }
                             var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
                             {
                                 new KeyValuePair<string, string>("city_menu", d),
@@ -145,8 +149,8 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 var leg = new Leg(
                     From,
                     to,
-                    departure,
-                    arrival,
+                    departure.ToUtcDateTime(Constants.BulgariaTimeZone),
+                    arrival.ToUtcDateTime(Constants.BulgariaTimeZone),
                     carrier,
                     Mode.Bus,
                     price,
@@ -178,6 +182,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 { "петрич", BulgarianCultureProvider.Region.BLG },
                 { "рибарица", BulgarianCultureProvider.Region.LOV },
                 { "троян", BulgarianCultureProvider.Region.LOV },
+                { "бенковски", BulgarianCultureProvider.Region.KRZ },
             };
 
             return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
@@ -222,9 +227,10 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             var stops = route.Split('-').Select(s => this.placesManager.FormatPlace(s)).ToList();
             var destinationIndex = stops.IndexOf(destination);
             var previousNeighbor = stops[destinationIndex - 1];
-            var neighbors = new List<string>();
-
-            neighbors.Add(previousNeighbor);
+            var neighbors = new List<string>
+            {
+                previousNeighbor
+            };
 
             if (stops.Count - 1 > destinationIndex)
             {

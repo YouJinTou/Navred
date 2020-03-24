@@ -23,5 +23,9 @@ namespace Navred.Core
             DaysOfWeek.Friday;
 
         public const double EarthRadiusInKm = 6371;
+
+        public const string UtcTimeZone = "UTC";
+
+        public const string BulgariaTimeZone = "FLE Standard Time";
     }
 }

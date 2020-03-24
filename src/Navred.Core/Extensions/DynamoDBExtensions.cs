@@ -40,19 +40,28 @@ namespace Navred.Core.Extensions
 
             if (!string.IsNullOrWhiteSpace(attr.N))
             {
-                if (long.TryParse(attr.N, out long l))
+                if (type.IsEnum)
                 {
-                    return l;
+                    return Enum.Parse(type, attr.N);
                 }
 
-                if (decimal.TryParse(attr.N, out decimal d))
+                var realType = Nullable.GetUnderlyingType(type) != null ?
+                    type.UnderlyingSystemType.GetGenericArguments()[0] :
+                    type.UnderlyingSystemType;
+
+                if (realType == typeof(decimal))
                 {
-                    return d;
+                    return decimal.Parse(attr.N);
                 }
 
-                if (double.TryParse(attr.N, out double dbl))
+                if (realType == typeof(long))
                 {
-                    return dbl;
+                    return long.Parse(attr.N);
+                }
+
+                if (realType == typeof(double))
+                {
+                    return double.Parse(attr.N);
                 }
 
                 return int.Parse(attr.N);

@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2.Model;
 using Navred.Core.Configuration;
 using Navred.Core.Cultures;
 using Navred.Core.Extensions;
+using Navred.Core.Models;
 using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
@@ -139,7 +140,7 @@ namespace Navred.Core.Itineraries.DB
                 .Select(t => new
                 {
                     Vertex = t.To,
-                    Window = new TimeWindow(window.LocalTo, window.LocalTo + t.Duration)
+                    Window = new TimeWindow(window.From, window.To + t.Duration)
                 }).ToList();
 
             foreach (var v in toVertices)
@@ -149,12 +150,12 @@ namespace Navred.Core.Itineraries.DB
                     continue;
                 }
 
+                queried.Add(v.Vertex);
+
                 var nextItineraries = await this.GetLegsRecursiveAsync(
                     v.Vertex, to, v.Window, queried);
 
                 legs.AddRange(nextItineraries);
-
-                queried.Add(v.Vertex);
             }
 
             return legs;
