@@ -74,10 +74,10 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                         try
                         {
                             var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
-                        {
-                            new KeyValuePair<string, string>("city_menu", d),
-                            new KeyValuePair<string, string>("for_date", date),
-                        });
+                            {
+                                new KeyValuePair<string, string>("city_menu", d),
+                                new KeyValuePair<string, string>("for_date", date),
+                            });
                             var response = await httpClient.PostAsync(Url, content);
                             var responseText = await response.Content.ReadAsByteArrayAsync();
                             var encodedText = this.windows1251.GetString(responseText);
@@ -128,11 +128,13 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             foreach (var table in tables)
             {
                 var dataRow = table.FirstChild;
+                var neighbors = this.TryGetNeighbors(table, formattedDestination);
                 var to = this.placesManager.NormalizePlaceName<BulgarianPlace>(
                     BulgarianCultureProvider.CountryName,
                     formattedDestination,
                     this.GetRegionCode(formattedDestination),
-                    this.GetMunicipalityCode(formattedDestination));
+                    this.GetMunicipalityCode(formattedDestination),
+                    neighbors);
                 var carrier = dataRow.ChildNodes[1].InnerText;
                 var departureTimeString =
                     Regex.Match(dataRow.ChildNodes[3].InnerText, @"(\d+:\d+)").Groups[1].Value;
@@ -204,6 +206,32 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 fromPlace, toPlace, departure, Mode.Bus);
 
             return arrival;
+        }
+
+        private IEnumerable<string> TryGetNeighbors(HtmlNode table, string destination)
+        {
+            var routeTd = table.Descendants("td").FirstOrDefault(
+                n => n.HasClass("sr_full_route"));
+
+            if (routeTd == null)
+            {
+                return null;
+            }
+
+            var route = routeTd.InnerText;
+            var stops = route.Split('-').Select(s => this.placesManager.FormatPlace(s)).ToList();
+            var destinationIndex = stops.IndexOf(destination);
+            var previousNeighbor = stops[destinationIndex - 1];
+            var neighbors = new List<string>();
+
+            neighbors.Add(previousNeighbor);
+
+            if (stops.Count - 1 > destinationIndex)
+            {
+                neighbors.Add(stops[destinationIndex + 1]);
+            }
+
+            return neighbors;
         }
     }
 }

@@ -19,12 +19,14 @@ namespace Navred.Core.Places
             string country, 
             string name, 
             string regionCode = null, 
-            string municipalityCode = null) where T : IPlace;
+            string municipalityCode = null,
+            IEnumerable<string> neighbors = null) where T : IPlace;
 
         string NormalizePlaceName<T>(
             string country, 
             string name, 
             string regionCode = null, 
-            string municipalityCode = null) where T : IPlace;
+            string municipalityCode = null,
+            IEnumerable<string> neighbors = null) where T : IPlace;
     }
 }

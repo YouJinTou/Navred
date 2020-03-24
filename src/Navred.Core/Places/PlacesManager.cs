@@ -132,7 +132,8 @@ namespace Navred.Core.Places
             string country, 
             string name, 
             string regionCode = null, 
-            string municipalityCode = null) where T : IPlace
+            string municipalityCode = null,
+            IEnumerable<string> neighbors = null) where T : IPlace
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
 
@@ -141,6 +142,8 @@ namespace Navred.Core.Places
             var results = places
                 .Where(p => normalizedName.Contains(this.FormatPlace(p.Name)))
                 .ToList();
+            regionCode = string.IsNullOrWhiteSpace(regionCode) ? 
+                this.TryGetRegionFromNeighbors<T>(neighbors, country) : regionCode;
             var result = this.GetPlace(results, regionCode, municipalityCode);
 
             if (result == null)
@@ -162,9 +165,10 @@ namespace Navred.Core.Places
             string country, 
             string name, 
             string regionCode = null, 
-            string municipalityCode = null) where T : IPlace
+            string municipalityCode = null,
+            IEnumerable<string> neighbors = null) where T : IPlace
         {
-            var place = this.GetPlace<T>(country, name, regionCode, municipalityCode);
+            var place = this.GetPlace<T>(country, name, regionCode, municipalityCode, neighbors);
 
             return place.Name;
         }
@@ -224,6 +228,36 @@ namespace Navred.Core.Places
             }
 
             return default;
+        }
+
+        private string TryGetRegionFromNeighbors<T>(
+           IEnumerable<string> neighbors, string country) where T : IPlace
+        {
+            if (neighbors.IsNullOrEmpty())
+            {
+                return null;
+            }
+            
+            var regions = new List<string>();
+            var allFound = true;
+
+            foreach (var neighbor in neighbors)
+            {
+                try
+                {
+                    var neighborPlace = this.GetPlace<T>(country, neighbor);
+
+                    regions.Add(neighborPlace.Region);
+                }
+                catch
+                {
+                    allFound = false;
+                }
+            }
+
+            var areInSameRegion = regions.Distinct().ContainsOne();
+
+            return allFound && areInSameRegion ? regions.First() : null;
         }
     }
 }
