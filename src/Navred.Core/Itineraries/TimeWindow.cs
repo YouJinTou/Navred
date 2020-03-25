@@ -3,7 +3,7 @@ using Navred.Core.Models;
 using Navred.Core.Tools;
 using System;
 
-namespace Navred.Core.Itineraries.DB
+namespace Navred.Core.Itineraries
 {
     public class TimeWindow
     {
