@@ -9,7 +9,7 @@ namespace Navred.Core.Models
         {
             TimeZoneInfo.FindSystemTimeZoneById(timeZone);
 
-            this.DateTime = dt;
+            this.DateTime = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
             this.TimeZone = Validator.ReturnOrThrowIfNullOrWhiteSpace(timeZone);
         }
 
