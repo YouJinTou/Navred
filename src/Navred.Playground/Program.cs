@@ -2,7 +2,6 @@
 using Navred.Core;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
-using Navred.Core.Itineraries.DB;
 using Navred.Core.Models;
 using System;
 

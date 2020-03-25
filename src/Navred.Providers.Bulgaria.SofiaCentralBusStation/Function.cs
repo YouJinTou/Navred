@@ -19,7 +19,7 @@ namespace Navred.Providers.SofiaCentralBusStation
         {
             var provider = new ServiceCollection()
                 .AddCore()
-                .AddByConvention(typeof(Crawler).Assembly)
+                .AddTransient<ICrawler, Crawler>()
                 .BuildServiceProvider();
             crawler = provider.GetService<ICrawler>();
         }
