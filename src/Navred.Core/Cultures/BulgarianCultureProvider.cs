@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace Navred.Core.Cultures
 {
@@ -69,6 +70,11 @@ namespace Navred.Core.Cultures
                 { nameof(SHU), SHU },
                 { nameof(JAM), JAM }
             };
+        }
+
+        public class City
+        {
+            public const string VelikoTarnovo = "Велико Търново";
         }
 
         public string Name => CountryName;
@@ -190,6 +196,13 @@ namespace Navred.Core.Cultures
             var result = string.Join(string.Empty, buffer);
 
             return result;
+        }
+
+        public Encoding GetEncoding()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            return Encoding.GetEncoding("windows-1251");
         }
     }
 }

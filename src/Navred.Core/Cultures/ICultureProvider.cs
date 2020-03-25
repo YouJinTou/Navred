@@ -1,4 +1,6 @@
-﻿namespace Navred.Core.Cultures
+﻿using System.Text;
+
+namespace Navred.Core.Cultures
 {
     public interface ICultureProvider
     {
@@ -7,5 +9,7 @@
         string Letters { get; }
 
         string Latinize(string s);
+
+        Encoding GetEncoding();
     }
 }

@@ -27,22 +27,21 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IPlacesManager placesManager;
         private readonly ITimeEstimator estimator;
-        private readonly Encoding windows1251;
+        private readonly ICultureProvider cultureProvider;
 
         public Crawler(
             ILegRepository repo,
             IHttpClientFactory httpClientFactory,
             IPlacesManager placesManager,
-            ITimeEstimator estimator)
+            ITimeEstimator estimator,
+            ICultureProvider cultureProvider)
         {
             this.repo = repo;
             this.httpClientFactory = httpClientFactory;
             this.placesManager = placesManager;
             this.estimator = estimator;
-
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            this.windows1251 = Encoding.GetEncoding("windows-1251");
+            this.cultureProvider = cultureProvider;
+            Console.OutputEncoding = this.cultureProvider.GetEncoding();
         }
 
         public async Task UpdateLegsAsync()
@@ -55,7 +54,8 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             try
             {
                 var web = new HtmlWeb();
-                var doc = await web.LoadFromWebAsync(Url, encoding: this.windows1251);
+                var doc = await web.LoadFromWebAsync(
+                    Url, encoding: this.cultureProvider.GetEncoding());
                 var destinations = doc.DocumentNode
                     .SelectNodes("//form[@id='iq_form']/select[@id='city_menu']/option")
                     .Skip(3)
@@ -80,15 +80,13 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                             });
                             var response = await httpClient.PostAsync(Url, content);
                             var responseText = await response.Content.ReadAsByteArrayAsync();
-                            var encodedText = this.windows1251.GetString(responseText);
+                            var encodedText = this.cultureProvider.GetEncoding().GetString(responseText);
                             var currentLegs = await this.GetLegsAsync(encodedText, date, d);
 
                             legs.AddRange(currentLegs);
                         }
                         catch (Exception ex)
                         {
-                            Console.OutputEncoding = this.windows1251;
-
                             Console.WriteLine(ex.Message);
                         }
                     }, 200, 5);
