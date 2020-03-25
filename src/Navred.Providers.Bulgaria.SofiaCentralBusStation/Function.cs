@@ -7,20 +7,19 @@ using Navred.Core.Extensions;
 using Navred.Providers.Bulgaria.SofiaCentralBusStation;
 using System;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Navred.Providers.SofiaCentralBusStation
 {
     public class Function
     {
-        private static readonly ICrawler crawler;
+        private static ICrawler crawler;
 
         static Function()
         {
             var provider = new ServiceCollection()
                 .AddCore()
-                .AddTransient<ICrawler, Crawler>()
+                .AddByConvention(typeof(Crawler).Assembly)
                 .BuildServiceProvider();
             crawler = provider.GetService<ICrawler>();
         }
@@ -33,17 +32,20 @@ namespace Navred.Providers.SofiaCentralBusStation
             }
             else
             {
-                Action<string, ILambdaContext> func = FunctionHandler;
+                Action<string, ILambdaContext> func = HandleRequest;
+                using var wrapper = HandlerWrapper.GetHandlerWrapper(func, new JsonSerializer());
+                using var bootstrap = new LambdaBootstrap(wrapper);
 
-                using (var handlerWrapper = HandlerWrapper.GetHandlerWrapper(func, new JsonSerializer()))
-                using (var bootstrap = new LambdaBootstrap(handlerWrapper))
-                {
-                    await bootstrap.RunAsync();
-                }
+                await bootstrap.RunAsync();
             }
         }
 
-        public static void FunctionHandler(string input, ILambdaContext context)
+        public static void SetCrawler(ICrawler crawler)
+        {
+            Function.crawler = crawler;
+        }
+
+        public static void HandleRequest(string input, ILambdaContext context)
         {
             try
             {
