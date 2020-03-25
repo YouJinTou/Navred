@@ -80,8 +80,13 @@ namespace Navred.Core.Extensions
             return percentage > threshold;
         }
 
-        public static decimal StripCurrency(this string s)
+        public static decimal? StripCurrency(this string s)
         {
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return null;
+            }
+
             var price = decimal.Parse(Regex.Match(s, @"(\d+[\.,]?\d*)").Groups[1].Value);
 
             return price;
