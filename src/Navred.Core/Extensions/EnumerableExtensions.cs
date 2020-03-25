@@ -84,5 +84,17 @@ namespace Navred.Core.Extensions
                 await Task.Delay(delayBetweenBatches);
             }
         }
+
+        public static IEnumerable<T> TakeAllButLast<T>(this IEnumerable<T> enumerable, int last)
+        {
+            var count = enumerable.Count();
+
+            if (count < last)
+            {
+                return enumerable.Take(0);
+            }
+
+            return enumerable.Take(count - last);
+        }
     }
 }
