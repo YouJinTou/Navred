@@ -168,25 +168,17 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
                 .Select(n => n.InnerText).ToList();
 
-            switch (date.DayOfWeek)
+            return date.DayOfWeek switch
             {
-                case DayOfWeek.Sunday:
-                    return resultDays.Contains("нд");
-                case DayOfWeek.Monday:
-                    return resultDays.Contains("пн");
-                case DayOfWeek.Tuesday:
-                    return resultDays.Contains("вт");
-                case DayOfWeek.Wednesday:
-                    return resultDays.Contains("ср");
-                case DayOfWeek.Thursday:
-                    return resultDays.Contains("чт");
-                case DayOfWeek.Friday:
-                    return resultDays.Contains("пк");
-                case DayOfWeek.Saturday:
-                    return resultDays.Contains("сб");
-                default:
-                    return true;
-            }
+                DayOfWeek.Sunday => resultDays.Contains("нд"),
+                DayOfWeek.Monday => resultDays.Contains("пн"),
+                DayOfWeek.Tuesday => resultDays.Contains("вт"),
+                DayOfWeek.Wednesday => resultDays.Contains("ср"),
+                DayOfWeek.Thursday => resultDays.Contains("чт"),
+                DayOfWeek.Friday => resultDays.Contains("пк"),
+                DayOfWeek.Saturday => resultDays.Contains("сб"),
+                _ => true,
+            };
         }
 
         private string GetRegionCode(string place)
