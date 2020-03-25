@@ -46,57 +46,57 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
 
         public async Task UpdateLegsAsync()
         {
-            await this.UpdateAsync();
-        }
-
-        private async Task UpdateAsync()
-        {
             try
             {
-                var web = new HtmlWeb();
-                var doc = await web.LoadFromWebAsync(
-                    Url, encoding: this.cultureProvider.GetEncoding());
-                var destinations = doc.DocumentNode
-                    .SelectNodes("//form[@id='iq_form']/select[@id='city_menu']/option")
-                    .Skip(3)
-                    .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
-                    .ToList();
-                var httpClient = this.httpClientFactory.CreateClient();
-                var dates = DateTime.UtcNow.GetDateTimesAhead(7)
-                    .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
-
-                foreach (var date in dates)
-                {
-                    var legs = new List<Leg>();
-
-                    await destinations.RunBatchesAsync(20, async (d) =>
-                    {
-                        try
-                        {
-                            var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
-                            {
-                                new KeyValuePair<string, string>("city_menu", d),
-                                new KeyValuePair<string, string>("for_date", date),
-                            });
-                            var response = await httpClient.PostAsync(Url, content);
-                            var responseText = await response.Content.ReadAsByteArrayAsync();
-                            var encodedText = this.cultureProvider.GetEncoding().GetString(responseText);
-                            var currentLegs = await this.GetLegsAsync(encodedText, date, d);
-
-                            legs.AddRange(currentLegs);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                        }
-                    }, 200, 5);
-
-                    await this.repo.UpdateLegsAsync(legs);
-                }
+                await this.UpdateAsync();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+            }
+        }
+
+        private async Task UpdateAsync()
+        {
+            var web = new HtmlWeb();
+            var doc = await web.LoadFromWebAsync(
+                Url, encoding: this.cultureProvider.GetEncoding());
+            var destinations = doc.DocumentNode
+                .SelectNodes("//form[@id='iq_form']/select[@id='city_menu']/option")
+                .Skip(3)
+                .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
+                .ToList();
+            var httpClient = this.httpClientFactory.CreateClient();
+            var dates = DateTime.UtcNow.GetDateTimesAhead(7)
+                .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
+
+            foreach (var date in dates)
+            {
+                var legs = new List<Leg>();
+
+                await destinations.RunBatchesAsync(20, async (d) =>
+                {
+                    try
+                    {
+                        var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+                        {
+                            new KeyValuePair<string, string>("city_menu", d),
+                            new KeyValuePair<string, string>("for_date", date),
+                        });
+                        var response = await httpClient.PostAsync(Url, content);
+                        var responseText = await response.Content.ReadAsByteArrayAsync();
+                        var encodedText = this.cultureProvider.GetEncoding().GetString(responseText);
+                        var currentLegs = await this.GetLegsAsync(encodedText, date, d);
+
+                        legs.AddRange(currentLegs);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }, 200, 5);
+
+                await this.repo.UpdateLegsAsync(legs);
             }
         }
 

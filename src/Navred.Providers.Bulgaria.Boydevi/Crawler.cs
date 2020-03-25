@@ -6,6 +6,7 @@ using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
 using Navred.Core.Places;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -26,21 +27,28 @@ namespace Navred.Providers.Bulgaria.Boydevi
 
         public async Task UpdateLegsAsync()
         {
-            var legs = new List<Leg>();
-            var svilengradSofia = await this.GetLegsAsync(
-                "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%be%d1%84%d0%b8%d1%8f/");
-            var svilengradHaskovo = await this.GetLegsAsync(
-            "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%85%d0%b0%d1%81%d0%ba%d0%be%d0%b2%d0%be/");
-            var toSvilengrad = await this.GetLegsAsync(
-                "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%b2%d0%b8%d0%bb%d0%b5%d0%bd%d0%b3%d1%80%d0%b0%d0%b4/");
+            try
+            {
+                var legs = new List<Leg>();
+                var svilengradSofia = await this.GetLegsAsync(
+                    "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%be%d1%84%d0%b8%d1%8f/");
+                var svilengradHaskovo = await this.GetLegsAsync(
+                "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%85%d0%b0%d1%81%d0%ba%d0%be%d0%b2%d0%be/");
+                var toSvilengrad = await this.GetLegsAsync(
+                    "http://boydevi-bg.com/%d0%b7%d0%b0-%d1%81%d0%b2%d0%b8%d0%bb%d0%b5%d0%bd%d0%b3%d1%80%d0%b0%d0%b4/");
 
-            legs.AddRange(svilengradSofia);
+                legs.AddRange(svilengradSofia);
 
-            legs.AddRange(svilengradHaskovo);
+                legs.AddRange(svilengradHaskovo);
 
-            legs.AddRange(toSvilengrad);
+                legs.AddRange(toSvilengrad);
 
-            await repo.UpdateLegsAsync(legs);
+                await repo.UpdateLegsAsync(legs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private async Task<IEnumerable<Leg>> GetLegsAsync(string url)

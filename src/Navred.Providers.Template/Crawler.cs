@@ -2,6 +2,7 @@
 using Navred.Core.Abstractions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -18,9 +19,16 @@ namespace Navred.Providers.Template
 
         public async Task UpdateLegsAsync()
         {
-            var legs = await this.GetLegsAsync("URL");
+            try
+            {
+                var legs = await this.GetLegsAsync("URL");
 
-            await this.repo.UpdateLegsAsync(legs);
+                await this.repo.UpdateLegsAsync(legs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private async Task<IEnumerable<Leg>> GetLegsAsync(string url)
