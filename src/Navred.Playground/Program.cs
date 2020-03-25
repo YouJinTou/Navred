@@ -14,10 +14,10 @@ namespace Navred.Playground
         {
             var provider = new ServiceCollection().AddCore().BuildServiceProvider();
             var finder = provider.GetService<IItineraryFinder>();
-            var from = new DateTimeTz(new DateTime(2020, 3, 25, 1, 0, 0), Constants.BulgariaTimeZone);
-            var to = new DateTimeTz(new DateTime(2020, 3, 25, 23, 59, 0), Constants.BulgariaTimeZone);
+            var from = new DateTimeTz(DateTime.Now, Constants.BulgariaTimeZone);
+            var to = new DateTimeTz(DateTime.Now.AddDays(1), Constants.BulgariaTimeZone);
             var window = new TimeWindow(from, to);
-            var result = finder.FindItinerariesAsync("София", "Ловеч", window).Result;
+            var result = finder.FindItinerariesAsync("Велико Търново", "Омуртаг", window).Result;
         }
     }
 }
