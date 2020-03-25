@@ -23,8 +23,8 @@ namespace Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation
         private readonly ILegRepository repo;
 
         public Crawler(
-            IPlacesManager placesManager, 
-            ITimeEstimator timeEstimator, 
+            IPlacesManager placesManager,
+            ITimeEstimator timeEstimator,
             ILegRepository repo,
             ICultureProvider cultureProvider)
         {
@@ -54,6 +54,7 @@ namespace Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation
             var doc = await web.LoadFromWebAsync(url);
             var legs = new List<Leg>();
             var trs = doc.DocumentNode.SelectNodes("//div[@class='table-responsive']//tr")
+                .TakeAllButLast(1)
                 .ToList();
             var from = this.placesManager.GetPlace<BulgarianPlace>(
                 BulgarianCultureProvider.CountryName,
@@ -107,8 +108,10 @@ namespace Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation
             var formattedTo = this.placesManager.FormatPlace(to);
             var regionByPlace = new Dictionary<string, string>
             {
-                { "търговище", "Търговище" },
-                { "добрич", "Добрич" },
+                { "търговище", BulgarianCultureProvider.Region.TGV },
+                { "добрич", BulgarianCultureProvider.Region.DOB },
+                { "попово", BulgarianCultureProvider.Region.TGV },
+                { "разград", BulgarianCultureProvider.Region.RAZ },
             };
 
             return regionByPlace.ContainsKey(formattedTo) ? regionByPlace[formattedTo] : null;
