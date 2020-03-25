@@ -79,5 +79,12 @@ namespace Navred.Core.Extensions
             
             return percentage > threshold;
         }
+
+        public static decimal StripCurrency(this string s)
+        {
+            var price = decimal.Parse(Regex.Match(s, @"(\d+[\.,]?\d*)").Groups[1].Value);
+
+            return price;
+        }
     }
 }

@@ -147,7 +147,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 var departure = date + TimeSpan.Parse(departureTimeString);
                 var arrival = await this.GetArrivalAsync(to, departure);
                 var priceString = dataRow.ChildNodes[5].InnerText;
-                var price = decimal.Parse(Regex.Match(priceString, @"(\d+\.\d+)").Groups[1].Value);
+                var price = priceString.StripCurrency();
                 var leg = new Leg(
                     From,
                     to,
