@@ -7,7 +7,7 @@ namespace Navred.Core.Itineraries
     {
         public LegTime(string time)
         {
-            this.Time = this.ArrivalTimeToTimeSpan(time);
+            this.Time = this.TimeToTimeSpan(time);
         }
 
         public TimeSpan Time { get; }
@@ -17,22 +17,24 @@ namespace Navred.Core.Itineraries
             return new LegTime(time);
         }
 
-        private TimeSpan ArrivalTimeToTimeSpan(string arrivalTime)
+        private TimeSpan TimeToTimeSpan(string time)
         {
-            if (!Regex.IsMatch(arrivalTime, @"\d\d:\d\d"))
+            var formattedTime = time.Trim();
+
+            if (!Regex.IsMatch(formattedTime, @"\d\d:\d\d"))
             {
                 throw new ArgumentException(
-                    $"{nameof(arrivalTime)} must be in the dd:dd format, where 'd' is a digit.");
+                    $"{nameof(time)} must be in the dd:dd format, where 'd' is a digit.");
             }
 
-            var hours = int.Parse(arrivalTime.Split(':')[0]);
+            var hours = int.Parse(formattedTime.Split(':')[0]);
 
             if (hours >= 24)
             {
                 throw new ArgumentException("Hours must be up to 23, inclusive.");
             }
 
-            var minutes = int.Parse(arrivalTime.Split(':')[1]);
+            var minutes = int.Parse(formattedTime.Split(':')[1]);
 
             if (minutes >= 60)
             {
