@@ -1,1 +1,10 @@
-<p>search works!</p>
+<mat-form-field>
+    <input type="text" matInput [formControl]="searchControl" [matAutocomplete]="auto"
+        placeholder="Begin typing a location" />
+</mat-form-field>
+
+<mat-autocomplete #auto="matAutocomplete">
+    <mat-option *ngFor="let option of filteredOptions | async " [value]="option">
+        {{option}}
+    </mat-option>
+</mat-autocomplete>
