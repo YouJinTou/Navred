@@ -8,7 +8,7 @@ namespace Navred.Core.Tools
         public static string ToStage(string value)
         {
             var stage = Environment.GetEnvironmentVariable(Constants.StageUpper);
-            stage = string.IsNullOrWhiteSpace(stage) ? "dev" : stage;
+            stage = string.IsNullOrWhiteSpace(stage) ? "qa" : stage;
             var result = $"{stage}_{value}";
 
             return result;
