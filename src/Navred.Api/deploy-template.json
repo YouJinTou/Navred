@@ -67,8 +67,42 @@
         }
       }
     },
-    "ItinerariesTable": {
+    "QaItinerariesTable": {
       "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsQA",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "From",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "UtcTimestamp",
+            "AttributeType": "N"
+          }
+        ],
+        "BillingMode": "PROVISIONED",
+        "KeySchema": [
+          {
+            "AttributeName": "From",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "UtcTimestamp",
+            "KeyType": "RANGE"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "20",
+          "WriteCapacityUnits": "10"
+        },
+        "TableName": "qa_Itineraries"
+        //"TimeToLiveSpecification": "TimeToLiveSpecification" TODO
+      }
+    },
+    "ProdItinerariesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProd",
       "Properties": {
         "AttributeDefinitions": [
           {
