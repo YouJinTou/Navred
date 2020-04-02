@@ -5,7 +5,7 @@
     <AWSProjectType>Lambda</AWSProjectType>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="deploy-template.qa.json" />
+    <None Include="deploy-template.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.105.12" />

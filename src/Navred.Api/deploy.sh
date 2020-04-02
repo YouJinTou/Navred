@@ -1,16 +1,22 @@
- #!/usr/bin/env bash
+  !/usr/bin/env bash
 
 STAGE=${1:-qa}
-CONFIG_FILE=aws-defaults.$STAGE.json
 
-dotnet tool install -g Amazon.Lambda.Tools
+ dotnet tool install -g Amazon.Lambda.Tools
 
-dotnet tool update -g Amazon.Lambda.Tools
+ dotnet tool update -g Amazon.Lambda.Tools
 
-cd "../Navred.Api.Tests"
+ cd "../Navred.Api.Tests"
 
-dotnet test
+ dotnet test
 
-cd "../Navred.Api"
+ cd "../Navred.Api"
 
-dotnet lambda deploy-serverless --config-file $CONFIG_FILE
+dotnet lambda deploy-serverless $STAGE --s3-bucket $STAGE'buckets3' \
+	--profile 'navred' \
+	--region 'eu-central-1' \
+	--configuration 'Release' \
+	--framework 'netcoreapp2.1' \
+	--s3-prefix 'Navred.Api/' \
+	--template 'deploy-template.json' \
+	--template-parameters "stage=$STAGE"
