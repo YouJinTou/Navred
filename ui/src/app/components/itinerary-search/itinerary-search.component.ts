@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { itinerariesUrl } from 'src/environments/environment';
 
 @Component({
   selector: 'app-itinerary-search',
@@ -7,9 +9,15 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ItinerarySearchComponent implements OnInit {
 
-  constructor() { }
+  constructor(private httpClient: HttpClient) { }
 
   ngOnInit() {
+  }
+
+  onSearch() {
+    const url = itinerariesUrl('Любимец', 'София', '2020-04-05T06:00:00', '2020-04-05T09:00:00');
+
+    this.httpClient.get(url).subscribe(r => console.log(r));
   }
 
 }

@@ -390,4 +390,4 @@ testem.log
 Thumbs.db
 
 ui/src/environments/environment.prod.ts
-ui/src/environments/environment.dev.ts
+ui/src/environments/environment.ts
