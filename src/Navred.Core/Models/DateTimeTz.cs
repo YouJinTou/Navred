@@ -1,5 +1,6 @@
 ﻿using Navred.Core.Tools;
 using System;
+using TimeZoneConverter;
 
 namespace Navred.Core.Models
 {
@@ -7,7 +8,7 @@ namespace Navred.Core.Models
     {
         public DateTimeTz(DateTime dt, string timeZone)
         {
-            TimeZoneInfo.FindSystemTimeZoneById(timeZone);
+            TZConvert.GetTimeZoneInfo(timeZone);
 
             this.DateTime = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
             this.TimeZone = Validator.ReturnOrThrowIfNullOrWhiteSpace(timeZone);

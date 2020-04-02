@@ -1,6 +1,7 @@
 ﻿using Navred.Core.Itineraries;
 using System;
 using System.Collections.Generic;
+using TimeZoneConverter;
 
 namespace Navred.Core.Extensions
 {
@@ -61,7 +62,7 @@ namespace Navred.Core.Extensions
 
         public static long ToUtcTimestamp(this DateTime dt, string fromTimeZone)
         {
-            var sourceTimeZone = TimeZoneInfo.FindSystemTimeZoneById(fromTimeZone);
+            var sourceTimeZone = TZConvert.GetTimeZoneInfo(fromTimeZone);
             var utcDt = TimeZoneInfo.ConvertTimeToUtc(dt, sourceTimeZone);
             var utcSpan = utcDt - DateTimeOffset.UnixEpoch;
             var timestmap = (long)utcSpan.TotalSeconds;
@@ -79,7 +80,7 @@ namespace Navred.Core.Extensions
         public static DateTime ToUtcDateTime(this DateTime dt, string fromTimeZone)
         {
             var unspecified = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
-            var sourceTimeZone = TimeZoneInfo.FindSystemTimeZoneById(fromTimeZone);
+            var sourceTimeZone = TZConvert.GetTimeZoneInfo(fromTimeZone);
             var utcDt = TimeZoneInfo.ConvertTimeToUtc(unspecified, sourceTimeZone);
 
             return utcDt;
