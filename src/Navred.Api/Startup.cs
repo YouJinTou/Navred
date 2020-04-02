@@ -21,6 +21,10 @@ namespace Navred.Api
         {
             services
                 .AddCore()
+                .AddCors(o => o.AddPolicy("UIPolicy", p =>
+                {
+                    p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                }))
                 .AddAWSService<IAmazonDynamoDB>()
                 .AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
@@ -34,11 +38,14 @@ namespace Navred.Api
             }
             else
             {
-                app.UseHsts();
+                app
+                    .UseHsts()
+                    .UseHttpsRedirection();
             }
 
-            app.UseHttpsRedirection();
-            app.UseMvc();
+            app
+                .UseCors("UIPolicy")
+                .UseMvc();
         }
     }
 }
