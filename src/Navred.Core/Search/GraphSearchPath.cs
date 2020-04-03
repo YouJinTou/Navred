@@ -17,15 +17,21 @@ namespace Navred.Core.Search
                 this.Path = new List<Edge>();
             }
 
-            this.Path.Add(edge);
-
             this.Weight = this.Weight ?? new Weight();
             this.Weight += edge.Weight;
+
+            this.AddWaitTime(edge);
+
+            this.Path.Add(edge);
         }
 
         public void Remove(Edge edge)
         {
+            this.Weight -= edge.Weight;
+
             this.Path.Remove(edge);
+
+            this.RemoveWeightTime(edge);
         }
 
         public GraphSearchPath Copy()
@@ -52,6 +58,34 @@ namespace Navred.Core.Search
         public bool Contains(Edge edge)
         {
             return this.Path.Any(e => e.Source == edge.Destination);
+        }
+
+        private void AddWaitTime(Edge edge)
+        {
+            if (this.Path.IsEmpty())
+            {
+                return;
+            }
+
+            this.Weight += new Weight
+            {
+                Duration = edge.Leg.UtcDeparture - this.Path.Last().Leg.UtcArrival,
+                Price = null
+            };
+        }
+
+        private void RemoveWeightTime(Edge edge)
+        {
+            if (this.Path.IsEmpty())
+            {
+                return;
+            }
+
+            this.Weight -= new Weight
+            {
+                Duration = edge.Leg.UtcDeparture - this.Path.Last().Leg.UtcArrival,
+                Price = null
+            };
         }
 
         public override string ToString()

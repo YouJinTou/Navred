@@ -8,15 +8,6 @@ namespace Navred.Core.Search
 
         public decimal? Price { get; set; }
 
-        public static Weight CreateMax()
-        {
-            return new Weight
-            {
-                Duration = TimeSpan.MaxValue,
-                Price = decimal.MaxValue
-            };
-        }
-
         public static bool operator <(Weight w1, Weight w2)
         {
             return w1.Duration < w2.Duration;
@@ -29,11 +20,24 @@ namespace Navred.Core.Search
 
         public static Weight operator +(Weight w1, Weight w2)
         {
-            return new Weight
+            var w = new Weight
             {
                 Duration = w1.Duration + w2.Duration,
-                Price = w1.Price + w2.Price
+                Price = (w1.Price ?? 0m) + (w2.Price ?? 0m)
             };
+
+            return w;
+        }
+
+        public static Weight operator -(Weight w1, Weight w2)
+        {
+            var w = new Weight
+            {
+                Duration = w1.Duration - w2.Duration,
+                Price = (w1.Price ?? 0m) - (w2.Price ?? 0m)
+            };
+
+            return w;
         }
 
         public override string ToString()
