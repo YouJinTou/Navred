@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Navred.Api.Models;
 using Navred.Core;
 using Navred.Core.Itineraries;
 using Navred.Core.Models;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Navred.Api.Controllers
@@ -31,8 +33,13 @@ namespace Navred.Api.Controllers
                     new DateTimeTz(start, Constants.BulgariaTimeZone), 
                     new DateTimeTz(end, Constants.BulgariaTimeZone));
                 var paths = await this.finder.FindItinerariesAsync(from, to, window);
+                var itineraries = paths.Select(p => new ItineraryViewModel
+                {
+                    Legs = p.Path.Select(e => e.Leg),
+                    Weight = p.Weight
+                }).ToList();
 
-                return Ok(paths);
+                return Ok(itineraries);
             }
             catch (Exception ex)
             {
