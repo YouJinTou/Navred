@@ -3,8 +3,8 @@ using Amazon.DynamoDBv2.Model;
 using Navred.Core.Configuration;
 using Navred.Core.Cultures;
 using Navred.Core.Extensions;
-using Navred.Core.Models;
 using Navred.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -141,7 +141,9 @@ namespace Navred.Core.Itineraries.DB
                 .Select(t => new
                 {
                     Vertex = t.To,
-                    Window = new TimeWindow(window.To, window.To + t.Duration)
+                    Window = new TimeWindow(
+                        t.UtcArrival.ToUtcDateTimeTz(), 
+                        t.UtcArrival.ToUtcDateTimeTz() + TimeSpan.FromHours(1))
                 })
                 .ToList();
 

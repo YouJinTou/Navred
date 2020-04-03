@@ -1,4 +1,5 @@
 ﻿using Navred.Core.Itineraries;
+using Navred.Core.Models;
 using System;
 using System.Collections.Generic;
 using TimeZoneConverter;
@@ -100,6 +101,11 @@ namespace Navred.Core.Extensions
             }
 
             return dates;
+        }
+
+        public static DateTimeTz ToUtcDateTimeTz(this DateTime dt)
+        {
+            return new DateTimeTz(dt, Constants.UtcTimeZone);
         }
     }
 }
