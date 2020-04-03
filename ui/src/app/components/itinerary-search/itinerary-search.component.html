@@ -1,5 +1,18 @@
 <div class="container">
-    <app-search></app-search>
-    <app-search></app-search>
-    <button (click)='onSearch()'>Go</button>
+    <div class="search-container">
+        <app-search></app-search>
+        <app-search></app-search>
+        <button (click)='onSearch()'>Go</button>
+    </div>
+    <div class="results-container">
+        <div *ngFor="let path of paths">
+            <div *ngFor="let leg of path.legs">
+                {{ leg.fromSpecific }} - {{ leg.toSpecific }}
+                <hr />
+                {{ leg.utcDeparture }} -- {{ leg.utcArrival }} {{ leg.arrivalEstimated ? '(estimated)' : '' }} ({{ leg.duration }})
+                <hr />
+                {{ leg.carrier }}{{ leg.price == null ? '' : ' | ' + leg.price }}
+            </div>
+        </div>
+    </div>
 </div>

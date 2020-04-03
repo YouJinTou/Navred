@@ -8,6 +8,7 @@ import { itinerariesUrl } from 'src/environments/environment';
   styleUrls: ['./itinerary-search.component.css']
 })
 export class ItinerarySearchComponent implements OnInit {
+  paths: any[];
 
   constructor(private httpClient: HttpClient) { }
 
@@ -17,7 +18,7 @@ export class ItinerarySearchComponent implements OnInit {
   onSearch() {
     const url = itinerariesUrl('Любимец', 'София', '2020-04-05T06:00:00', '2020-04-05T09:00:00');
 
-    this.httpClient.get(url).subscribe(r => console.log(r));
+    this.httpClient.get<any[]>(url).subscribe(r => this.paths = r);
   }
 
 }
