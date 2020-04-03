@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -9,6 +9,7 @@ import { map, startWith } from 'rxjs/operators';
   styleUrls: ['./search.component.css']
 })
 export class SearchComponent implements OnInit {
+  @Output() onPlaceSelected = new EventEmitter<string>();
   searchControl = new FormControl();
   options: string[] = ['Варна', 'София', 'Търговище', 'Велико Търново', 'Русе', 'Пловдив'];
   filteredOptions: Observable<string[]>;
@@ -18,5 +19,9 @@ export class SearchComponent implements OnInit {
       startWith(''),
       map(v => this.options.filter(o => o.toLowerCase().includes(v.toLowerCase())))
     );
+  }
+
+  onSelect(place: string) {
+    this.onPlaceSelected.emit(place);
   }
 }

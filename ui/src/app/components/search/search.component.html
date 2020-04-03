@@ -3,7 +3,7 @@
         placeholder="Begin typing a location" />
 </mat-form-field>
 
-<mat-autocomplete #auto="matAutocomplete">
+<mat-autocomplete (optionSelected)='onSelect($event.option.value)' #auto="matAutocomplete">
     <mat-option *ngFor="let option of filteredOptions | async " [value]="option">
         {{option}}
     </mat-option>
