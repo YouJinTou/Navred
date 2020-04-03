@@ -36,6 +36,8 @@ namespace Navred.Core.Search
 
             result.Sort();
 
+            result.Filter();
+
             return result;
         }
 
