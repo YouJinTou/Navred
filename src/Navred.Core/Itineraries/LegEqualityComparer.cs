@@ -22,12 +22,12 @@ namespace Navred.Core.Itineraries
 
             unchecked
             {
-                result = result * prime + i.UtcArrival.GetHashCode();
-                result = result * prime + i.UtcDeparture.GetHashCode();
-                result = result * prime + i.From.GetHashCode();
-                result = result * prime + i.To.GetHashCode();
-                result = result * prime + i.Carrier.GetHashCode();
-                result = result * prime + i.Price?.GetHashCode() ?? prime;
+                result *= prime + i.UtcArrival.GetHashCode();
+                result *= prime + i.UtcDeparture.GetHashCode();
+                result *= prime + i.From.GetHashCode();
+                result *= prime + i.To.GetHashCode();
+                result *= prime + i.Carrier.GetHashCode();
+                result *= prime + i.Price?.GetHashCode() ?? prime;
             }
 
             return result;
