@@ -31,8 +31,7 @@ namespace Navred.Core.Search
                 .ToList();
         }
 
-        public void Filter()
-            => this.Paths = new HashSet<GraphSearchPath>(
-                this.Paths, new GraphSearchPathEqualityComparer());
+        public void Filter() => this.Paths = new HashSet<GraphSearchPath>(
+            this.Paths, new GraphSearchPathEqualityComparer());
     }
 }

@@ -59,7 +59,7 @@ namespace Navred.Core.Search
 
             foreach (var e in edge.Destination.Edges)
             {
-                if (currentPath.Contains(e))
+                if (currentPath.Contains(e) || currentPath.Tail.ArrivesAfterHasDeparted(e))
                 {
                     continue;
                 }

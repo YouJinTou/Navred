@@ -49,16 +49,14 @@ namespace Navred.Core.Search
             };
         }
 
-        public Vertex GetSource()
-            => this.Path.First().Source;
+        public Vertex Source => this.Path.First().Source;
 
-        public Vertex GetDestination()
-            => this.Path.Last().Destination;
+        public Vertex Destination => this.Path.Last().Destination;
+
+        public Edge Tail => this.Path.Last();
 
         public bool Contains(Edge edge)
-        {
-            return this.Path.Any(e => e.Source == edge.Destination);
-        }
+            => this.Path.Any(e => e.Source == edge.Destination);
 
         private void AddWaitTime(Edge edge)
         {
@@ -90,7 +88,7 @@ namespace Navred.Core.Search
 
         public override string ToString()
         {
-            var destination = this.GetDestination().ToString();
+            var destination = this.Destination.ToString();
             var legs = string.Join(" - ", this.Path.Select(p => p.Source));
             var result = $"{legs} - {destination} | {this.Weight}";
 

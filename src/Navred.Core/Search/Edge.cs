@@ -13,9 +13,16 @@ namespace Navred.Core.Search
 
         public Leg Leg { get; set; }
 
-        public override string ToString()
+        public bool ArrivesAfterHasDeparted(Edge other)
         {
-            return this.Leg.ToString();
+            if (!this.Leg.To.Equals(other.Leg.From))
+            {
+                throw new InvalidOperationException("Destination and source must match.");
+            }
+
+            return this.Leg.UtcArrival >= other.Leg.UtcDeparture;
         }
+
+        public override string ToString() => this.Leg.ToString();
     }
 }

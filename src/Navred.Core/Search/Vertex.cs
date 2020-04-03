@@ -9,14 +9,8 @@ namespace Navred.Core.Search
 
         public IEnumerable<Edge> Edges { get; set; }
 
-        public bool Equals(Vertex other)
-        {
-            return this.Name.Equals(other?.Name);
-        }
+        public bool Equals(Vertex other) => this.Name.Equals(other?.Name);
 
-        public override string ToString()
-        {
-            return this.Name;
-        }
+        public override string ToString() => this.Name;
     }
 }

@@ -9,15 +9,15 @@ namespace Navred.Core.Search
         {
             return
                 x.Weight.Equals(y.Weight) &&
-                $"{x.GetSource()} - {x.GetDestination()} | {x.Path.Last().Leg.Carrier}"
-                .Equals($"{y.GetSource()} - {y.GetDestination()} | {y.Path.Last().Leg.Carrier}");
+                $"{x.Source} - {x.Destination} | {x.Path.Last().Leg.Carrier}"
+                .Equals($"{y.Source} - {y.Destination} | {y.Path.Last().Leg.Carrier}");
         }
 
         public int GetHashCode(GraphSearchPath p)
         {
             int prime = 83;
             int result = 1;
-            var sourceDestination = $"{p.GetSource()} - {p.GetDestination()}";
+            var sourceDestination = $"{p.Source} - {p.Destination}";
 
             unchecked
             {
