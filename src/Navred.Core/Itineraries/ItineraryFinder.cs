@@ -22,7 +22,6 @@ namespace Navred.Core.Itineraries
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to, window);
 
             var legs = await this.repo.GetLegsAsync(from, to, window);
-            legs = legs.Where(l => l.To == "Велико Търново" || l.To == "Варна").ToList();
             var vertices = legs
                 .Select(i => new List<string> { i.From, i.To })
                 .SelectMany(s => s)
