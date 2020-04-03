@@ -1,5 +1,6 @@
 ﻿using Navred.Core.Tools;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Navred.Core.Search
 {
@@ -67,6 +68,11 @@ namespace Navred.Core.Search
 
                 currentPath.Remove(e);
             }
+        }
+
+        public override string ToString()
+        {
+            return $"Vertices: {this.Vertices.Count()} Edges: {this.Edges.Count()}";
         }
     }
 }
