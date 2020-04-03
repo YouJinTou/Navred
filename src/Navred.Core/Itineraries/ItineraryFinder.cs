@@ -16,7 +16,7 @@ namespace Navred.Core.Itineraries
             this.repo = repo;
         }
 
-        public async Task<IEnumerable<Leg>> FindItinerariesAsync(
+        public async Task<IEnumerable<GraphSearchPath>> FindItinerariesAsync(
             string from, string to, TimeWindow window)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to, window);
@@ -51,13 +51,8 @@ namespace Navred.Core.Itineraries
                 vertices, 
                 edges);
             var result = graph.FindAllPaths(graph.Source, graph.Destination);
-            var resultLegs = result.Paths
-                .Select(p => p.Path)
-                .SelectMany(e => e)
-                .Select(e => e.Leg)
-                .ToList();
 
-            return resultLegs;
+            return result.Paths;
         }
     }
 }
