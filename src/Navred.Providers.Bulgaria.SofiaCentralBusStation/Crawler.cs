@@ -65,6 +65,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 .SelectNodes("//form[@id='iq_form']/select[@id='city_menu']/option")
                 .Skip(3)
                 .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
+                .Where(v => v.Contains("ПЛОВДИВ"))
                 .ToList();
             var httpClient = this.httpClientFactory.CreateClient();
             var dates = DateTime.UtcNow.GetDateTimesAhead(7)
@@ -165,20 +166,30 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
 
         private bool IsValidDate(DateTime date, HtmlNode dataRow)
         {
-            var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
+            try
+            {
+                var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
                 .Select(n => n.InnerText).ToList();
 
-            return date.DayOfWeek switch
+                return date.DayOfWeek switch
+                {
+                    DayOfWeek.Sunday => resultDays.Contains("нд"),
+                    DayOfWeek.Monday => resultDays.Contains("пн"),
+                    DayOfWeek.Tuesday => resultDays.Contains("вт"),
+                    DayOfWeek.Wednesday => resultDays.Contains("ср"),
+                    DayOfWeek.Thursday => resultDays.Contains("чт"),
+                    DayOfWeek.Friday => resultDays.Contains("пк"),
+                    DayOfWeek.Saturday => resultDays.Contains("сб"),
+                    _ => true,
+                };
+            }
+            catch (Exception ex)
             {
-                DayOfWeek.Sunday => resultDays.Contains("нд"),
-                DayOfWeek.Monday => resultDays.Contains("пн"),
-                DayOfWeek.Tuesday => resultDays.Contains("вт"),
-                DayOfWeek.Wednesday => resultDays.Contains("ср"),
-                DayOfWeek.Thursday => resultDays.Contains("чт"),
-                DayOfWeek.Friday => resultDays.Contains("пк"),
-                DayOfWeek.Saturday => resultDays.Contains("сб"),
-                _ => true,
-            };
+                Console.WriteLine(ex.Message);
+
+                return true;
+            }
+            
         }
 
         private string GetRegionCode(string place)
