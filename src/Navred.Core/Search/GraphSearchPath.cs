@@ -19,7 +19,7 @@ namespace Navred.Core.Search
 
             this.Path.Add(edge);
 
-            this.Weight = this.Weight == null ? new Weight() : this.Weight;
+            this.Weight = this.Weight ?? new Weight();
             this.Weight += edge.Weight;
         }
 
@@ -43,6 +43,12 @@ namespace Navred.Core.Search
             };
         }
 
+        public Vertex GetSource()
+            => this.Path.First().Source;
+
+        public Vertex GetDestination()
+            => this.Path.Last().Destination;
+
         public bool Contains(Edge edge)
         {
             return this.Path.Any(e => e.Source == edge.Destination);
@@ -50,7 +56,7 @@ namespace Navred.Core.Search
 
         public override string ToString()
         {
-            var destination = this.Path.Last().Destination.ToString();
+            var destination = this.GetDestination().ToString();
             var legs = string.Join(" - ", this.Path.Select(p => p.Source));
             var result = $"{legs} - {destination} | {this.Weight}";
 

@@ -2,7 +2,7 @@
 
 namespace Navred.Core.Search
 {
-    public class Weight : IComparable<Weight>
+    public class Weight : IComparable<Weight>, IEquatable<Weight>
     {
         public TimeSpan Duration { get; set; }
 
@@ -49,6 +49,16 @@ namespace Navred.Core.Search
             }
 
             return this.Duration.CompareTo(other.Duration);
+        }
+
+        public bool Equals(Weight other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this.Duration.Equals(other.Duration) && this.Price.Equals(other.Price);
         }
     }
 }

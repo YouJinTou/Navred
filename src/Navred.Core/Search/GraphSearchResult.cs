@@ -12,7 +12,7 @@ namespace Navred.Core.Search
         {
             if (this.Paths.IsNullOrEmpty())
             {
-                this.Paths = new List<GraphSearchPath>();
+                this.Paths = new HashSet<GraphSearchPath>(new GraphSearchPathEqualityComparer());
             }
 
             this.Paths.Add(path.Copy());
