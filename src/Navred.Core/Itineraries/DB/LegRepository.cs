@@ -141,8 +141,9 @@ namespace Navred.Core.Itineraries.DB
                 .Select(t => new
                 {
                     Vertex = t.To,
-                    Window = new TimeWindow(window.From, window.To + t.Duration)
-                }).ToList();
+                    Window = new TimeWindow(window.To, window.To + t.Duration)
+                })
+                .ToList();
 
             foreach (var v in toVertices)
             {
