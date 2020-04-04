@@ -11,19 +11,35 @@ import { placesUrl } from 'src/environments/environment';
 export class SearchComponent implements OnInit {
   @Output() onPlaceSelected = new EventEmitter<string>();
   searchControl = new FormControl();
-  options: string[] = [];
+  options: any[] = [];
 
   constructor(private httpClient: HttpClient) { }
 
   ngOnInit() {
     this.searchControl.valueChanges.subscribe(v => {
+      this.options = [];
       this.httpClient.get<any[]>(placesUrl('Bulgaria', v)).subscribe(places => {
-        this.options = places.map(p => `${p.name} (${p.region}, ${p.municipality})`);
+        for (var p of places) {
+          this.options.push({
+            text: `${p.place.name} (${p.place.region}, ${p.place.municipality})`,
+            value: p.id
+          });
+        }
       });
     });
   }
 
   onSelect(place: string) {
     this.onPlaceSelected.emit(place);
+  }
+
+  displayWith(value: string) {
+    if (!value) {
+      return;
+    }
+    
+    const displayValue = value.split('|')[1];
+
+    return displayValue;
   }
 }
