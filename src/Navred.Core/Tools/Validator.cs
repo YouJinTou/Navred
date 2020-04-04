@@ -6,19 +6,19 @@ namespace Navred.Core.Tools
 {
     public static class Validator
     {
-        public static void ThrowIfNull(object obj)
+        public static void ThrowIfNull(object obj, string message = null)
         {
             if (obj == null)
             {
-                throw new ArgumentNullException("Object is empty.");
+                throw new ArgumentNullException(message ?? "Object is empty.");
             }
 
         }
-        public static void ThrowIfNullOrWhiteSpace(string s)
+        public static void ThrowIfNullOrWhiteSpace(string s, string message = null)
         {
             if (string.IsNullOrWhiteSpace(s))
             {
-                throw new ArgumentNullException("String is empty.");
+                throw new ArgumentNullException(message ?? "String is empty.");
             }
         }
 
@@ -37,25 +37,25 @@ namespace Navred.Core.Tools
             }
         }
 
-        public static string ReturnOrThrowIfNullOrWhiteSpace(string s)
+        public static string ReturnOrThrowIfNullOrWhiteSpace(string s, string message = null)
         {
-            ThrowIfNullOrWhiteSpace(s);
+            ThrowIfNullOrWhiteSpace(s, message);
 
             return s;
         }
 
-        public static T ReturnOrThrowIfNull<T>(T item)
+        public static T ReturnOrThrowIfNull<T>(T item, string message = null)
         {
-            ThrowIfNull(item);
+            ThrowIfNull(item, message);
 
             return item;
         }
 
-        public static void ThrowIfNullOrEmpty<T>(IEnumerable<T> enumerable)
+        public static void ThrowIfNullOrEmpty<T>(IEnumerable<T> enumerable, string message = null)
         {
             if (enumerable.IsNullOrEmpty())
             {
-                throw new ArgumentNullException("Enumerable is null or empty.");
+                throw new ArgumentNullException(message ?? "Enumerable is null or empty.");
             }
         }
     }
