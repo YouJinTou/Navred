@@ -1,11 +1,11 @@
-
+﻿
 using Amazon.Lambda.Core;
 using Moq;
 using Navred.Core.Abstractions;
 using System;
 using Xunit;
 
-namespace Navred.Providers.Template.Tests
+namespace Navred.Crawling.Tests
 {
     public class FunctionTest
     {

@@ -4,11 +4,12 @@ using Amazon.Lambda.Serialization.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Navred.Core.Abstractions;
 using Navred.Core.Extensions;
+using Navred.Crawling.Crawlers;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace Navred.Providers.Template
+namespace Navred.Crawling
 {
     public class Function
     {
@@ -18,7 +19,7 @@ namespace Navred.Providers.Template
         {
             var provider = new ServiceCollection()
                 .AddCore()
-                .AddTransient<ICrawler, Crawler>()
+                .AddTransient<ICrawler, Boydevi>()
                 .BuildServiceProvider();
             crawler = provider.GetService<ICrawler>();
         }
@@ -54,7 +55,7 @@ namespace Navred.Providers.Template
             }
             catch (Exception ex)
             {
-                context.Logger.Log(ex.Message);
+                context.Logger.Log(ex.ToString());
             }
         }
     }

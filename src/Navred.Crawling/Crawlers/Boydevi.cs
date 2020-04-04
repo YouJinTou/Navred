@@ -12,14 +12,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Navred.Providers.Bulgaria.Boydevi
+namespace Navred.Crawling.Crawlers
 {
-    public class Crawler : ICrawler
+    public class Boydevi : ICrawler
     {
         private readonly ILegRepository repo;
         private readonly IPlacesManager placesManager;
 
-        public Crawler(ILegRepository repo, IPlacesManager placesManager)
+        public Boydevi(ILegRepository repo, IPlacesManager placesManager)
         {
             this.repo = repo;
             this.placesManager = placesManager;

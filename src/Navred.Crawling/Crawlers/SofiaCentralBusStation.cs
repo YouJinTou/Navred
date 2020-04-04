@@ -14,9 +14,9 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
+namespace Navred.Crawling.Crawlers
 {
-    public class Crawler : ICrawler
+    public class SofiaCentralBusStation : ICrawler
     {
         private readonly Place From;
         private const string Url =
@@ -28,7 +28,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
         private readonly ITimeEstimator estimator;
         private readonly ICultureProvider cultureProvider;
 
-        public Crawler(
+        public SofiaCentralBusStation(
             ILegRepository repo,
             IHttpClientFactory httpClientFactory,
             IPlacesManager placesManager,

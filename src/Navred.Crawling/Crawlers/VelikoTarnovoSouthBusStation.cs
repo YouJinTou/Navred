@@ -12,9 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation
+namespace Navred.Crawling.Crawlers
 {
-    public class Crawler : ICrawler
+    public class VelikoTarnovoSouthBusStation : ICrawler
     {
         private const string Url = "http://avtogaratarnovo.eu/?mode=schedule";
 
@@ -22,7 +22,7 @@ namespace Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation
         private readonly ITimeEstimator timeEstimator;
         private readonly ILegRepository repo;
 
-        public Crawler(
+        public VelikoTarnovoSouthBusStation(
             IPlacesManager placesManager,
             ITimeEstimator timeEstimator,
             ILegRepository repo,

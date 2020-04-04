@@ -5,29 +5,19 @@ VisualStudioVersion = 16.0.29411.108
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Core", "Navred.Core\Navred.Core.csproj", "{ABA47EB8-0565-482E-B01F-DD3B25E567E3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Bulgaria.Boydevi", "Navred.Providers.Bulgaria.Boydevi\Navred.Providers.Bulgaria.Boydevi.csproj", "{48F66462-804A-443D-9DAB-1AA654059010}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Bulgaria.Boydevi.Tests", "Navred.Providers.Bulgaria.Boydevi.Tests\Navred.Providers.Bulgaria.Boydevi.Tests.csproj", "{B871458F-3640-435E-A19E-674DF859FFAD}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Api", "Navred.Api\Navred.Api.csproj", "{67898FAC-926B-4577-B371-EE783C537C62}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Api.Tests", "Navred.Api.Tests\Navred.Api.Tests.csproj", "{62B3DC7B-E6BD-4788-A7A4-767FEECD6C06}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Playground", "Navred.Playground\Navred.Playground.csproj", "{E7B02655-A55C-402A-901E-846A5FEB226A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Template", "Navred.Providers.Template\Navred.Providers.Template.csproj", "{064B05F9-EEF4-4A2C-B68D-73933771F593}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Template.Tests", "Navred.Providers.Template.Tests\Navred.Providers.Template.Tests.csproj", "{653BA011-A2EA-4FFC-991D-F8D6620F4CE6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Bulgaria.SofiaCentralBusStation.Tests", "Navred.Providers.Bulgaria.SofiaCentralBusStation.Tests\Navred.Providers.Bulgaria.SofiaCentralBusStation.Tests.csproj", "{1104F590-DBBB-446D-BAA6-E3383F230B7A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Bulgaria.SofiaCentralBusStation", "Navred.Providers.Bulgaria.SofiaCentralBusStation\Navred.Providers.Bulgaria.SofiaCentralBusStation.csproj", "{2449676C-2854-46B2-B910-463DBE963E7E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Core.Tests", "Navred.Core.Tests\Navred.Core.Tests.csproj", "{B9CE4EC6-0218-4D02-A7DC-34C68073D824}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation", "Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation\Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation.csproj", "{5949C12D-5EF8-46AD-B368-9F36753B0C89}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Navred.Updates", "Navred.Updater\Navred.Updates.csproj", "{31ED8C14-29AD-4D1B-815F-0B72517EC78D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation.Tests", "Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation.Tests\Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation.Tests.csproj", "{A5C512C6-A1D7-45F1-9CEF-AC9374232D2D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Navred.Crawling", "Navred.Crawling\Navred.Crawling.csproj", "{B8641ABF-4F15-4C1B-90DF-A4F55E16643D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Navred.Crawling.Tests", "Navred.Crawling.Tests\Navred.Crawling.Tests.csproj", "{149A23B8-D7A7-4DB2-A9F9-256D8662E3B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,14 +29,6 @@ Global
 		{ABA47EB8-0565-482E-B01F-DD3B25E567E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABA47EB8-0565-482E-B01F-DD3B25E567E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABA47EB8-0565-482E-B01F-DD3B25E567E3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{48F66462-804A-443D-9DAB-1AA654059010}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{48F66462-804A-443D-9DAB-1AA654059010}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{48F66462-804A-443D-9DAB-1AA654059010}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{48F66462-804A-443D-9DAB-1AA654059010}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B871458F-3640-435E-A19E-674DF859FFAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B871458F-3640-435E-A19E-674DF859FFAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B871458F-3640-435E-A19E-674DF859FFAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B871458F-3640-435E-A19E-674DF859FFAD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{67898FAC-926B-4577-B371-EE783C537C62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{67898FAC-926B-4577-B371-EE783C537C62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67898FAC-926B-4577-B371-EE783C537C62}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -59,34 +41,22 @@ Global
 		{E7B02655-A55C-402A-901E-846A5FEB226A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7B02655-A55C-402A-901E-846A5FEB226A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7B02655-A55C-402A-901E-846A5FEB226A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{064B05F9-EEF4-4A2C-B68D-73933771F593}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{064B05F9-EEF4-4A2C-B68D-73933771F593}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{064B05F9-EEF4-4A2C-B68D-73933771F593}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{064B05F9-EEF4-4A2C-B68D-73933771F593}.Release|Any CPU.Build.0 = Release|Any CPU
-		{653BA011-A2EA-4FFC-991D-F8D6620F4CE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{653BA011-A2EA-4FFC-991D-F8D6620F4CE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{653BA011-A2EA-4FFC-991D-F8D6620F4CE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{653BA011-A2EA-4FFC-991D-F8D6620F4CE6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1104F590-DBBB-446D-BAA6-E3383F230B7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1104F590-DBBB-446D-BAA6-E3383F230B7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1104F590-DBBB-446D-BAA6-E3383F230B7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1104F590-DBBB-446D-BAA6-E3383F230B7A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2449676C-2854-46B2-B910-463DBE963E7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2449676C-2854-46B2-B910-463DBE963E7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2449676C-2854-46B2-B910-463DBE963E7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2449676C-2854-46B2-B910-463DBE963E7E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B9CE4EC6-0218-4D02-A7DC-34C68073D824}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B9CE4EC6-0218-4D02-A7DC-34C68073D824}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9CE4EC6-0218-4D02-A7DC-34C68073D824}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9CE4EC6-0218-4D02-A7DC-34C68073D824}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5949C12D-5EF8-46AD-B368-9F36753B0C89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5949C12D-5EF8-46AD-B368-9F36753B0C89}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5949C12D-5EF8-46AD-B368-9F36753B0C89}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5949C12D-5EF8-46AD-B368-9F36753B0C89}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A5C512C6-A1D7-45F1-9CEF-AC9374232D2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A5C512C6-A1D7-45F1-9CEF-AC9374232D2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A5C512C6-A1D7-45F1-9CEF-AC9374232D2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A5C512C6-A1D7-45F1-9CEF-AC9374232D2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31ED8C14-29AD-4D1B-815F-0B72517EC78D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31ED8C14-29AD-4D1B-815F-0B72517EC78D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31ED8C14-29AD-4D1B-815F-0B72517EC78D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31ED8C14-29AD-4D1B-815F-0B72517EC78D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8641ABF-4F15-4C1B-90DF-A4F55E16643D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8641ABF-4F15-4C1B-90DF-A4F55E16643D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8641ABF-4F15-4C1B-90DF-A4F55E16643D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8641ABF-4F15-4C1B-90DF-A4F55E16643D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{149A23B8-D7A7-4DB2-A9F9-256D8662E3B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{149A23B8-D7A7-4DB2-A9F9-256D8662E3B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{149A23B8-D7A7-4DB2-A9F9-256D8662E3B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{149A23B8-D7A7-4DB2-A9F9-256D8662E3B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
