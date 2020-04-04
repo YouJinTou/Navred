@@ -5,6 +5,8 @@
 export const environment = {
   production: false
 };
+export const itinerariesUrl = 'URL';
+export const placesUrl = 'URL';
 
 /*
  * For easier debugging in development mode, you can import the following file
