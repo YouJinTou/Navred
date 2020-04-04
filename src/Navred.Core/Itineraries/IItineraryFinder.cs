@@ -1,4 +1,5 @@
-﻿using Navred.Core.Search;
+﻿using Navred.Core.Places;
+using Navred.Core.Search;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -7,6 +8,6 @@ namespace Navred.Core.Itineraries
     public interface IItineraryFinder
     {
         Task<IEnumerable<GraphSearchPath>> FindItinerariesAsync(
-            string from, string to, TimeWindow window);
+            Place from, Place to, TimeWindow window);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Navred.Core.Itineraries.DB;
+using Navred.Core.Places;
 using Navred.Core.Search;
 using Navred.Core.Tools;
 using System.Collections.Generic;
@@ -17,21 +18,21 @@ namespace Navred.Core.Itineraries
         }
 
         public async Task<IEnumerable<GraphSearchPath>> FindItinerariesAsync(
-            string from, string to, TimeWindow window)
+            Place from, Place to, TimeWindow window)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to, window);
 
             var legs = await this.repo.GetLegsAsync(from, to, window);
             var vertices = legs
-                .Select(i => new List<string> { i.From, i.To })
+                .Select(i => new List<string> { i.From.GetId(), i.To.GetId() })
                 .SelectMany(s => s)
                 .Distinct()
                 .Select(s => new Vertex { Name = s })
                 .ToList();
             var edges = legs.Select(l => new Edge
             {
-                Source = vertices.Single(v => v.Name == l.From),
-                Destination = vertices.Single(v => v.Name == l.To),
+                Source = vertices.Single(v => v.Name == l.From.GetId()),
+                Destination = vertices.Single(v => v.Name == l.To.GetId()),
                 Weight = new Weight
                 {
                     Duration = l.Duration,
@@ -46,8 +47,8 @@ namespace Navred.Core.Itineraries
             }
 
             var graph = new Graph(
-                vertices.Single(v => v.Name == from), 
-                vertices.Single(v => v.Name == to),
+                vertices.Single(v => v.Name == from.GetId()), 
+                vertices.Single(v => v.Name == to.GetId()),
                 vertices, 
                 edges);
             var result = graph.FindAllPaths(graph.Source, graph.Destination);

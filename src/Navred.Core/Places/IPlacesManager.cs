@@ -15,6 +15,8 @@ namespace Navred.Core.Places
 
         string FormatPlace(string place);
 
+        Place GetPlace(string id);
+
         Place GetPlace(
             string country, 
             string name, 

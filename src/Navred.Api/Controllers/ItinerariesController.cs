@@ -17,7 +17,8 @@ namespace Navred.Api.Controllers
         private readonly ILogger<ItinerariesController> logger;
 
         public ItinerariesController(
-            IItineraryFinder finder, ILogger<ItinerariesController> logger)
+            IItineraryFinder finder,
+            ILogger<ItinerariesController> logger)
         {
             this.finder = finder;
             this.logger = logger;
@@ -30,7 +31,7 @@ namespace Navred.Api.Controllers
             try
             {
                 var window = new TimeWindow(
-                    new DateTimeTz(start, Constants.BulgariaTimeZone), 
+                    new DateTimeTz(start, Constants.BulgariaTimeZone),
                     new DateTimeTz(end, Constants.BulgariaTimeZone));
                 var paths = await this.finder.FindItinerariesAsync(from, to, window);
                 var itineraries = paths.Select(p => new ItineraryViewModel

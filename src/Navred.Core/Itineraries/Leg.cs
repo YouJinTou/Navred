@@ -1,4 +1,5 @@
-﻿using Navred.Core.Tools;
+﻿using Navred.Core.Places;
+using Navred.Core.Tools;
 using System;
 
 namespace Navred.Core.Itineraries
@@ -10,8 +11,8 @@ namespace Navred.Core.Itineraries
         }
 
         public Leg(
-            string from, 
-            string to, 
+            Place from,
+            Place to, 
             DateTime utcDeparture, 
             DateTime utcArrival, 
             string carrier, 
@@ -22,8 +23,10 @@ namespace Navred.Core.Itineraries
             string toSpecific = null,
             bool arrivalEstimated = false)
         {
-            this.From = Validator.ReturnOrThrowIfNullOrWhiteSpace(from);
-            this.To = Validator.ReturnOrThrowIfNullOrWhiteSpace(to);
+            this.From = Validator.ReturnOrThrowIfNull(from);
+            this.To = Validator.ReturnOrThrowIfNull(to);
+            this.FromId = this.From.GetId();
+            this.ToId = this.To.GetId();
             this.UtcDeparture = utcDeparture;
             this.UtcArrival = utcArrival;
             this.Carrier = Validator.ReturnOrThrowIfNullOrWhiteSpace(carrier);
@@ -35,9 +38,13 @@ namespace Navred.Core.Itineraries
             this.ArrivalEstimated = arrivalEstimated;
         }
 
-        public string From { get; private set; }
+        public Place From { get; private set; }
 
-        public string To { get; private set; }
+        public string FromId { get; private set; }
+
+        public Place To { get; private set; }
+
+        public string ToId { get; private set; }
 
         public DateTime UtcArrival { get; private set; }
 

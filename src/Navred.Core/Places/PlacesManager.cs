@@ -129,6 +129,13 @@ namespace Navred.Core.Places
             return formattedPlace;
         }
 
+        public Place GetPlace(string id)
+        {
+            var place = (Place)id;
+
+            return this.GetPlace(place.Country, place.Name, place.Region, place.Municipality);
+        }
+
         public Place GetPlace(
             string country, 
             string name, 

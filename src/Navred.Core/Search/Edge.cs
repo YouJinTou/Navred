@@ -15,7 +15,7 @@ namespace Navred.Core.Search
 
         public bool ArrivesAfterHasDeparted(Edge other)
         {
-            if (!this.Leg.To.Equals(other.Leg.From))
+            if (!this.Leg.ToId.Equals(other.Leg.FromId))
             {
                 throw new InvalidOperationException("Destination and source must match.");
             }

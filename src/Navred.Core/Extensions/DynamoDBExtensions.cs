@@ -74,6 +74,11 @@ namespace Navred.Core.Extensions
 
             if (!string.IsNullOrWhiteSpace(attr.S))
             {
+                if (type.IsEnum)
+                {
+                    return Enum.Parse(type, attr.S);
+                }
+
                 if (TimeSpan.TryParse(attr.S, out TimeSpan ts))
                 {
                     return ts;

@@ -73,9 +73,9 @@ namespace Navred.Providers.Bulgaria.Boydevi
                 {
                     var fromMatch = stopMatches[i];
                     var toMatch = stopMatches[i + 1];
-                    var from = this.placesManager.NormalizePlaceName(
+                    var from = this.placesManager.GetPlace(
                         BulgarianCultureProvider.CountryName, fromMatch.Groups[1].Value);
-                    var to = this.placesManager.NormalizePlaceName(
+                    var to = this.placesManager.GetPlace(
                         BulgarianCultureProvider.CountryName, toMatch.Groups[1].Value);
                     var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
                         fromMatch.Groups[2].Value, daysAhead).ToList();

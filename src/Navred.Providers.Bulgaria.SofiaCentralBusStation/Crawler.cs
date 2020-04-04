@@ -18,7 +18,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
 {
     public class Crawler : ICrawler
     {
-        private const string From = "София";
+        private readonly Place From;
         private const string Url =
             "https://www.centralnaavtogara.bg/index.php?mod=0461ebd2b773878eac9f78a891912d65";
 
@@ -41,6 +41,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             this.estimator = estimator;
             this.cultureProvider = cultureProvider;
             Console.OutputEncoding = this.cultureProvider.GetEncoding();
+            this.From = this.placesManager.GetPlace(BulgarianCultureProvider.CountryName, "София");
         }
 
         public async Task UpdateLegsAsync()
@@ -64,7 +65,6 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 .SelectNodes("//form[@id='iq_form']/select[@id='city_menu']/option")
                 .Skip(3)
                 .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
-                .Where(v => v.Contains("ПЛОВДИВ"))
                 .ToList();
             var httpClient = this.httpClientFactory.CreateClient();
             var dates = DateTime.UtcNow.GetDateTimesAhead(7)
@@ -133,7 +133,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 }
 
                 var neighbors = this.TryGetNeighbors(table, formattedDestination);
-                var to = this.placesManager.NormalizePlaceName(
+                var to = this.placesManager.GetPlace(
                     BulgarianCultureProvider.CountryName,
                     formattedDestination,
                     this.GetRegionCode(formattedDestination),
@@ -143,7 +143,8 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 var departureTimeString =
                     Regex.Match(dataRow.ChildNodes[3].InnerText, @"(\d+:\d+)").Groups[1].Value;
                 var departure = date + TimeSpan.Parse(departureTimeString);
-                var arrival = await this.GetArrivalAsync(to, departure);
+                var arrival = await this.estimator.EstimateArrivalTimeAsync(
+                    this.From, to, departure, Mode.Bus);
                 var priceString = dataRow.ChildNodes[5].InnerText;
                 var price = priceString.StripCurrency();
                 var leg = new Leg(
@@ -226,20 +227,6 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
             };
 
             return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
-        }
-
-        private async Task<DateTime> GetArrivalAsync(string to, DateTime departure)
-        {
-            var toRegionCode = this.GetRegionCode(to);
-            var toMunicipalityCode = this.GetMunicipalityCode(to);
-            var fromPlace = this.placesManager.GetPlace(
-                BulgarianCultureProvider.CountryName, From);
-            var toPlace = this.placesManager.GetPlace(
-                BulgarianCultureProvider.CountryName, to, toRegionCode, toMunicipalityCode);
-            var arrival = await this.estimator.EstimateArrivalTimeAsync(
-                fromPlace, toPlace, departure, Mode.Bus);
-
-            return arrival;
         }
 
         private IEnumerable<string> TryGetNeighbors(HtmlNode table, string destination)

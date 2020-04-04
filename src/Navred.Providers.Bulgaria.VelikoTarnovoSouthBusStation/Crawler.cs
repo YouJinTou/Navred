@@ -81,8 +81,8 @@ namespace Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation
                     foreach (var (departure, arrival) in utcDepartures.Zip(utcArrivals))
                     {
                         var leg = new Leg(
-                            from: BulgarianCultureProvider.City.VelikoTarnovo,
-                            to: to.Name,
+                            from: from,
+                            to: to,
                             utcDeparture: departure,
                             utcArrival: arrival,
                             carrier: carrier,

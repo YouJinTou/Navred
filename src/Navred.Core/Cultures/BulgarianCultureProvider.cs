@@ -161,16 +161,16 @@ namespace Navred.Core.Cultures
                         buffer.Add(char.IsUpper(ch) ? "H" : "h");
                         break;
                     case 'ц':
-                        buffer.Add(char.IsUpper(ch) ? "TS" : "ts");
+                        buffer.Add(char.IsUpper(ch) ? "Ts" : "ts");
                         break;
                     case 'ч':
-                        buffer.Add(char.IsUpper(ch) ? "TSCH" : "tsch");
+                        buffer.Add(char.IsUpper(ch) ? "Tsch" : "tsch");
                         break;
                     case 'ш':
-                        buffer.Add(char.IsUpper(ch) ? "SH" : "sh");
+                        buffer.Add(char.IsUpper(ch) ? "Sh" : "sh");
                         break;
                     case 'щ':
-                        buffer.Add(char.IsUpper(ch) ? "SHT" : "sht");
+                        buffer.Add(char.IsUpper(ch) ? "Sht" : "sht");
                         break;
                     case 'ъ':
                         buffer.Add(char.IsUpper(ch) ? "A" : "a");
@@ -182,10 +182,10 @@ namespace Navred.Core.Cultures
                         buffer.Add(char.IsUpper(ch) ? "Y" : "y");
                         break;
                     case 'ю':
-                        buffer.Add(char.IsUpper(ch) ? "YU" : "yu");
+                        buffer.Add(char.IsUpper(ch) ? "Yy" : "yu");
                         break;
                     case 'я':
-                        buffer.Add(char.IsUpper(ch) ? "YA" : "ya");
+                        buffer.Add(char.IsUpper(ch) ? "Ya" : "ya");
                         break;
                     default:
                         buffer.Add(ch.ToString());

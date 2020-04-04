@@ -3,6 +3,7 @@ using Amazon.DynamoDBv2.Model;
 using Navred.Core.Configuration;
 using Navred.Core.Cultures;
 using Navred.Core.Extensions;
+using Navred.Core.Places;
 using Navred.Core.Tools;
 using System;
 using System.Collections.Generic;
@@ -26,19 +27,19 @@ namespace Navred.Core.Itineraries.DB
             this.settings = settings;
         }
 
-        public async Task<IEnumerable<Leg>> GetLegsAsync(string from, string to, TimeWindow window)
+        public async Task<IEnumerable<Leg>> GetLegsAsync(Place from, Place to, TimeWindow window)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to, window);
 
-            var queried = new HashSet<string> { from, to };
-            var dbLegs = await this.GetLegsRecursiveAsync(from, to, window, queried);
+            var queried = new HashSet<string> { from.GetId(), to.GetId() };
+            var dbLegs = await this.GetLegsRecursiveAsync(from.GetId(), to.GetId(), window, queried);
             var legs = new List<Leg>();
 
             foreach (var dbl in dbLegs)
             {
                 legs.AddRange(dbl.Tos.Select(dl => new Leg(
-                    dl.From, 
-                    dl.To, 
+                    dl.FromId, 
+                    dl.ToId, 
                     dl.UtcDeparture, 
                     dl.UtcArrival,
                     dl.Carrier, 
@@ -75,7 +76,7 @@ namespace Navred.Core.Itineraries.DB
 
         private IEnumerable<DBLeg> GetDBLegs(IEnumerable<Leg> legs)
         {
-            var fromGroups = legs.GroupBy(i => i.From);
+            var fromGroups = legs.GroupBy(i => i.From.GetId());
             var dbLegs = new List<DBLeg>();
 
             foreach (var fromGroup in fromGroups)
@@ -140,7 +141,7 @@ namespace Navred.Core.Itineraries.DB
                 .SelectMany(l => l.Tos)
                 .Select(t => new
                 {
-                    Vertex = t.To,
+                    Vertex = t.ToId,
                     Window = new TimeWindow(
                         t.UtcArrival.ToUtcDateTimeTz(),
                         t.UtcArrival.ToUtcDateTimeTz() + TimeSpan.FromHours(1))
@@ -187,10 +188,10 @@ namespace Navred.Core.Itineraries.DB
             foreach (var to in leg.Tos)
             {
                 var map = new Dictionary<string, AttributeValue>();
-                map[nameof(Leg.From)] = new AttributeValue { S = to.From };
-                map[nameof(Leg.To)] = new AttributeValue { S = to.To };
+                map[nameof(Leg.FromId)] = new AttributeValue { S = to.From.GetId() };
+                map[nameof(Leg.ToId)] = new AttributeValue { S = to.To.GetId() };
                 map[nameof(Leg.Carrier)] = new AttributeValue { S = to.Carrier };
-                map[nameof(Leg.Mode)] = new AttributeValue { N = ((int)to.Mode).ToString() };
+                map[nameof(Leg.Mode)] = new AttributeValue { S = to.Mode.ToString() };
                 map[nameof(Leg.UtcArrival)] = new AttributeValue { S = to.UtcArrival.ToString() };
                 map[nameof(Leg.UtcDeparture)] = new AttributeValue { S = to.UtcDeparture.ToString() };
                 map[nameof(Leg.Duration)] = new AttributeValue { S = to.Duration.ToString() };

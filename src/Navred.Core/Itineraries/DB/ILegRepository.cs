@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using Navred.Core.Places;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Navred.Core.Itineraries.DB
 {
     public interface ILegRepository
     {
-        Task<IEnumerable<Leg>> GetLegsAsync(string from, string to, TimeWindow window);
+        Task<IEnumerable<Leg>> GetLegsAsync(Place from, Place to, TimeWindow window);
 
         Task UpdateLegsAsync(IEnumerable<Leg> itineraries);
     }
