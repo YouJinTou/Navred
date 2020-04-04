@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Navred.Api.Models;
 using Navred.Core.Places;
 using Navred.Core.Tools;
 using System;
@@ -31,6 +32,11 @@ namespace Navred.Api.Controllers
                 var places = this.placesManager.LoadPlacesFor(country);
                 var filteredPlaces = places.Where(
                     p => p.Name.ToLower().StartsWith(prefix.ToLower()))
+                    .Select(p => new PlaceViewModel
+                    {
+                        Id = p.GetId(),
+                        Place = p
+                    })
                     .ToList();
 
                 return Ok(await Task.FromResult(filteredPlaces));
