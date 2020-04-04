@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
 using Navred.Core.Estimation;
@@ -41,7 +42,7 @@ namespace Navred.Updates
             }
 
             var parsed = int.TryParse(Console.ReadLine(), out int option);
-            var validOption = parsed && option >= 1 && option <= crawlersByKey.Count;
+            var validOption = parsed && option >= 1 && option <= crawlersByKey.Count + 1;
 
             if (!validOption)
             {
@@ -80,7 +81,8 @@ namespace Navred.Updates
             {
                 { "Бойдеви", new Boydevi(repo, placesManager) },
                 { "София", new SofiaCentralBusStation(repo, httpClientFactory, placesManager, estimator, cultureProvider) },
-                { "Велико Търново Юг", new VelikoTarnovoSouthBusStation(placesManager, estimator, repo, cultureProvider) }
+                { "Велико Търново Юг", new VelikoTarnovoSouthBusStation(placesManager, estimator, repo, cultureProvider) },
+                { "Пловдив ХебросБус", new PlovdivHebrosBus(repo, placesManager, provider.GetService<ILogger<PlovdivHebrosBus>>())}
             };
 
             return crawlersByKey;
