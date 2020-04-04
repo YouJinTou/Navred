@@ -3,7 +3,7 @@ using Navred.Core.Places;
 using System;
 using System.Threading.Tasks;
 
-namespace Navred.Core.Piecing
+namespace Navred.Core.Estimation
 {
     public interface ITimeEstimator
     {

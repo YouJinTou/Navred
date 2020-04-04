@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Navred.Core.Piecing
+namespace Navred.Core.Estimation
 {
     public class TimeEstimator : ITimeEstimator
     {
