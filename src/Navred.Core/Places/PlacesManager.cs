@@ -52,10 +52,7 @@ namespace Navred.Core.Places
                 return (IEnumerable<T>)this.cache[country];
             }
 
-            var path = Path.Combine(
-                Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), 
-                "Resources", 
-                $"{country.ToLower()}_places.json");
+            var path = $"{country.ToLower()}_places.json".GetFirstFilePathMatch();
             var places = File.ReadAllText(path);
             var models = JsonConvert.DeserializeObject<IEnumerable<T>>(places);
             this.cache[country] = models;
