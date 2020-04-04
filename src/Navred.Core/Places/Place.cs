@@ -59,10 +59,6 @@ namespace Navred.Core.Places
                 (string.IsNullOrWhiteSpace(this.Municipality) ? string.Empty : this.Municipality);
         }
 
-        public override string ToString()
-        {
-            return 
-                this.Name + (string.IsNullOrEmpty(this.Region) ? "" : $" {this.Region}");
-        }
+        public override string ToString() => this.GetId().FormatId();
     }
 }

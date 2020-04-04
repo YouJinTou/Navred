@@ -13,7 +13,7 @@ namespace Navred.Core.Itineraries.DB
 
         public override string ToString()
         {
-            return $"{this.From} {this.UtcTimestamp.ToUtcDateTime()}";
+            return $"{this.From.FormatId()} {this.UtcTimestamp.ToUtcDateTime()}";
         }
     }
 }

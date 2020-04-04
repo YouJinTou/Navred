@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Navred.Core.Extensions;
+using System;
 using System.Collections.Generic;
 
 namespace Navred.Core.Search
@@ -11,6 +12,6 @@ namespace Navred.Core.Search
 
         public bool Equals(Vertex other) => this.Name.Equals(other?.Name);
 
-        public override string ToString() => this.Name;
+        public override string ToString() => this.Name.FormatId();
     }
 }

@@ -1,4 +1,5 @@
-﻿using Navred.Core.Places;
+﻿using Navred.Core.Extensions;
+using Navred.Core.Places;
 using Navred.Core.Tools;
 using System;
 
@@ -80,7 +81,8 @@ namespace Navred.Core.Itineraries
         public override string ToString()
         {
             return 
-                $"{this.From} {this.UtcDeparture} - {this.To} {this.UtcArrival} {this.Price}";
+                $"{this.From ?? this.FromId.FormatId()} {this.UtcDeparture} - " +
+                $"{this.To ?? this.ToId.FormatId()} {this.UtcArrival} {this.Price}";
         }
     }
 }

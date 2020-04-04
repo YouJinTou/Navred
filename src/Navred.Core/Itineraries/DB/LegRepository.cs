@@ -144,7 +144,7 @@ namespace Navred.Core.Itineraries.DB
                     Vertex = t.ToId,
                     Window = new TimeWindow(
                         t.UtcArrival.ToUtcDateTimeTz(),
-                        t.UtcArrival.ToUtcDateTimeTz() + TimeSpan.FromHours(1))
+                        t.UtcArrival.ToUtcDateTimeTz() + TimeSpan.FromHours(5))
                 })
                 .ToList();
 
