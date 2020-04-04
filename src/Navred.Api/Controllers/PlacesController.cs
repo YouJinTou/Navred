@@ -28,7 +28,7 @@ namespace Navred.Api.Controllers
             {
                 Validator.ThrowIfNullOrEmpty(country);
 
-                var places = this.placesManager.LoadPlacesFor<BulgarianPlace>(country);
+                var places = this.placesManager.LoadPlacesFor(country);
                 var filteredPlaces = places.Where(
                     p => p.Name.ToLower().StartsWith(prefix.ToLower()))
                     .ToList();

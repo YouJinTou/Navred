@@ -56,7 +56,7 @@ namespace Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation
             var trs = doc.DocumentNode.SelectNodes("//div[@class='table-responsive']//tr")
                 .TakeAllButLast(1)
                 .ToList();
-            var from = this.placesManager.GetPlace<BulgarianPlace>(
+            var from = this.placesManager.GetPlace(
                 BulgarianCultureProvider.CountryName,
                 BulgarianCultureProvider.City.VelikoTarnovo);
 
@@ -66,7 +66,7 @@ namespace Navred.Providers.Bulgaria.VelikoTarnovoSouthBusStation
                 {
                     var tds = tr.SelectNodes("td").ToList();
                     var region = this.GetRegion(tds[2].InnerText);
-                    var to = this.placesManager.GetPlace<BulgarianPlace>(
+                    var to = this.placesManager.GetPlace(
                         BulgarianCultureProvider.CountryName, tds[2].InnerText, region);
                     var departureTime = tds[3].InnerText;
                     var carrier = tds[4].InnerText;

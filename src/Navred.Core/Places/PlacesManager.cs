@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -17,7 +16,7 @@ namespace Navred.Core.Places
 {
     public class PlacesManager : IPlacesManager
     {
-        private readonly IDictionary<string, object> cache;
+        private readonly IDictionary<string, IEnumerable<Place>> cache;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IPlaceGeneratorFactory placeGeneratorFactory;
         private readonly ICultureProvider cultureProvider;
@@ -29,7 +28,7 @@ namespace Navred.Core.Places
             ICultureProvider cultureProvider,
             Settings settings)
         {
-            this.cache = new Dictionary<string, object>();
+            this.cache = new Dictionary<string, IEnumerable<Place>>();
             this.httpClientFactory = httpClientFactory;
             this.placeGeneratorFactory = placeGeneratorFactory;
             this.cultureProvider = cultureProvider;
@@ -43,24 +42,24 @@ namespace Navred.Core.Places
             generator.GeneratePlaces();
         }
 
-        public IEnumerable<T> LoadPlacesFor<T>(string country) where T : IPlace
+        public IEnumerable<Place> LoadPlacesFor(string country)
         {
             Validator.ThrowIfNullOrWhiteSpace(country);
 
             if (this.cache.ContainsKey(country))
             {
-                return (IEnumerable<T>)this.cache[country];
+                return this.cache[country];
             }
 
             var path = $"{country.ToLower()}_places.json".GetFirstFilePathMatch();
             var places = File.ReadAllText(path);
-            var models = JsonConvert.DeserializeObject<IEnumerable<T>>(places);
+            var models = JsonConvert.DeserializeObject<IEnumerable<Place>>(places);
             this.cache[country] = models;
 
             return models;
         }
 
-        public void UpdatePlacesFor<T>(string country, IEnumerable<T> places) where T : IPlace
+        public void UpdatePlacesFor(string country, IEnumerable<Place> places)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, places);
 
@@ -69,14 +68,14 @@ namespace Navred.Core.Places
             File.WriteAllText($"Resources/{country.ToLower()}_places.json", placesString);
         }
 
-        public async Task<IEnumerable<T>> UpdateCoordinatesForCountryAsync<T>(
-            string country) where T : IPlace
+        public async Task<IEnumerable<Place>> UpdateCoordinatesForCountryAsync(
+            string country)
         {
             Validator.ThrowIfNullOrWhiteSpace(country);
 
-            var places = this.LoadPlacesFor<T>(country);
+            var places = this.LoadPlacesFor(country);
             var client = httpClientFactory.CreateClient();
-            var notUpdated = new List<T>();
+            var notUpdated = new List<Place>();
 
             foreach (var place in places)
             {
@@ -130,22 +129,22 @@ namespace Navred.Core.Places
             return formattedPlace;
         }
 
-        public T GetPlace<T>(
+        public Place GetPlace(
             string country, 
             string name, 
             string regionCode = null, 
             string municipalityCode = null,
-            IEnumerable<string> neighbors = null) where T : IPlace
+            IEnumerable<string> neighbors = null)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
 
-            var places = this.LoadPlacesFor<T>(country);
+            var places = this.LoadPlacesFor(country);
             var normalizedName = this.FormatPlace(name);
             var results = places
                 .Where(p => normalizedName.Contains(this.FormatPlace(p.Name)))
                 .ToList();
             regionCode = string.IsNullOrWhiteSpace(regionCode) ? 
-                this.TryGetRegionFromNeighbors<T>(neighbors, country) : regionCode;
+                this.TryGetRegionFromNeighbors(neighbors, country) : regionCode;
             var result = this.GetPlace(results, regionCode, municipalityCode);
 
             if (result == null)
@@ -163,27 +162,27 @@ namespace Navred.Core.Places
                 result;
         }
 
-        public string NormalizePlaceName<T>(
+        public string NormalizePlaceName(
             string country, 
             string name, 
             string regionCode = null, 
             string municipalityCode = null,
-            IEnumerable<string> neighbors = null) where T : IPlace
+            IEnumerable<string> neighbors = null)
         {
-            var place = this.GetPlace<T>(country, name, regionCode, municipalityCode, neighbors);
+            var place = this.GetPlace(country, name, regionCode, municipalityCode, neighbors);
 
             return place.Name;
         }
 
-        private T GetPlace<T>(
-            IEnumerable<T> results, string regionCode, string municipalityCode) where T : IPlace
+        private Place GetPlace(
+            IEnumerable<Place> results, string regionCode, string municipalityCode)
         {
             if (results.ContainsOne())
             {
                 return results.First();
             }
 
-            var result = default(T);
+            var result = default(Place);
 
             if (results.Count() > 1)
             {
@@ -196,7 +195,7 @@ namespace Navred.Core.Places
             return result;
         }
 
-        private T DoFuzzyMatch<T>(IEnumerable<T> places, string normalizedPlace) where T : IPlace
+        private Place DoFuzzyMatch(IEnumerable<Place> places, string normalizedPlace)
         {
             var separators = new string[] { ".", "-", " " };
 
@@ -232,8 +231,8 @@ namespace Navred.Core.Places
             return default;
         }
 
-        private string TryGetRegionFromNeighbors<T>(
-           IEnumerable<string> neighbors, string country) where T : IPlace
+        private string TryGetRegionFromNeighbors(
+           IEnumerable<string> neighbors, string country)
         {
             if (neighbors.IsNullOrEmpty())
             {
@@ -247,7 +246,7 @@ namespace Navred.Core.Places
             {
                 try
                 {
-                    var neighborPlace = this.GetPlace<T>(country, neighbor);
+                    var neighborPlace = this.GetPlace(country, neighbor);
 
                     regions.Add(neighborPlace.Region);
                 }

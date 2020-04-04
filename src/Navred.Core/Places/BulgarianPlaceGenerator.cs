@@ -23,13 +23,13 @@ namespace Navred.Core.Places
         {
             var placeEkattes = this.GetPlaceEkattes();
             var municipalityEkattes = this.GetMunicipalityEkattes();
-            var places = new List<BulgarianPlace>();
+            var places = new List<Place>();
 
             foreach (var placeEkatte in placeEkattes)
             {
                 var municipality = municipalityEkattes.First(
                     me => me.Id == placeEkatte.Municipality);
-                var place = new BulgarianPlace
+                var place = new Place
                 {
                     Country = BulgarianCultureProvider.CountryName,
                     Name = placeEkatte.Name,

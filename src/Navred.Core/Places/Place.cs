@@ -5,7 +5,7 @@ using System;
 
 namespace Navred.Core.Places
 {
-    public class BulgarianPlace : IPlace
+    public class Place
     {
         public string Country
         {
@@ -23,7 +23,7 @@ namespace Navred.Core.Places
 
         public double? Latitude { get; set; }
 
-        public double DistanceToInKm(IPlace other)
+        public double DistanceToInKm(Place other)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(
                 other, other?.Latitude, other?.Longitude, this.Longitude, this.Latitude);

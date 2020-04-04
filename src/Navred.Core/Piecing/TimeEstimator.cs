@@ -24,7 +24,7 @@ namespace Navred.Core.Piecing
         }
 
         public async Task<DateTime> EstimateArrivalTimeAsync(
-            IPlace from, IPlace to, DateTime departure, Mode mode)
+            Place from, Place to, DateTime departure, Mode mode)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to);
 
@@ -33,7 +33,7 @@ namespace Navred.Core.Piecing
             return arrival;
         }
 
-        private DateTime EstimateManually(IPlace from, IPlace to, DateTime departure, Mode mode)
+        private DateTime EstimateManually(Place from, Place to, DateTime departure, Mode mode)
         {
             var distance = from.DistanceToInKm(to);
             double hours;

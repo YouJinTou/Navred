@@ -7,26 +7,26 @@ namespace Navred.Core.Places
     {
         void GeneratePlacesFor(string country);
 
-        IEnumerable<T> LoadPlacesFor<T>(string country) where T : IPlace;
+        IEnumerable<Place> LoadPlacesFor(string country);
 
-        Task<IEnumerable<T>> UpdateCoordinatesForCountryAsync<T>(string country) where T : IPlace;
+        Task<IEnumerable<Place>> UpdateCoordinatesForCountryAsync(string country);
 
-        void UpdatePlacesFor<T>(string country, IEnumerable<T> places) where T : IPlace;
+        void UpdatePlacesFor(string country, IEnumerable<Place> places);
 
         string FormatPlace(string place);
 
-        T GetPlace<T>(
+        Place GetPlace(
             string country, 
             string name, 
             string regionCode = null, 
             string municipalityCode = null,
-            IEnumerable<string> neighbors = null) where T : IPlace;
+            IEnumerable<string> neighbors = null);
 
-        string NormalizePlaceName<T>(
+        string NormalizePlaceName(
             string country, 
             string name, 
             string regionCode = null, 
             string municipalityCode = null,
-            IEnumerable<string> neighbors = null) where T : IPlace;
+            IEnumerable<string> neighbors = null);
     }
 }

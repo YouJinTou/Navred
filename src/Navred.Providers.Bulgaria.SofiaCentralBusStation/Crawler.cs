@@ -134,7 +134,7 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
                 }
 
                 var neighbors = this.TryGetNeighbors(table, formattedDestination);
-                var to = this.placesManager.NormalizePlaceName<BulgarianPlace>(
+                var to = this.placesManager.NormalizePlaceName(
                     BulgarianCultureProvider.CountryName,
                     formattedDestination,
                     this.GetRegionCode(formattedDestination),
@@ -233,9 +233,9 @@ namespace Navred.Providers.Bulgaria.SofiaCentralBusStation
         {
             var toRegionCode = this.GetRegionCode(to);
             var toMunicipalityCode = this.GetMunicipalityCode(to);
-            var fromPlace = this.placesManager.GetPlace<BulgarianPlace>(
+            var fromPlace = this.placesManager.GetPlace(
                 BulgarianCultureProvider.CountryName, From);
-            var toPlace = this.placesManager.GetPlace<BulgarianPlace>(
+            var toPlace = this.placesManager.GetPlace(
                 BulgarianCultureProvider.CountryName, to, toRegionCode, toMunicipalityCode);
             var arrival = await this.estimator.EstimateArrivalTimeAsync(
                 fromPlace, toPlace, departure, Mode.Bus);
