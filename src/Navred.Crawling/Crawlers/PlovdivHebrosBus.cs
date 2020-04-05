@@ -47,7 +47,6 @@ namespace Navred.Crawling.Crawlers
         {
             try
             {
-                await this.ProcessAsync("http://hebrosbus.com/bg/pages/route-details/.6/100000517/2/450/702/56784/");
                 var web = new HtmlWeb();
                 var doc = await web.LoadFromWebAsync(RhodopiUrl);
                 var ids = doc.DocumentNode.SelectNodes("//select[@id='ddlArrive']/option")
