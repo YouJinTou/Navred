@@ -1,7 +1,7 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using Navred.Core;
 using Navred.Core.Abstractions;
-using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using BCP = Navred.Core.Cultures.BulgarianCultureProvider;
 
 namespace Navred.Crawling.Crawlers
 {
@@ -18,11 +19,13 @@ namespace Navred.Crawling.Crawlers
     {
         private readonly ILegRepository repo;
         private readonly IPlacesManager placesManager;
+        private readonly ILogger<Boydevi> logger;
 
-        public Boydevi(ILegRepository repo, IPlacesManager placesManager)
+        public Boydevi(ILegRepository repo, IPlacesManager placesManager, ILogger<Boydevi> logger)
         {
             this.repo = repo;
             this.placesManager = placesManager;
+            this.logger = logger;
         }
 
         public async Task UpdateLegsAsync()
@@ -64,7 +67,7 @@ namespace Navred.Crawling.Crawlers
                 var schedule = new Schedule();
                 var daysOfWeek = this.GetDaysOfWeek(scheduleString);
                 var stopMatches = Regex.Matches(
-                    scheduleString, @$"([{BulgarianCultureProvider.AllLetters} .]+)\s*\((\d+:\d+)\)")
+                    scheduleString, @$"([{BCP.AllLetters} .]+)\s*\((\d+:\d+)\)")
                     .ToList();
                 var legSpread = Defaults.DaysAhead;
 
@@ -73,9 +76,9 @@ namespace Navred.Crawling.Crawlers
                     var fromMatch = stopMatches[i];
                     var toMatch = stopMatches[i + 1];
                     var from = this.placesManager.GetPlace(
-                        BulgarianCultureProvider.CountryName, fromMatch.Groups[1].Value);
+                        BCP.CountryName, fromMatch.Groups[1].Value);
                     var to = this.placesManager.GetPlace(
-                        BulgarianCultureProvider.CountryName, toMatch.Groups[1].Value);
+                        BCP.CountryName, toMatch.Groups[1].Value);
                     var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
                         fromMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
                     var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(
@@ -136,7 +139,7 @@ namespace Navred.Crawling.Crawlers
                 return daysOfWeek;
             }
 
-            // LOG
+            this.logger.LogWarning($"Could not match days of week for {scheduleString}");
 
             return daysOfWeek;
         }

@@ -1,16 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Navred.Core.Abstractions;
-using Navred.Core.Cultures;
-using Navred.Core.Estimation;
 using Navred.Core.Extensions;
-using Navred.Core.Itineraries.DB;
-using Navred.Core.Places;
 using Navred.Crawling.Crawlers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 
 namespace Navred.Updates
 {
@@ -72,18 +66,21 @@ namespace Navred.Updates
         private static IDictionary<string, ICrawler> CreateCrawlersByKey()
         {
             var provider = new ServiceCollection().AddCore().BuildServiceProvider();
-            var placesManager = provider.GetService<IPlacesManager>();
-            var estimator = provider.GetService<ITimeEstimator>();
-            var repo = provider.GetService<ILegRepository>();
-            var httpClientFactory = provider.GetService<IHttpClientFactory>();
-            var cultureProvider = provider.GetService<ICultureProvider>();
-            var crawlersByKey = new Dictionary<string, ICrawler>
+            var templateType = typeof(Template);
+            var crawlerTypes = templateType.Assembly.GetTypes()
+                .Where(t => typeof(ICrawler).IsAssignableFrom(t) && t.Name != templateType.Name)
+                .ToList();
+            var crawlersByKey = new Dictionary<string, ICrawler>();
+
+            foreach (var type in crawlerTypes)
             {
-                { "Бойдеви", new Boydevi(repo, placesManager) },
-                { "София", new SofiaCentralBusStation(repo, httpClientFactory, placesManager, estimator, cultureProvider) },
-                { "Велико Търново Юг", new VelikoTarnovoSouthBusStation(placesManager, estimator, repo, cultureProvider) },
-                { "Пловдив ХебросБус", new PlovdivHebrosBus(repo, placesManager, estimator, cultureProvider, provider.GetService<ILogger<PlovdivHebrosBus>>()) }
-            };
+                var dependencies = type.GetConstructors().First().GetParameters()
+                    .Select(p => provider.GetService(p.ParameterType))
+                    .ToArray();
+                var instance = (ICrawler)Activator.CreateInstance(type, dependencies);
+
+                crawlersByKey.Add(type.Name, instance);
+            }
 
             return crawlersByKey;
         }

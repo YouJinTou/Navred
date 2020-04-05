@@ -77,6 +77,7 @@ namespace Navred.Core.Cultures
 
         public class City
         {
+            public const string Sofia = "София";
             public const string VelikoTarnovo = "Велико Търново";
             public const string Plovdiv = "Пловдив";
         }

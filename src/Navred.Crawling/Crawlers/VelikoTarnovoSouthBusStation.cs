@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using Navred.Core;
 using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
@@ -11,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BCP = Navred.Core.Cultures.BulgarianCultureProvider;
 
 namespace Navred.Crawling.Crawlers
 {
@@ -21,16 +23,19 @@ namespace Navred.Crawling.Crawlers
         private readonly IPlacesManager placesManager;
         private readonly ITimeEstimator timeEstimator;
         private readonly ILegRepository repo;
+        private readonly ILogger<VelikoTarnovoSouthBusStation> logger;
 
         public VelikoTarnovoSouthBusStation(
             IPlacesManager placesManager,
             ITimeEstimator timeEstimator,
             ILegRepository repo,
-            ICultureProvider cultureProvider)
+            ICultureProvider cultureProvider,
+            ILogger<VelikoTarnovoSouthBusStation> logger)
         {
             this.placesManager = placesManager;
             this.timeEstimator = timeEstimator;
             this.repo = repo;
+            this.logger = logger;
             Console.OutputEncoding = cultureProvider.GetEncoding();
         }
 
@@ -44,6 +49,8 @@ namespace Navred.Crawling.Crawlers
             }
             catch (Exception ex)
             {
+                this.logger.LogError(ex, "Update failed.");
+
                 Console.WriteLine(ex.Message);
             }
         }
@@ -56,9 +63,7 @@ namespace Navred.Crawling.Crawlers
             var trs = doc.DocumentNode.SelectNodes("//div[@class='table-responsive']//tr")
                 .TakeAllButLast(1)
                 .ToList();
-            var from = this.placesManager.GetPlace(
-                BulgarianCultureProvider.CountryName,
-                BulgarianCultureProvider.City.VelikoTarnovo);
+            var from = this.placesManager.GetPlace(BCP.CountryName, BCP.City.VelikoTarnovo);
 
             foreach (var tr in trs)
             {
@@ -67,7 +72,7 @@ namespace Navred.Crawling.Crawlers
                     var tds = tr.SelectNodes("td").ToList();
                     var region = this.GetRegion(tds[2].InnerText);
                     var to = this.placesManager.GetPlace(
-                        BulgarianCultureProvider.CountryName, tds[2].InnerText, region);
+                        BCP.CountryName, tds[2].InnerText, region);
                     var departureTime = tds[3].InnerText;
                     var carrier = tds[4].InnerText;
                     var price = tds[5].InnerText.StripCurrency();
@@ -96,6 +101,8 @@ namespace Navred.Crawling.Crawlers
                 }
                 catch (Exception ex)
                 {
+                    this.logger.LogError(ex, url);
+
                     Console.WriteLine(ex.Message);
                 }
             }
@@ -108,10 +115,10 @@ namespace Navred.Crawling.Crawlers
             var formattedTo = this.placesManager.FormatPlace(to);
             var regionByPlace = new Dictionary<string, string>
             {
-                { "търговище", BulgarianCultureProvider.Region.TGV },
-                { "добрич", BulgarianCultureProvider.Region.DOB },
-                { "попово", BulgarianCultureProvider.Region.TGV },
-                { "разград", BulgarianCultureProvider.Region.RAZ },
+                { "търговище", BCP.Region.TGV },
+                { "добрич", BCP.Region.DOB },
+                { "попово", BCP.Region.TGV },
+                { "разград", BCP.Region.RAZ },
             };
 
             return regionByPlace.ContainsKey(formattedTo) ? regionByPlace[formattedTo] : null;

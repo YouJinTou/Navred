@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using Navred.Core;
 using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
@@ -13,6 +14,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using BCP = Navred.Core.Cultures.BulgarianCultureProvider;
 
 namespace Navred.Crawling.Crawlers
 {
@@ -27,21 +29,24 @@ namespace Navred.Crawling.Crawlers
         private readonly IPlacesManager placesManager;
         private readonly ITimeEstimator estimator;
         private readonly ICultureProvider cultureProvider;
+        private readonly ILogger<SofiaCentralBusStation> logger;
 
         public SofiaCentralBusStation(
             ILegRepository repo,
             IHttpClientFactory httpClientFactory,
             IPlacesManager placesManager,
             ITimeEstimator estimator,
-            ICultureProvider cultureProvider)
+            ICultureProvider cultureProvider,
+            ILogger<SofiaCentralBusStation> logger)
         {
             this.repo = repo;
             this.httpClientFactory = httpClientFactory;
             this.placesManager = placesManager;
             this.estimator = estimator;
             this.cultureProvider = cultureProvider;
+            this.logger = logger;
             Console.OutputEncoding = this.cultureProvider.GetEncoding();
-            this.From = this.placesManager.GetPlace(BulgarianCultureProvider.CountryName, "София");
+            this.From = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Sofia);
         }
 
         public async Task UpdateLegsAsync()
@@ -52,6 +57,8 @@ namespace Navred.Crawling.Crawlers
             }
             catch (Exception ex)
             {
+                this.logger.LogError(ex, $"Update failed.");
+
                 Console.WriteLine(ex.Message);
             }
         }
@@ -93,6 +100,8 @@ namespace Navred.Crawling.Crawlers
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
+
+                        this.logger.LogError(ex, $"{d} failed.");
                     }
                 }, 200, 5);
 
@@ -134,7 +143,7 @@ namespace Navred.Crawling.Crawlers
 
                 var neighbors = this.TryGetNeighbors(table, formattedDestination);
                 var to = this.placesManager.GetPlace(
-                    BulgarianCultureProvider.CountryName,
+                    BCP.CountryName,
                     formattedDestination,
                     this.GetRegionCode(formattedDestination),
                     this.GetMunicipalityCode(formattedDestination),
@@ -187,6 +196,8 @@ namespace Navred.Crawling.Crawlers
             {
                 Console.WriteLine(ex.Message);
 
+                this.logger.LogWarning(ex, $"Could not validate date: {dataRow.InnerText}");
+
                 return true;
             }
             
@@ -197,22 +208,22 @@ namespace Navred.Crawling.Crawlers
             place = place.ToLower().Trim();
             var codeByPlace = new Dictionary<string, string>
             {
-                { "абланица", BulgarianCultureProvider.Region.LOV },
-                { "добрич", BulgarianCultureProvider.Region.DOB },
-                { "априлци", BulgarianCultureProvider.Region.LOV },
-                { "габрово", BulgarianCultureProvider.Region.GAB },
-                { "падина", BulgarianCultureProvider.Region.KRZ },
-                { "оряхово", BulgarianCultureProvider.Region.VRC },
-                { "батак", BulgarianCultureProvider.Region.PAZ },
-                { "копиловци", BulgarianCultureProvider.Region.MON },
-                { "искър", BulgarianCultureProvider.Region.PVN },
-                { "огняново", BulgarianCultureProvider.Region.BLG },
-                { "разград", BulgarianCultureProvider.Region.RAZ },
-                { "елхово", BulgarianCultureProvider.Region.JAM },
-                { "петрич", BulgarianCultureProvider.Region.BLG },
-                { "рибарица", BulgarianCultureProvider.Region.LOV },
-                { "троян", BulgarianCultureProvider.Region.LOV },
-                { "бенковски", BulgarianCultureProvider.Region.KRZ },
+                { "абланица", BCP.Region.LOV },
+                { "добрич", BCP.Region.DOB },
+                { "априлци", BCP.Region.LOV },
+                { "габрово", BCP.Region.GAB },
+                { "падина", BCP.Region.KRZ },
+                { "оряхово", BCP.Region.VRC },
+                { "батак", BCP.Region.PAZ },
+                { "копиловци", BCP.Region.MON },
+                { "искър", BCP.Region.PVN },
+                { "огняново", BCP.Region.BLG },
+                { "разград", BCP.Region.RAZ },
+                { "елхово", BCP.Region.JAM },
+                { "петрич", BCP.Region.BLG },
+                { "рибарица", BCP.Region.LOV },
+                { "троян", BCP.Region.LOV },
+                { "бенковски", BCP.Region.KRZ },
             };
 
             return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
