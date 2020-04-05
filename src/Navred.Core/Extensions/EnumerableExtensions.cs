@@ -58,9 +58,9 @@ namespace Navred.Core.Extensions
         }
 
         public static async Task RunBatchesAsync<T>(
-            this IEnumerable<T> enumerable, 
-            int batchSize, 
-            Func<T, Task> run, 
+            this IEnumerable<T> enumerable,
+            int batchSize,
+            Func<T, Task> run,
             int delayBetweenBatches = 0,
             int delayBetweenBatchItems = 0)
         {
@@ -95,6 +95,25 @@ namespace Navred.Core.Extensions
             }
 
             return enumerable.Take(count - last);
+        }
+
+        public static T GetMin<T, TC>(this IEnumerable<T> enumerable, Func<T, TC> func) where TC : IComparable<TC>
+        {
+            var currentMin = func(enumerable.First());
+            var currentMinItem = enumerable.First();
+
+            foreach (var item in enumerable)
+            {
+                var result = func(item);
+
+                if (currentMin.CompareTo(result) > 0)
+                {
+                    currentMin = result;
+                    currentMinItem = item;
+                }
+            }
+
+            return currentMinItem;
         }
     }
 }
