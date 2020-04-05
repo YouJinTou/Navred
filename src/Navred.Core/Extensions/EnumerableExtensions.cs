@@ -62,7 +62,8 @@ namespace Navred.Core.Extensions
             int batchSize,
             Func<T, Task> run,
             int delayBetweenBatches = 0,
-            int delayBetweenBatchItems = 0)
+            int delayBetweenBatchItems = 0,
+            bool inParallel = true)
         {
             var batches = ToBatches(enumerable, batchSize);
 
@@ -72,11 +73,20 @@ namespace Navred.Core.Extensions
 
                 foreach (var item in batch)
                 {
-                    var t = run(item);
+                    if (inParallel)
+                    {
+                        var t = run(item);
 
-                    tasks.Add(t);
+                        tasks.Add(t);
 
-                    await Task.Delay(delayBetweenBatchItems);
+                        await Task.Delay(delayBetweenBatchItems);
+
+                        Console.WriteLine(item);
+                    }
+                    else
+                    {
+                        await run(item);
+                    }
                 }
 
                 await Task.WhenAll(tasks);
