@@ -17,6 +17,11 @@ namespace Navred.Core.Itineraries
             return new LegTime(time);
         }
 
+        public static implicit operator LegTime(TimeSpan timeSpan)
+        {
+            return new LegTime(timeSpan.ToString());
+        }
+
         private TimeSpan TimeToTimeSpan(string time)
         {
             var formattedTime = time.Trim();
