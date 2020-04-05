@@ -96,8 +96,11 @@
           "ReadCapacityUnits": "20",
           "WriteCapacityUnits": "10"
         },
-        "TableName": "qa_Itineraries"
-        //"TimeToLiveSpecification": "TimeToLiveSpecification" TODO
+        "TableName": "qa_Itineraries",
+        "TimeToLiveSpecification": {
+          "AttributeName": "UtcTimestamp",
+          "Enabled": "true"
+        }
       }
     },
     "ProdItinerariesTable": {
@@ -129,8 +132,11 @@
           "ReadCapacityUnits": "20",
           "WriteCapacityUnits": "10"
         },
-        "TableName": "qa_Itineraries"
-        //"TimeToLiveSpecification": "TimeToLiveSpecification" TODO
+        "TableName": "qa_Itineraries",
+        "TimeToLiveSpecification": {
+          "AttributeName": "UtcTimestamp",
+          "Enabled": "true"
+        }
       }
     }
   },
