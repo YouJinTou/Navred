@@ -207,7 +207,7 @@ namespace Navred.Core.Places
 
             while (Validator.AnyNull(placesByStop.Values))
             {
-                for (int s = 1; s < stops.Count - 2; s++)
+                for (int s = 1; s < stops.Count - 1; s++)
                 {
                     var prevValue = stops[s - 1];
                     var nextValue = stops[s + 1];
@@ -235,7 +235,6 @@ namespace Navred.Core.Places
                     }
                 }
             }
-
 
             return placesByStop;
         }
