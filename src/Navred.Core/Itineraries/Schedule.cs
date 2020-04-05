@@ -5,18 +5,25 @@ namespace Navred.Core.Itineraries
 {
     public class Schedule
     {
+        private bool ignoreInvalidRoutes;
         private IList<Leg> legs;
 
-        public Schedule()
+        public Schedule(bool ignoreInvalidRoutes = true)
         {
+            this.ignoreInvalidRoutes = ignoreInvalidRoutes;
             this.legs = new List<Leg>();
         }
 
-        public void AddLeg(Leg Leg)
+        public void AddLeg(Leg leg)
         {
-            Validator.ThrowIfNull(Leg);
+            Validator.ThrowIfNull(leg);
 
-            this.legs.Add(Leg);
+            if (this.ignoreInvalidRoutes && leg.IsZeroLength())
+            {
+                return;
+            }
+
+            this.legs.Add(leg);
         }
 
         public void AddLegs(IEnumerable<Leg> legs)
@@ -38,33 +45,22 @@ namespace Navred.Core.Itineraries
                     for (int j = i; j < this.legs.Count; j += legTimeSpread)
                     {
                         all.Add(new Leg(
-                            this.legs[i].From,
-                            this.legs[j].To,
-                            this.legs[i].UtcDeparture,
-                            this.legs[j].UtcArrival,
-                            this.legs[i].Carrier,
-                            this.legs[i].Mode,
-                            this.legs[i].Info,
-                            this.GetLegsPrice(i, j, legTimeSpread),
-                            this.legs[i].FromSpecific,
-                            this.legs[j].ToSpecific));
+                            from: this.legs[i].From,
+                            to: this.legs[j].To,
+                            utcDeparture: this.legs[i].UtcDeparture,
+                            utcArrival: this.legs[j].UtcArrival,
+                            carrier: this.legs[j].Carrier,
+                            mode: this.legs[j].Mode,
+                            info: this.legs[j].Info,
+                            price: this.legs[j].Price,
+                            fromSpecific: this.legs[i].FromSpecific,
+                            toSpecific: this.legs[j].ToSpecific,
+                            arrivalEstimated: this.legs[j].ArrivalEstimated));
                     }
                 }
             }
 
             return all;
-        }
-
-        private decimal? GetLegsPrice(int start, int end, int legTimeSpread)
-        {
-            var sum = default(decimal?);
-
-            for (int i = start; i <= end; i += legTimeSpread)
-            {
-                sum += this.legs[i].Price;
-            }
-
-            return sum;
         }
     }
 }

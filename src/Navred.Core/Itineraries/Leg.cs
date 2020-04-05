@@ -24,6 +24,11 @@ namespace Navred.Core.Itineraries
             string toSpecific = null,
             bool arrivalEstimated = false)
         {
+            if (utcDeparture >= utcArrival)
+            {
+                throw new ArgumentException("Departure after arrival.");
+            }
+
             this.From = Validator.ReturnOrThrowIfNull(from);
             this.To = Validator.ReturnOrThrowIfNull(to);
             this.FromId = this.From.GetId();
@@ -76,6 +81,11 @@ namespace Navred.Core.Itineraries
             var id = $"{this.To}_{this.Carrier}";
 
             return id;
+        }
+
+        public bool IsZeroLength()
+        {
+            return this.From.Equals(this.To);
         }
 
         public override string ToString()
