@@ -4,7 +4,7 @@ using System;
 
 namespace Navred.Core.Places
 {
-    public class Place
+    public class Place : IEquatable<Place>
     {
         public string Country { get; set; }
 
@@ -60,5 +60,19 @@ namespace Navred.Core.Places
         }
 
         public override string ToString() => this.GetId().FormatId();
+
+        public bool Equals(Place other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            return
+                this.Country.Equals(other.Country) &&
+                this.Name.Equals(other.Name) &&
+                this.Region.Equals(other.Region) &&
+                this.Municipality.Equals(other.Municipality);
+        }
     }
 }
