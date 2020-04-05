@@ -82,7 +82,7 @@ namespace Navred.Updates
                 { "Бойдеви", new Boydevi(repo, placesManager) },
                 { "София", new SofiaCentralBusStation(repo, httpClientFactory, placesManager, estimator, cultureProvider) },
                 { "Велико Търново Юг", new VelikoTarnovoSouthBusStation(placesManager, estimator, repo, cultureProvider) },
-                { "Пловдив ХебросБус", new PlovdivHebrosBus(repo, placesManager, provider.GetService<ILogger<PlovdivHebrosBus>>())}
+                { "Пловдив ХебросБус", new PlovdivHebrosBus(repo, placesManager, estimator, cultureProvider, provider.GetService<ILogger<PlovdivHebrosBus>>()) }
             };
 
             return crawlersByKey;
