@@ -169,7 +169,7 @@ namespace Navred.Crawling.Crawlers
             try
             {
                 var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
-                .Select(n => n.InnerText).ToList();
+                    .Select(n => n.InnerText).ToList();
 
                 return date.DayOfWeek switch
                 {

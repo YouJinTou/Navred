@@ -57,7 +57,6 @@ namespace Navred.Crawling.Crawlers
             var doc = await web.LoadFromWebAsync(url);
             var scheduleStrings = doc.DocumentNode.SelectNodes(
                 "//div[@class='entry-content']/p")[2].InnerText.Split("\n");
-            var daysAhead = 30;
             var legs = new List<Leg>();
 
             foreach (var scheduleString in scheduleStrings)
@@ -67,7 +66,7 @@ namespace Navred.Crawling.Crawlers
                 var stopMatches = Regex.Matches(
                     scheduleString, @$"([{BulgarianCultureProvider.AllLetters} .]+)\s*\((\d+:\d+)\)")
                     .ToList();
-                var legSpread = daysAhead;
+                var legSpread = Defaults.DaysAhead;
 
                 for (int i = 0; i < stopMatches.Count - 1; i++)
                 {
@@ -78,9 +77,9 @@ namespace Navred.Crawling.Crawlers
                     var to = this.placesManager.GetPlace(
                         BulgarianCultureProvider.CountryName, toMatch.Groups[1].Value);
                     var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
-                        fromMatch.Groups[2].Value, daysAhead).ToList();
+                        fromMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
                     var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(
-                        toMatch.Groups[2].Value, daysAhead).ToList();
+                        toMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
                     legSpread = arrivalTimes.Count;
 
                     for (int t = 0; t < arrivalTimes.Count; t++)
