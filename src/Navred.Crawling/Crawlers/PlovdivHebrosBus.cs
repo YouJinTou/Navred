@@ -66,12 +66,12 @@ namespace Navred.Crawling.Crawlers
 
         private async Task UpdateLegsAsync(IEnumerable<string> ids)
         {
-            await ids.RunBatchesAsync(30, async (d) =>
+            await ids.RunBatchesAsync(30, async (id) =>
             {
                 try
                 {
                     var web = new HtmlWeb();
-                    var mainDoc = await web.LoadFromWebAsync(string.Format(Url, PlovdivId, d));
+                    var mainDoc = await web.LoadFromWebAsync(string.Format(Url, PlovdivId, id));
                     var detailLinks = mainDoc.DocumentNode.SelectNodes("//a[@class='table_link']")
                         ?.Select(a => BaseUrl + a.GetAttributeValue("href", null)?.Replace("../", ""))
                         ?.Where(a => !string.IsNullOrWhiteSpace(a))
@@ -95,7 +95,7 @@ namespace Navred.Crawling.Crawlers
                 {
                     Console.WriteLine(ex.Message);
 
-                    this.logger.LogError(ex, $"{d} failed.");
+                    this.logger.LogError(ex, $"{id} failed.");
                 }
             }, 30);
         }
@@ -106,7 +106,7 @@ namespace Navred.Crawling.Crawlers
             var detailsDoc = await web.LoadFromWebAsync(link);
             var fromPlace = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Plovdiv);
             var carrier = detailsDoc.DocumentNode
-                .SelectNodes("//span[@class='route_details_row']")[2].InnerText;
+                .SelectNodes("//span[@class='route_details_row']")?[2]?.InnerText;
             var daysOfWeekStrings = detailsDoc.DocumentNode
                 .SelectNodes("//span[@class='route_details_row bold_text']").Skip(4)
                 .Select(n => n.InnerText)
