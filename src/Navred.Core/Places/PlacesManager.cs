@@ -136,12 +136,26 @@ namespace Navred.Core.Places
             return this.GetPlace(place.Country, place.Name, place.Region, place.Municipality);
         }
 
+        public IEnumerable<Place> GetPlaces(string country, string name)
+        {
+            Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
+
+            var places = this.LoadPlacesFor(country);
+            var normalizedName = this.FormatPlace(name);
+            var results = places
+                .Where(p => normalizedName.Contains(this.FormatPlace(p.Name)))
+                .ToList();
+
+            return results;
+        }
+
         public Place GetPlace(
             string country, 
             string name, 
             string regionCode = null, 
             string municipalityCode = null,
-            IEnumerable<string> neighbors = null)
+            IEnumerable<string> neighbors = null,
+            bool throwOnFail = true)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
 
@@ -164,21 +178,96 @@ namespace Navred.Core.Places
 
             result = (result == null) ? this.DoFuzzyMatch(places, normalizedName) : result;
 
-            return (result == null) ?
-                throw new ArgumentException($"Could not find a match for {country}/{name}.") :
-                result;
+            if (result != null)
+            {
+                return result;
+            }
+
+            if (throwOnFail)
+            {
+                throw new ArgumentException($"Could not find a match for {country}/{name}.");
+            }
+
+            return null;
         }
 
-        public string NormalizePlaceName(
-            string country, 
-            string name, 
-            string regionCode = null, 
-            string municipalityCode = null,
-            IEnumerable<string> neighbors = null)
+        public IDictionary<string, Place> DeducePlacesFromStops(string country, IList<string> stops)
         {
-            var place = this.GetPlace(country, name, regionCode, municipalityCode, neighbors);
+            Validator.ThrowIfAnyNullOrWhiteSpace(country, stops);
 
-            return place.Name;
+            if (stops.Count <= 2)
+            {
+                throw new InvalidOperationException("Cannot resolve from two stops only.");
+            }
+
+            var placesByStop = stops.ToDictionary(
+                kvp => kvp, kvp => this.GetPlace(country, kvp, throwOnFail: false));
+
+            Validator.ThrowIfAllNull(placesByStop.Values, "Unresolvable itinerary.");
+
+            while (Validator.AnyNull(placesByStop.Values))
+            {
+                for (int s = 1; s < stops.Count - 2; s++)
+                {
+                    var prevValue = stops[s - 1];
+                    var nextValue = stops[s + 1];
+                    var previous = placesByStop[prevValue];
+                    var current = placesByStop[stops[s]];
+                    var next = placesByStop[nextValue];
+
+                    if (current == null)
+                    {
+                        continue;
+                    }
+
+                    if (previous == null)
+                    {
+                        var places = this.GetPlaces(country, prevValue);
+                        var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
+                        placesByStop[prevValue] = closestPlace;
+                    }
+
+                    if (next == null)
+                    {
+                        var places = this.GetPlaces(country, nextValue);
+                        var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
+                        placesByStop[nextValue] = closestPlace;
+                    }
+                }
+            }
+
+
+            return placesByStop;
+        }
+
+        private void SetPlacesFromStopsRecursive(
+            string country, 
+            IDictionary<string, Place> placesByStop, 
+            KeyValuePair<string, Place> current)
+        {
+            if (current.Value != null)
+            {
+                return;
+            }
+
+            foreach (var kvp in placesByStop)
+            {
+                if (kvp.Key.Equals(current.Key))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    placesByStop[kvp.Key] = kvp.Key.Equals(current.Key) ? 
+                        kvp.Value : this.GetPlace(country, kvp.Key);
+                }
+                catch
+                {
+                    var places = this.GetPlaces(country, kvp.Key);
+
+                }
+            }
         }
 
         private Place GetPlace(

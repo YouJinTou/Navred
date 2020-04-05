@@ -17,18 +17,16 @@ namespace Navred.Core.Places
 
         Place GetPlace(string id);
 
+        IEnumerable<Place> GetPlaces(string country, string name);
+
         Place GetPlace(
             string country, 
             string name, 
             string regionCode = null, 
             string municipalityCode = null,
-            IEnumerable<string> neighbors = null);
+            IEnumerable<string> neighbors = null,
+            bool throwOnFail = true);
 
-        string NormalizePlaceName(
-            string country, 
-            string name, 
-            string regionCode = null, 
-            string municipalityCode = null,
-            IEnumerable<string> neighbors = null);
+        IDictionary<string, Place> DeducePlacesFromStops(string country, IList<string> stops);
     }
 }
