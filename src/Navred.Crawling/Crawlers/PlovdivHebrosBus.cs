@@ -53,11 +53,13 @@ namespace Navred.Crawling.Crawlers
                     .Select(n => n.GetAttributeValue("value", null))
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
-                
+
                 await this.UpdateLegsAsync(ids);
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
+
                 this.logger.LogError(ex, "Update failed.");
             }
         }
@@ -83,12 +85,16 @@ namespace Navred.Crawling.Crawlers
                         }
                         catch (Exception ex)
                         {
+                            Console.WriteLine(ex.Message);
+
                             this.logger.LogError(ex, $"{l} failed.");
                         }
                     });
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
+
                     this.logger.LogError(ex, $"{d} failed.");
                 }
             }, 30);
