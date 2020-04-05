@@ -1,6 +1,7 @@
 ﻿using Navred.Core.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Navred.Core.Tools
 {
@@ -57,6 +58,34 @@ namespace Navred.Core.Tools
             {
                 throw new ArgumentNullException(message ?? "Enumerable is null or empty.");
             }
+        }
+
+        public static bool AnyNull(System.Collections.IEnumerable enumerable)
+        {
+            foreach (var item in enumerable)
+            {
+                if (item == null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static void ThrowIfAllNull<T>(IEnumerable<T> enumerable, string message = null)
+        {
+            ThrowIfNull(enumerable, message);
+
+            if (enumerable.All(i => i == null))
+            {
+                throw new ArgumentNullException(message ?? "All null.");
+            }
+        }
+
+        public static bool AllNullOrWhiteSpace(params string[] strings)
+        {
+            return strings.All(s => string.IsNullOrWhiteSpace(s));
         }
     }
 }
