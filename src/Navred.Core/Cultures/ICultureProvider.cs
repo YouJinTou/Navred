@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using Navred.Core.Itineraries;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Navred.Core.Cultures
 {
@@ -9,6 +11,12 @@ namespace Navred.Core.Cultures
         string Letters { get; }
 
         string Latinize(string s);
+
+        DaysOfWeek ToDaysOfWeek(string dayString);
+
+        DaysOfWeek ToDaysOfWeek(IEnumerable<string> dayStrings);
+
+        decimal? ParsePrice(string priceString);
 
         Encoding GetEncoding();
     }

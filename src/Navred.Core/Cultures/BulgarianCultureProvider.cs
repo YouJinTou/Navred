@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Navred.Core.Itineraries;
+using Navred.Core.Tools;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace Navred.Core.Cultures
@@ -75,6 +78,7 @@ namespace Navred.Core.Cultures
         public class City
         {
             public const string VelikoTarnovo = "Велико Търново";
+            public const string Plovdiv = "Пловдив";
         }
 
         public string Name => CountryName;
@@ -196,6 +200,55 @@ namespace Navred.Core.Cultures
             var result = string.Join(string.Empty, buffer);
 
             return result;
+        }
+
+        public decimal? ParsePrice(string priceString)
+        {
+            if (string.IsNullOrWhiteSpace(priceString))
+            {
+                return null;
+            }
+
+            var info = new CultureInfo("bg-BG");
+            var parsed = decimal.TryParse(
+                priceString, NumberStyles.Any, info,  out decimal price);
+
+            return parsed ? price : default(decimal?);
+        }
+
+        public DaysOfWeek ToDaysOfWeek(string dayString)
+        {
+            Validator.ThrowIfNullOrWhiteSpace(dayString, "Empty day string.");
+
+            if (dayString.Length.Equals(2))
+            {
+                switch (dayString.ToLower())
+                {
+                    case "нд": return DaysOfWeek.Sunday;
+                    case "пн": return DaysOfWeek.Monday;
+                    case "вт": return DaysOfWeek.Tuesday;
+                    case "ср": return DaysOfWeek.Wednesday;
+                    case "чт": return DaysOfWeek.Thursday;
+                    case "пк": return DaysOfWeek.Friday;
+                    case "пт": return DaysOfWeek.Friday;
+                    case "сб": return DaysOfWeek.Saturday;
+                    default: throw new KeyNotFoundException($"Could not map {dayString}.");
+                }
+            }
+
+            throw new KeyNotFoundException($"Could not map {dayString}.");
+        }
+
+        public DaysOfWeek ToDaysOfWeek(IEnumerable<string> dayStrings)
+        {
+            DaysOfWeek days = 0;
+
+            foreach (var dayString in dayStrings)
+            {
+                days |= this.ToDaysOfWeek(dayString);
+            }
+
+            return days;
         }
 
         public Encoding GetEncoding()
