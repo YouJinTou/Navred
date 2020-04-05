@@ -10,9 +10,9 @@ namespace Navred.Core.Estimation
 {
     public class TimeEstimator : ITimeEstimator
     {
-        private const double RoadCurvatureRate = 1.2;
+        private const double RoadCurvatureRate = 1.2d;
         private const double BusAverageKmPerHour = 80d;
-        private const int BusSlackInMinutes = 30;
+        private const double SlackRatePerKilometer = 1.1d;
 
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IDictionary<string, double> distancesCache;
@@ -36,6 +36,12 @@ namespace Navred.Core.Estimation
         private DateTime EstimateManually(Place from, Place to, DateTime departure, Mode mode)
         {
             var distance = from.DistanceToInKm(to);
+
+            if (distance == 0d)
+            {
+                return departure;
+            }
+
             double hours;
 
             switch (mode)
@@ -49,7 +55,7 @@ namespace Navred.Core.Estimation
             }
 
             var variableDuration =
-                (int)(((int)Math.Ceiling(hours * 60)) * RoadCurvatureRate) + BusSlackInMinutes;
+                (int)((((int)Math.Ceiling(hours * 60)) * RoadCurvatureRate * SlackRatePerKilometer));
             var duration = new TimeSpan(0, variableDuration, 0);
             var arrival = departure + duration;
 
