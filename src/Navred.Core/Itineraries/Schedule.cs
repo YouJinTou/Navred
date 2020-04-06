@@ -1,12 +1,13 @@
 ﻿using Navred.Core.Tools;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Navred.Core.Itineraries
 {
     public class Schedule
     {
         private bool ignoreInvalidRoutes;
-        private IList<Leg> legs;
+        private ICollection<Leg> legs;
 
         public Schedule(bool ignoreInvalidRoutes = true)
         {
@@ -36,26 +37,29 @@ namespace Navred.Core.Itineraries
 
         public IEnumerable<Leg> GetWithChildren(int legTimeSpread)
         {
-            var all = new HashSet<Leg>(new LegEqualityComparer());
+            var current = this.legs.ToArray();
+            var all = new HashSet<Leg>(current, new LegEqualityComparer());
 
             for (int t = 0; t < legTimeSpread; t++)
             {
-                for (int i = t; i < this.legs.Count; i += legTimeSpread)
+                for (int i = t; i < current.Length; i += legTimeSpread)
                 {
-                    for (int j = i; j < this.legs.Count; j += legTimeSpread)
+                    for (int j = i; j < current.Length; j += legTimeSpread)
                     {
-                        all.Add(new Leg(
-                            from: this.legs[i].From,
-                            to: this.legs[j].To,
-                            utcDeparture: this.legs[i].UtcDeparture,
-                            utcArrival: this.legs[j].UtcArrival,
-                            carrier: this.legs[j].Carrier,
-                            mode: this.legs[j].Mode,
-                            info: this.legs[j].Info,
-                            price: this.legs[j].Price,
-                            fromSpecific: this.legs[i].FromSpecific,
-                            toSpecific: this.legs[j].ToSpecific,
-                            arrivalEstimated: this.legs[j].ArrivalEstimated));
+                        var leg = new Leg(
+                            from: current[i].From,
+                            to: current[j].To,
+                            utcDeparture: current[i].UtcDeparture,
+                            utcArrival: current[j].UtcArrival,
+                            carrier: current[j].Carrier,
+                            mode: current[j].Mode,
+                            info: current[j].Info,
+                            price: current[j].Price,
+                            fromSpecific: current[i].FromSpecific,
+                            toSpecific: current[j].ToSpecific,
+                            arrivalEstimated: current[j].ArrivalEstimated);
+
+                        all.Add(leg);
                     }
                 }
             }
