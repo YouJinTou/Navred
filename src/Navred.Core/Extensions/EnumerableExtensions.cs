@@ -80,8 +80,6 @@ namespace Navred.Core.Extensions
                         tasks.Add(t);
 
                         await Task.Delay(delayBetweenBatchItems);
-
-                        Console.WriteLine(item);
                     }
                     else
                     {
