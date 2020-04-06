@@ -70,7 +70,9 @@ namespace Navred.Core.Itineraries.DB
                 };
                 request.UpdateExpression = this.GetUpdateExp(dbl);
                 request.ExpressionAttributeValues = this.GetExpAttributeValues(dbl);
-                var response = await this.db.UpdateItemAsync(request);
+
+                await new Web().WithBackoffAsync(
+                    async () => await this.db.UpdateItemAsync(request));
             }
         }
 
