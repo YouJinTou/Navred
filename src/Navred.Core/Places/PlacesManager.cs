@@ -239,36 +239,6 @@ namespace Navred.Core.Places
             return placesByStop;
         }
 
-        private void SetPlacesFromStopsRecursive(
-            string country, 
-            IDictionary<string, Place> placesByStop, 
-            KeyValuePair<string, Place> current)
-        {
-            if (current.Value != null)
-            {
-                return;
-            }
-
-            foreach (var kvp in placesByStop)
-            {
-                if (kvp.Key.Equals(current.Key))
-                {
-                    continue;
-                }
-
-                try
-                {
-                    placesByStop[kvp.Key] = kvp.Key.Equals(current.Key) ? 
-                        kvp.Value : this.GetPlace(country, kvp.Key);
-                }
-                catch
-                {
-                    var places = this.GetPlaces(country, kvp.Key);
-
-                }
-            }
-        }
-
         private Place GetPlace(
             IEnumerable<Place> results, string regionCode, string municipalityCode)
         {
