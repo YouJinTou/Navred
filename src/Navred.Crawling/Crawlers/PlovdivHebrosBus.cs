@@ -53,7 +53,7 @@ namespace Navred.Crawling.Crawlers
                     .Select(n => n.GetAttributeValue("value", null))
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
-
+                await ProcessAsync("http://hebrosbus.com/bg/pages/route-details/.6/100000804/12/0/68134/56784/1/");
                 await this.UpdateLegsAsync(ids);
             }
             catch (Exception ex)
@@ -114,12 +114,11 @@ namespace Navred.Crawling.Crawlers
             var daysOfWeek = this.cultureProvider.ToDaysOfWeek(daysOfWeekStrings);
             var stopRows = detailsDoc.DocumentNode.SelectNodes(
                 "//table[@class='route_table']/tr").Skip(1).ToList();
-            var placesByName = this.placesManager.DeducePlacesFromStops(
-                BCP.CountryName,
-                stopRows.Select(r => r.SelectSingleNode("td").InnerText).Distinct().ToList());
+            var placesByName = this.GetPlacesByName(fromPlace, stopRows);
             var sourceDeparture = TimeSpan.Parse(stopRows[0].SelectNodes("td")[3].InnerText);
             var lastPlace = fromPlace;
-            var lastSpecific = BCP.City.Plovdiv;
+            var lastSpecific = detailsDoc.DocumentNode.SelectSingleNode(
+                "//span[@class='route_details_row']").InnerText;
             var lastDeparture = DateTime.UtcNow.Date + sourceDeparture;
             var schedule = new Schedule();
             var legSpread = Defaults.DaysAhead;
@@ -176,6 +175,26 @@ namespace Navred.Crawling.Crawlers
             var all = schedule.GetWithChildren(legSpread);
 
             await this.repo.UpdateLegsAsync(all);
+        }
+
+        private IDictionary<string, Place> GetPlacesByName(
+            Place from, IEnumerable<HtmlNode> stopRows)
+        {
+            var stopNames = stopRows.Select(
+              r => r.SelectSingleNode("td").InnerText).Distinct().ToList();
+
+            if (stopNames.Count > 2)
+            {
+                return this.placesManager.DeducePlacesFromStops(BCP.CountryName, stopNames);
+            }
+
+            var to = this.placesManager.GetPlace(BCP.CountryName, stopNames[1]);
+            var placesByName = new Dictionary<string, Place>
+            {
+                { stopNames[1], to }
+            };
+
+            return placesByName;
         }
     }
 }
