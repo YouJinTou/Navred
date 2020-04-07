@@ -3,7 +3,7 @@ using System;
 
 namespace Navred.Core.Search
 {
-    public class Edge
+    public class Edge : IEquatable<Edge>
     {
         public Vertex Source { get; set; }
 
@@ -47,6 +47,12 @@ namespace Navred.Core.Search
             return true;
         }
 
-        public override string ToString() => this.Leg.ToString();
+        public override string ToString() => this.Leg?.ToString() ?? 
+            $"{this.Source} - {this.Destination}";
+
+        public bool Equals(Edge other) => 
+            this.Source.Equals(other.Source) && 
+            this.Destination.Equals(other.Destination) && 
+            this.Weight.Equals(other.Weight);
     }
 }
