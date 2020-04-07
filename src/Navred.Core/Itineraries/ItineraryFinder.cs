@@ -1,4 +1,5 @@
-﻿using Navred.Core.Itineraries.DB;
+﻿using Navred.Core.Extensions;
+using Navred.Core.Itineraries.DB;
 using Navred.Core.Places;
 using Navred.Core.Search;
 using Navred.Core.Tools;
@@ -23,6 +24,12 @@ namespace Navred.Core.Itineraries
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to, window);
 
             var legs = await this.repo.GetLegsAsync(from, to, window);
+
+            if (legs.IsEmpty())
+            {
+                return new List<GraphSearchPath>();
+            }
+
             var vertices = legs
                 .Select(i => new List<string> { i.From.GetId(), i.To.GetId() })
                 .SelectMany(s => s)
