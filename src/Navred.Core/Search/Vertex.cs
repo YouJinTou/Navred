@@ -13,5 +13,22 @@ namespace Navred.Core.Search
         public bool Equals(Vertex other) => this.Name.Equals(other?.Name);
 
         public override string ToString() => this.Name.FormatId();
+
+        public override int GetHashCode()
+        {
+            return this.Name.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var vertex = obj as Vertex;
+
+            if (vertex == null)
+            {
+                return false;
+            }
+
+            return this.Name.Equals(vertex.Name);
+        }
     }
 }
