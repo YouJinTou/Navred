@@ -11,6 +11,13 @@ namespace Navred.Core.Search
             this.Path = new List<Edge>();
         }
 
+        public GraphSearchPath(IEnumerable<Edge> edges)
+        {
+            this.Path = new List<Edge>();
+
+            this.AddMany(edges);
+        }
+
         public ICollection<Edge> Path { get; private set; }
 
         public Weight Weight { get; private set; }
@@ -23,6 +30,14 @@ namespace Navred.Core.Search
             this.AddWaitTime(edge);
 
             this.Path.Add(edge);
+        }
+
+        public void AddMany(IEnumerable<Edge> edges)
+        {
+            foreach (var edge in edges)
+            {
+                this.Add(edge);
+            }
         }
 
         public void Remove(Edge edge)
