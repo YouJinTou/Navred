@@ -1,6 +1,7 @@
 ﻿using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Navred.Core.Search
 {
@@ -30,10 +31,10 @@ namespace Navred.Core.Search
         {
             var result = new GraphSearchResult();
 
-            foreach (var edge in source.Edges)
+            Parallel.ForEach(source.Edges, e =>
             {
-                this.FindAllPathsRecursive(edge, destination, new GraphSearchPath(), result);
-            }
+                this.FindAllPathsRecursive(e, destination, new GraphSearchPath(), result);
+            });
 
             var finalResult = result.Merge().Filter().Sort();
 
