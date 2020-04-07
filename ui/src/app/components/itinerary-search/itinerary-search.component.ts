@@ -34,7 +34,7 @@ export class ItinerarySearchComponent implements OnInit {
   }
 
   private findItineraries() {
-    const url = itinerariesUrl(this.from, this.to, '2020-04-07T04:00:00', '2020-04-07T23:59:00');
+    const url = itinerariesUrl(this.from, this.to, '2020-04-09T04:00:00', '2020-04-09T23:59:00');
 
     console.log(url);
 
