@@ -7,9 +7,14 @@ namespace Navred.Core.Tools
 {
     public static class Validator
     {
+        public static bool IsNull(object obj)
+        {
+            return obj == null;
+        }
+
         public static void ThrowIfNull(object obj, string message = null)
         {
-            if (obj == null)
+            if (IsNull(obj))
             {
                 throw new ArgumentNullException(message ?? "Object is empty.");
             }

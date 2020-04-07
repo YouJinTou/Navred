@@ -13,10 +13,10 @@ namespace Navred.Core.Itineraries
 
         public Leg(
             Place from,
-            Place to, 
-            DateTime utcDeparture, 
-            DateTime utcArrival, 
-            string carrier, 
+            Place to,
+            DateTime utcDeparture,
+            DateTime utcArrival,
+            string carrier,
             Mode mode,
             string info,
             decimal? price = null,
@@ -88,9 +88,43 @@ namespace Navred.Core.Itineraries
             return this.From.Equals(this.To);
         }
 
+        public bool TryMergeWith(Leg other, out Leg merged)
+        {
+            var isValidMerge =
+                !Validator.IsNull(other) &&
+                (this.UtcDeparture < other.UtcArrival) &&
+                this.To.Equals(other.From) &&
+                this.Carrier.Equals(other.Carrier) &&
+                this.Mode.Equals(other.Mode) &&
+                (this.Price.HasValue && other.Price.HasValue);
+            merged = null;
+
+            if (!isValidMerge)
+            {
+                return false;
+            }
+
+            var info = this.Info?.Equals(other.Info) ?? true ? 
+                this.Info : $"{this.Info} | {other.Info}";
+            merged = new Leg(
+                this.From,
+                other.To,
+                this.UtcDeparture,
+                other.UtcArrival,
+                this.Carrier,
+                this.Mode,
+                info,
+                this.Price + other.Price,
+                this.FromSpecific,
+                other.ToSpecific,
+                this.ArrivalEstimated || other.ArrivalEstimated);
+
+            return true;
+        }
+
         public override string ToString()
         {
-            return 
+            return
                 $"{this.From ?? this.FromId.FormatId()} {this.UtcDeparture} - " +
                 $"{this.To ?? this.ToId.FormatId()} {this.UtcArrival} {this.Price}";
         }

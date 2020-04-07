@@ -35,11 +35,9 @@ namespace Navred.Core.Search
                 this.FindAllPathsRecursive(edge, destination, new GraphSearchPath(), result);
             }
 
-            result.Sort();
+            var finalResult = result.Merge().Filter().Sort();
 
-            result.Filter();
-
-            return result;
+            return finalResult;
         }
 
         private void FindAllPathsRecursive(

@@ -23,6 +23,30 @@ namespace Navred.Core.Search
             return this.Leg.UtcArrival >= other.Leg.UtcDeparture;
         }
 
+        public bool TryMergeWith(Edge other, out Edge merged)
+        {
+            merged = null;
+
+            if (!this.Leg.TryMergeWith(other?.Leg, out Leg m))
+            {
+                return false;
+            }
+
+            merged = new Edge
+            {
+                Source = this.Source,
+                Destination = other.Destination,
+                Leg = m,
+                Weight = new Weight
+                {
+                    Duration = m.Duration,
+                    Price = m.Price
+                }
+            };
+
+            return true;
+        }
+
         public override string ToString() => this.Leg.ToString();
     }
 }

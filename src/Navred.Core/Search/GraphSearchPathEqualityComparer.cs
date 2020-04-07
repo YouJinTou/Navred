@@ -7,10 +7,26 @@ namespace Navred.Core.Search
     {
         public bool Equals(GraphSearchPath x, GraphSearchPath y)
         {
-            return
-                x.Weight.Equals(y.Weight) &&
-                $"{x.Source} - {x.Destination} | {x.Path.Last().Leg.Carrier}"
-                .Equals($"{y.Source} - {y.Destination} | {y.Path.Last().Leg.Carrier}");
+            if (!x.Path.Count.Equals(y.Path.Count))
+            {
+                return false;
+            }
+
+            var xHead = x.Path.First();
+            var yHead = y.Path.First();
+            var xTail = x.Path.Last();
+            var yTail = y.Path.Last();
+
+            if (!xHead.Source.Equals(yHead.Source)) return false;
+            if (!xHead.Destination.Equals(yHead.Destination)) return false;
+            if (!xHead.Leg.UtcDeparture.Equals(yHead.Leg.UtcDeparture)) return false;
+            if (!xHead.Leg.UtcArrival.Equals(yHead.Leg.UtcArrival)) return false;
+            if (!xTail.Leg.UtcDeparture.Equals(yTail.Leg.UtcDeparture)) return false;
+            if (!xTail.Leg.UtcArrival.Equals(yTail.Leg.UtcArrival)) return false;
+            if (!xHead.Leg.Carrier.Equals(yHead.Leg.Carrier)) return false;
+            if (!xTail.Leg.Carrier.Equals(yTail.Leg.Carrier)) return false;
+
+            return true;
         }
 
         public int GetHashCode(GraphSearchPath p)
@@ -21,7 +37,7 @@ namespace Navred.Core.Search
 
             unchecked
             {
-                result *= prime + p.Weight.ToString().GetHashCode();
+                result *= prime + p.Weight.Duration.ToString().GetHashCode();
                 result *= prime + sourceDestination.GetHashCode();
             }
 

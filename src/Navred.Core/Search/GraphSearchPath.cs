@@ -6,17 +6,17 @@ namespace Navred.Core.Search
 {
     public class GraphSearchPath
     {
+        public GraphSearchPath()
+        {
+            this.Path = new List<Edge>();
+        }
+
         public ICollection<Edge> Path { get; private set; }
 
         public Weight Weight { get; private set; }
 
         public void Add(Edge edge)
         {
-            if (this.Path.IsNullOrEmpty())
-            {
-                this.Path = new List<Edge>();
-            }
-
             this.Weight = this.Weight ?? new Weight();
             this.Weight += edge.Weight;
 
@@ -49,6 +49,13 @@ namespace Navred.Core.Search
             };
         }
 
+        public GraphSearchPath Merge()
+        {
+            var path = this.MergeRecursive(new GraphSearchPath(), true);
+
+            return path;
+        }
+
         public Vertex Source => this.Path.First().Source;
 
         public Vertex Destination => this.Path.Last().Destination;
@@ -57,6 +64,15 @@ namespace Navred.Core.Search
 
         public bool Contains(Edge edge)
             => this.Path.Any(e => e.Source == edge.Destination);
+
+        public override string ToString()
+        {
+            var destination = this.Destination.ToString();
+            var legs = string.Join(" - ", this.Path.Select(p => p.Source));
+            var result = $"{legs} - {destination} | {this.Weight}";
+
+            return result;
+        }
 
         private void AddWaitTime(Edge edge)
         {
@@ -67,7 +83,7 @@ namespace Navred.Core.Search
 
             this.Weight += new Weight
             {
-                Duration = edge.Leg.UtcDeparture - this.Path.Last().Leg.UtcArrival,
+                Duration = edge.Leg.UtcDeparture - this.Tail.Leg.UtcArrival,
                 Price = null
             };
         }
@@ -86,13 +102,67 @@ namespace Navred.Core.Search
             };
         }
 
-        public override string ToString()
+        private GraphSearchPath MergeRecursive(
+            GraphSearchPath currentMerged, bool somethingChanged)
         {
-            var destination = this.Destination.ToString();
-            var legs = string.Join(" - ", this.Path.Select(p => p.Source));
-            var result = $"{legs} - {destination} | {this.Weight}";
+            if (!somethingChanged)
+            {
+                return currentMerged;
+            }
 
-            return result;
+            var index = 0;
+            var iterable = currentMerged.Path.IsEmpty() ? this : currentMerged;
+            var mergedPath = new GraphSearchPath();
+            var mergedOccurred = false;
+
+            while (index < iterable.Path.Count)
+            {
+                var edges = iterable.Path.Skip(index).ToArray();
+                var isLast = index == iterable.Path.Count - 1;
+                Edge merged;
+
+                if (isLast)
+                {
+                    if (mergedPath.Path.IsEmpty())
+                    {
+                        mergedPath.Add(edges[0]);
+
+                        break;
+                    }
+
+                    if (mergedPath.Tail.TryMergeWith(edges[0], out merged))
+                    {
+                        mergedOccurred = true;
+
+                        mergedPath.Remove(mergedPath.Tail);
+
+                        mergedPath.Add(merged);
+                    }
+                    else
+                    {
+                        mergedPath.Add(edges[0]);
+                    }
+
+                    break;
+                }
+
+                if (edges[0].TryMergeWith(edges[1], out merged))
+                {
+                    mergedOccurred = true;
+
+                    mergedPath.Add(merged);
+
+                    index += 2;
+                }
+                else
+                {
+                    mergedPath.Add(edges[0]);
+
+                    index++;
+                }
+            }
+
+            return this.MergeRecursive(mergedPath, mergedOccurred);
         }
     }
 }

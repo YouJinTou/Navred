@@ -18,20 +18,35 @@ namespace Navred.Core.Search
             this.Paths.Add(path.Copy());
         }
 
-        public void Sort()
+        public GraphSearchResult Sort()
         {
             if (this.Paths.IsNullOrEmpty())
             {
-                return;
+                return this;
             }
 
             this.Paths = this.Paths
                 .OrderBy(p => p.Weight)
                 .ThenBy(p => p.Path.Count)
                 .ToList();
+
+            return this;
         }
 
-        public void Filter() => this.Paths = new HashSet<GraphSearchPath>(
-            this.Paths, new GraphSearchPathEqualityComparer());
+        public GraphSearchResult Filter()
+        {
+            this.Paths = new HashSet<GraphSearchPath>(
+                this.Paths, new GraphSearchPathEqualityComparer());
+
+            return this;
+        }
+
+        public GraphSearchResult Merge()
+        {
+            var merged = this.Paths.Select(p => p.Merge()).ToList();
+            this.Paths = merged;
+
+            return this;
+        }
     }
 }

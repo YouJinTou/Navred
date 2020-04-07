@@ -20,14 +20,17 @@ namespace Navred.Crawling.Crawlers
     {
         private const string BaseUrl = "http://hebrosbus.com/bg/";
         private const string Url = "http://hebrosbus.com/bg/search/razpisaniya/.5/{0}/{1}/";
+        private const string FromHisaryaUrl = "http://hebrosbus.com/bg/pages/route-details/.6/280/3%2c79999995231628/470/56784/77270/";
         private const string PlovdivId = "56784";
-        private readonly string RhodopiUrl = string.Format(Url, "-1", "450");
 
         private readonly ILegRepository repo;
         private readonly IPlacesManager placesManager;
         private readonly ITimeEstimator estimator;
         private readonly ICultureProvider cultureProvider;
         private readonly ILogger<PlovdivHebrosBus> logger;
+        private readonly Place plovdiv;
+        private readonly Place hisarya;
+        private readonly string scrapeIdsUrl;
 
         public PlovdivHebrosBus(
             ILegRepository repo,
@@ -41,6 +44,9 @@ namespace Navred.Crawling.Crawlers
             this.estimator = estimator;
             this.cultureProvider = cultureProvider;
             this.logger = logger;
+            this.plovdiv = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Plovdiv);
+            this.hisarya = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Hisarya);
+            this.scrapeIdsUrl = string.Format(Url, "-1", "450");
         }
 
         public async Task UpdateLegsAsync()
@@ -48,18 +54,21 @@ namespace Navred.Crawling.Crawlers
             try
             {
                 var web = new HtmlWeb();
-                var doc = await web.LoadFromWebAsync(RhodopiUrl);
+                var doc = await web.LoadFromWebAsync(scrapeIdsUrl);
                 var ids = doc.DocumentNode.SelectNodes("//select[@id='ddlArrive']/option")
                     .Select(n => n.GetAttributeValue("value", null))
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
-                await ProcessAsync("http://hebrosbus.com/bg/pages/route-details/.6/100000804/12/0/68134/56784/1/");
+
+                await this.ProcessAsync(this.hisarya, FromHisaryaUrl);
+
                 await this.UpdateLegsAsync(ids);
+                Console.WriteLine("Finished.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-
+                Console.WriteLine("Finished with error.");
                 this.logger.LogError(ex, "Update failed.");
             }
         }
@@ -81,7 +90,8 @@ namespace Navred.Crawling.Crawlers
                     {
                         try
                         {
-                            await this.ProcessAsync(l);
+                            await new Web().WithBackoffAsync(
+                                async () => await this.ProcessAsync(this.plovdiv, l));
                         }
                         catch (Exception ex)
                         {
@@ -100,11 +110,10 @@ namespace Navred.Crawling.Crawlers
             }, 30);
         }
 
-        private async Task ProcessAsync(string link)
+        private async Task ProcessAsync(Place from, string link)
         {
             var web = new HtmlWeb();
             var detailsDoc = await web.LoadFromWebAsync(link);
-            var fromPlace = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Plovdiv);
             var carrier = detailsDoc.DocumentNode
                 .SelectNodes("//span[@class='route_details_row']")?[2]?.InnerText;
             var daysOfWeekStrings = detailsDoc.DocumentNode
@@ -114,9 +123,9 @@ namespace Navred.Crawling.Crawlers
             var daysOfWeek = this.cultureProvider.ToDaysOfWeek(daysOfWeekStrings);
             var stopRows = detailsDoc.DocumentNode.SelectNodes(
                 "//table[@class='route_table']/tr").Skip(1).ToList();
-            var placesByName = this.GetPlacesByName(fromPlace, stopRows);
+            var placesByName = this.GetPlacesByName(stopRows);
             var sourceDeparture = TimeSpan.Parse(stopRows[0].SelectNodes("td")[3].InnerText);
-            var lastPlace = fromPlace;
+            var lastPlace = from;
             var lastSpecific = detailsDoc.DocumentNode.SelectSingleNode(
                 "//span[@class='route_details_row']").InnerText;
             var lastDeparture = DateTime.UtcNow.Date + sourceDeparture;
@@ -140,6 +149,9 @@ namespace Navred.Crawling.Crawlers
                     (await this.estimator.EstimateArrivalTimeAsync(
                         lastPlace, place, lastDeparture, Mode.Bus)).TimeOfDay :
                     TimeSpan.Parse(arrivalString);
+                var departureTime = string.IsNullOrWhiteSpace(departureString) ?
+                    arrivalTime : TimeSpan.Parse(departureString);
+                departureTime = (departureTime > arrivalTime) ? arrivalTime : departureTime;
                 var arrivalTimes =
                     daysOfWeek.GetValidUtcTimesAhead(arrivalTime, Defaults.DaysAhead).ToList();
                 var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
@@ -165,8 +177,6 @@ namespace Navred.Crawling.Crawlers
                     schedule.AddLeg(leg);
                 }
 
-                var departureTime = string.IsNullOrWhiteSpace(departureString) ?
-                    arrivalTime : TimeSpan.Parse(departureString);
                 lastPlace = place;
                 lastSpecific = specificPlace;
                 lastDeparture = DateTime.UtcNow.Date + departureTime;
@@ -177,8 +187,7 @@ namespace Navred.Crawling.Crawlers
             await this.repo.UpdateLegsAsync(all);
         }
 
-        private IDictionary<string, Place> GetPlacesByName(
-            Place from, IEnumerable<HtmlNode> stopRows)
+        private IDictionary<string, Place> GetPlacesByName(IEnumerable<HtmlNode> stopRows)
         {
             var stopNames = stopRows.Select(
               r => r.SelectSingleNode("td").InnerText).Distinct().ToList();
