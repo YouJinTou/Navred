@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Navred.Core.Tools;
+using System.Threading.Tasks;
 
 namespace Navred.Core.Search.Algorithms
 {
@@ -6,6 +7,8 @@ namespace Navred.Core.Search.Algorithms
     {
         public GraphSearchResult FindAllPaths(Graph g)
         {
+            Validator.ThrowIfNull(g, "Graph is empty.");
+
             var result = new GraphSearchResult();
 
             Parallel.ForEach(g.Source.Edges, e =>
