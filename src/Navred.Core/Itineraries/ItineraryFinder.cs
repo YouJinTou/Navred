@@ -2,6 +2,7 @@
 using Navred.Core.Itineraries.DB;
 using Navred.Core.Places;
 using Navred.Core.Search;
+using Navred.Core.Search.Algorithms;
 using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,7 +59,7 @@ namespace Navred.Core.Itineraries
                 vertices.Single(v => v.Name == to.GetId()),
                 vertices, 
                 edges);
-            var result = graph.FindAllPaths(graph.Source, graph.Destination);
+            var result = new Dfs().FindAllPaths(graph);
 
             return result.Paths;
         }
