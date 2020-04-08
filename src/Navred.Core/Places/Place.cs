@@ -1,10 +1,11 @@
-﻿using Navred.Core.Extensions;
+﻿using Navred.Core.Abstractions;
+using Navred.Core.Extensions;
 using Navred.Core.Tools;
 using System;
 
 namespace Navred.Core.Places
 {
-    public class Place : IEquatable<Place>
+    public class Place : IEquatable<Place>, ICopyable<Place>
     {
         public string Country { get; set; }
 
@@ -73,6 +74,19 @@ namespace Navred.Core.Places
                 this.Name.Equals(other.Name) &&
                 this.Region.Equals(other.Region) &&
                 this.Municipality.Equals(other.Municipality);
+        }
+
+        public Place Copy()
+        {
+            return new Place
+            {
+                Country = this.Country,
+                Latitude = this.Latitude,
+                Longitude = this.Longitude,
+                Municipality = this.Municipality,
+                Name = this.Name,
+                Region = this.Region
+            };
         }
     }
 }

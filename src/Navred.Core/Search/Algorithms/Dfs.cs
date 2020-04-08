@@ -38,7 +38,7 @@ namespace Navred.Core.Search.Algorithms
 
             foreach (var e in edge.Destination.Edges)
             {
-                if (currentPath.Contains(e) || currentPath.Tail.ArrivesAfterHasDeparted(e))
+                if (currentPath.Touches(e) || currentPath.Tail.ArrivesAfterHasDeparted(e))
                 {
                     continue;
                 }

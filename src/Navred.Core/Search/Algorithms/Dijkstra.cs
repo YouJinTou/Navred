@@ -7,7 +7,77 @@ namespace Navred.Core.Search.Algorithms
 {
     public class Dijkstra
     {
+        private class Result
+        {
+            public GraphSearchPath BestPath { get; set; }
+
+            public IDictionary<Vertex, Vertex> Previous { get; set; }
+
+            public IDictionary<Vertex, Weight> Distances { get; set; }
+        }
+
         public GraphSearchPath FindShortestPath(Graph g)
+        {
+            var result = this.FindPath(g);
+
+            return result.BestPath;
+        }
+
+        public GraphSearchResult FindKShortestPaths(Graph g, int k)
+        {
+            var graphResult = new GraphSearchResult();
+            var forwardPass = this.FindPath(g);
+
+            graphResult.Add(forwardPass.BestPath);
+
+            var reversed = g.Reverse();
+            var backwardPass = this.FindPath(reversed);
+            var diffs = new Dictionary<Edge, Weight>();
+
+            foreach (var v in forwardPass.BestPath.Vertices)
+            {
+                foreach (var nonBestEdge in v.Edges.Where(e => !forwardPass.BestPath.Contains(e)))
+                {
+                    var diff =
+                        backwardPass.Distances[nonBestEdge.Destination] -
+                        backwardPass.Distances[nonBestEdge.Source] +
+                        nonBestEdge.Weight;
+
+                    diffs.Add(nonBestEdge, diff);
+                }
+            }
+
+            if (diffs.IsEmpty())
+            {
+                return graphResult;
+            }
+
+            for (int i = 0; i < k - 1; i++)
+            {
+                var nextShortestEdge = diffs.GetMin(kvp => kvp.Value);
+                var path = new GraphSearchPath();
+                var pathFromSource = this.RetrievePath(
+                    g.Source, nextShortestEdge.Key.Source, forwardPass, g);
+                var pathFromShortestDestination = this.RetrievePath(
+                    reversed.Source, nextShortestEdge.Key.Destination, backwardPass, reversed);
+                pathFromShortestDestination = pathFromShortestDestination
+                    .Select(e => e.Reverse()).ToList();
+
+                path.AddMany(pathFromSource);
+
+                path.Add(nextShortestEdge.Key);
+
+                path.AddMany(pathFromShortestDestination);
+
+                graphResult.Add(path);
+
+                diffs.Remove(nextShortestEdge.Key);
+            }
+
+            return graphResult;
+        }
+
+        private Result FindPath(Graph g)
         {
             Validator.ThrowIfNull(g, "Graph is empty.");
 
@@ -37,9 +107,38 @@ namespace Navred.Core.Search.Algorithms
                 unvisited.Remove(current);
             }
 
-            var path = new GraphSearchPath(paths[g.Destination]);
+            var result = new Result
+            {
+                Distances = distances,
+                Previous = previous,
+                BestPath = new GraphSearchPath(paths[g.Destination])
+            };
 
-            return path;
+            return result;
+        }
+
+        private IEnumerable<Edge> RetrievePath(Vertex from, Vertex to, Result result, Graph g)
+        {
+            var edges = new List<Edge>();
+            var current = to;
+
+            while (!current.Equals(from))
+            {
+                var prev = result.Previous[current];
+                var edgeToFind = new Edge
+                {
+                    Source = prev,
+                    Destination = current,
+                    Weight = result.Distances[current] - result.Distances[prev]
+                };
+                var edge = g.Edges.Single(e => e.Equals(edgeToFind));
+
+                edges.Add(edge);
+
+                current = prev;
+            }
+
+            return edges;
         }
     }
 }

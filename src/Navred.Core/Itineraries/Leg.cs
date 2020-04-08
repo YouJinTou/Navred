@@ -1,11 +1,12 @@
-﻿using Navred.Core.Extensions;
+﻿using Navred.Core.Abstractions;
+using Navred.Core.Extensions;
 using Navred.Core.Places;
 using Navred.Core.Tools;
 using System;
 
 namespace Navred.Core.Itineraries
 {
-    public class Leg
+    public class Leg : ICopyable<Leg>
     {
         public Leg()
         {
@@ -127,6 +128,22 @@ namespace Navred.Core.Itineraries
             return
                 $"{this.From ?? this.FromId.FormatId()} {this.UtcDeparture} - " +
                 $"{this.To ?? this.ToId.FormatId()} {this.UtcArrival} {this.Price}";
+        }
+
+        public Leg Copy()
+        {
+            return new Leg(
+                this.From.Copy(), 
+                this.To.Copy(), 
+                this.UtcDeparture, 
+                this.UtcArrival, 
+                this.Carrier, 
+                this.Mode, 
+                this.Info, 
+                this.Price, 
+                this.FromSpecific, 
+                this.ToSpecific, 
+                this.ArrivalEstimated);
         }
     }
 }

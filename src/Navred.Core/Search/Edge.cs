@@ -1,9 +1,10 @@
-﻿using Navred.Core.Itineraries;
+﻿using Navred.Core.Abstractions;
+using Navred.Core.Itineraries;
 using System;
 
 namespace Navred.Core.Search
 {
-    public class Edge : IEquatable<Edge>
+    public class Edge : IEquatable<Edge>, ICopyable<Edge>
     {
         public Vertex Source { get; set; }
 
@@ -12,6 +13,16 @@ namespace Navred.Core.Search
         public Weight Weight { get; set; }
 
         public Leg Leg { get; set; }
+
+        public Edge Reverse()
+        {
+            return new Edge
+            {
+                Destination = this.Source.Copy(),
+                Weight = this.Weight.Copy(),
+                Source = this.Destination.Copy()
+            };
+        }
 
         public bool ArrivesAfterHasDeparted(Edge other)
         {
@@ -54,5 +65,31 @@ namespace Navred.Core.Search
             this.Source.Equals(other.Source) && 
             this.Destination.Equals(other.Destination) && 
             this.Weight.Equals(other.Weight);
+
+        public override int GetHashCode()
+        {
+            int prime = 83;
+            int result = 1;
+
+            unchecked
+            {
+                result *= prime + this.Source.GetHashCode();
+                result *= prime + this.Destination.GetHashCode();
+                result *= prime + this.Weight.GetHashCode();
+            }
+
+            return result;
+        }
+
+        public Edge Copy()
+        {
+            return new Edge
+            {
+                Source = this.Source.Copy(),
+                Destination = this.Destination.Copy(),
+                Weight = this.Weight.Copy(),
+                Leg = this.Leg.Copy()
+            };
+        }
     }
 }

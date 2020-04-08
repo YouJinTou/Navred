@@ -51,7 +51,7 @@ namespace Navred.Core.Itineraries
 
             foreach (var vertex in vertices)
             {
-                vertex.Edges = edges.Where(e => e.Source.Name == vertex.Name).ToList();
+                vertex.AddEdges(edges.Where(e => e.Source.Equals(vertices)).ToList());
             }
 
             var graph = new Graph(
@@ -59,7 +59,7 @@ namespace Navred.Core.Itineraries
                 vertices.Single(v => v.Name == to.GetId()),
                 vertices, 
                 edges);
-            var result = new Dfs().FindAllPaths(graph);
+            var result = new Dijkstra().FindKShortestPaths(graph, 10);
 
             return result.Paths;
         }

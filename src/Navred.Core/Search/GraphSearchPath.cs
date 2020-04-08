@@ -1,4 +1,5 @@
 ﻿using Navred.Core.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,6 +22,22 @@ namespace Navred.Core.Search
         public ICollection<Edge> Path { get; private set; }
 
         public Weight Weight { get; private set; }
+
+        public Vertex Source => this.Path.First().Source;
+
+        public Vertex Destination => this.Path.Last().Destination;
+
+        public Edge Tail => this.Path.Last();
+
+        public IEnumerable<Vertex> Vertices => 
+            new List<Vertex>(this.Path.Select(p => p.Source)) { this.Tail.Destination };
+
+        public bool Touches(Edge edge)
+            => this.Path.Any(e => e.Source.Equals(edge.Destination));
+
+        public bool Contains(Edge edge)
+            => this.Path.Any(
+                e => e.Source.Equals(edge.Source) && e.Destination.Equals(edge.Destination));
 
         public void Add(Edge edge)
         {
@@ -71,24 +88,6 @@ namespace Navred.Core.Search
             return path;
         }
 
-        public Vertex Source => this.Path.First().Source;
-
-        public Vertex Destination => this.Path.Last().Destination;
-
-        public Edge Tail => this.Path.Last();
-
-        public bool Contains(Edge edge)
-            => this.Path.Any(e => e.Source == edge.Destination);
-
-        public override string ToString()
-        {
-            var destination = this.Destination.ToString();
-            var legs = string.Join(" - ", this.Path.Select(p => p.Source));
-            var result = $"{legs} - {destination} | {this.Weight}";
-
-            return result;
-        }
-
         private void AddWaitTime(Edge edge)
         {
             if (this.Path.IsEmpty())
@@ -96,9 +95,12 @@ namespace Navred.Core.Search
                 return;
             }
 
+            var utcDeparture = edge?.Leg?.UtcDeparture ?? new DateTime();
+            var utcArrival = this.Tail?.Leg?.UtcArrival ?? new DateTime();
+
             this.Weight += new Weight
             {
-                Duration = edge.Leg.UtcDeparture - this.Tail.Leg.UtcArrival,
+                Duration = utcDeparture - utcArrival,
                 Price = null
             };
         }
@@ -178,6 +180,15 @@ namespace Navred.Core.Search
             }
 
             return this.MergeRecursive(mergedPath, mergedOccurred);
+        }
+
+        public override string ToString()
+        {
+            var destination = this.Destination.ToString();
+            var legs = string.Join(" - ", this.Path.Select(p => p.Source));
+            var result = $"{legs} - {destination} | {this.Weight}";
+
+            return result;
         }
     }
 }
