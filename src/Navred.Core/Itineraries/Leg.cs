@@ -145,5 +145,21 @@ namespace Navred.Core.Itineraries
                 this.ToSpecific, 
                 this.ArrivalEstimated);
         }
+
+        public Leg CopyReverse()
+        {
+            return new Leg(
+                this.To.Copy(),
+                this.From.Copy(),
+                this.UtcDeparture,
+                this.UtcArrival,
+                this.Carrier,
+                this.Mode,
+                this.Info,
+                this.Price,
+                this.ToSpecific,
+                this.FromSpecific,
+                this.ArrivalEstimated);
+        }
     }
 }
