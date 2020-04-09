@@ -60,15 +60,17 @@ namespace Navred.Crawling.Crawlers
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
 
+                await this.ProcessAsync(this.plovdiv, "http://hebrosbus.com/bg/pages/route-details/.6/100000796/2/0/702/56784/1/");
                 await this.ProcessAsync(this.hisarya, FromHisaryaUrl);
 
                 await this.UpdateLegsAsync(ids);
+
                 Console.WriteLine("Finished.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                Console.WriteLine("Finished with error.");
+
                 this.logger.LogError(ex, "Update failed.");
             }
         }
@@ -86,7 +88,7 @@ namespace Navred.Crawling.Crawlers
                         ?.Where(a => !string.IsNullOrWhiteSpace(a))
                         ?.ToList() ?? new List<string>();
 
-                    await detailLinks.RunBatchesAsync(10, async (l) =>
+                    foreach (var l in detailLinks)
                     {
                         try
                         {
@@ -99,7 +101,7 @@ namespace Navred.Crawling.Crawlers
 
                             this.logger.LogError(ex, $"{l} failed.");
                         }
-                    });
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -149,9 +151,7 @@ namespace Navred.Crawling.Crawlers
                     (await this.estimator.EstimateArrivalTimeAsync(
                         lastPlace, place, lastDeparture, Mode.Bus)).TimeOfDay :
                     TimeSpan.Parse(arrivalString);
-                var departureTime = string.IsNullOrWhiteSpace(departureString) ?
-                    arrivalTime : TimeSpan.Parse(departureString);
-                departureTime = (departureTime > arrivalTime) ? arrivalTime : departureTime;
+                var departureTime = this.GetDeparture(arrivalTime, departureString);
                 var arrivalTimes =
                     daysOfWeek.GetValidUtcTimesAhead(arrivalTime, Defaults.DaysAhead).ToList();
                 var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
@@ -204,6 +204,20 @@ namespace Navred.Crawling.Crawlers
             };
 
             return placesByName;
+        }
+
+        private TimeSpan GetDeparture(TimeSpan arrival, string departureString)
+        {
+            var departureTime = string.IsNullOrWhiteSpace(departureString) ?
+                    arrival : TimeSpan.Parse(departureString);
+            departureTime = (departureTime < arrival) ? arrival : departureTime;
+
+            if ((departureTime - arrival) > TimeSpan.FromHours(1))
+            {
+                departureTime -= TimeSpan.FromHours(1);
+            }
+
+            return departureTime;
         }
     }
 }
