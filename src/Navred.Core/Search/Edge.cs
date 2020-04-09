@@ -20,7 +20,8 @@ namespace Navred.Core.Search
             {
                 Destination = this.Source.Copy(),
                 Weight = this.Weight.Copy(),
-                Source = this.Destination.Copy()
+                Source = this.Destination.Copy(),
+                Leg = this.Leg.CopyReverse()
             };
         }
 
@@ -59,7 +60,7 @@ namespace Navred.Core.Search
         }
 
         public override string ToString() => this.Leg?.ToString() ?? 
-            $"{this.Source} - {this.Destination}";
+            $"{this.Source} - {this.Destination} | {this.Weight}";
 
         public bool Equals(Edge other) => 
             this.Source.Equals(other.Source) && 
