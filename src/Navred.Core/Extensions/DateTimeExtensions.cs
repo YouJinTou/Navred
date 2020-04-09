@@ -112,5 +112,25 @@ namespace Navred.Core.Extensions
         {
             return ts + TimeSpan.FromMinutes(minutes);
         }
+
+        public static DateTime GetFirstAvailableUtcDate(this DaysOfWeek dow)
+        {
+            if (dow.Equals(DaysOfWeek.Empty))
+            {
+                throw new InvalidOperationException("Days of week is empty.");
+            }
+
+            var current = DateTime.UtcNow.Date;
+
+            while (true)
+            {
+                if (current.DayOfWeek.Matches(dow))
+                {
+                    return current;
+                }
+
+                current = current.AddDays(1);
+            }
+        }
     }
 }

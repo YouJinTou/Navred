@@ -63,6 +63,8 @@ namespace Navred.Crawling.Crawlers
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
 
+                await this.ProcessAsync(this.plovdiv, "http://hebrosbus.com/bg/pages/route-details/.6/412/2%2c20000004768372/0/6505/56784/1/");
+
                 await this.ProcessAsync(this.hisarya, FromHisaryaUrl);
 
                 await this.UpdateLegsAsync(ids);
@@ -130,9 +132,10 @@ namespace Navred.Crawling.Crawlers
             var lastPlace = from;
             var lastSpecific = detailsDoc.DocumentNode.SelectSingleNode(
                 "//span[@class='route_details_row']").InnerText;
-            var lastDeparture = DateTime.UtcNow.Date + sourceDeparture;
-            var schedule = new Schedule();
             var legSpread = Defaults.DaysAhead;
+            var firstAvailableDate = daysOfWeek.GetFirstAvailableUtcDate();
+            var lastDeparture = firstAvailableDate + sourceDeparture;
+            var schedule = new Schedule();
 
             for (int sr = 1; sr < stopRows.Count; sr++)
             {
@@ -173,7 +176,7 @@ namespace Navred.Crawling.Crawlers
                 lastPlace = place;
                 lastSpecific = row.SpecificName;
                 var departureTime = this.GetDeparture(arrivalTime, row.Departure, sr, stopRows);
-                lastDeparture = DateTime.UtcNow.Date + departureTime;
+                lastDeparture = firstAvailableDate + departureTime;
             }
 
             var all = schedule.GetWithChildren(legSpread);
