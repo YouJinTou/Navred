@@ -100,7 +100,7 @@ namespace Navred.Crawling.Crawlers
 
                             this.logger.LogError(ex, $"{l} failed.");
                         }
-                    });
+                    }, delayBetweenBatches: 1000, delayBetweenBatchItems: 100);
                 }
                 catch (Exception ex)
                 {
