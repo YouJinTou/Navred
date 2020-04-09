@@ -48,7 +48,7 @@ namespace Navred.Core.Itineraries
                 },
                 Leg = l
             }).ToList();
-            var graph = new Graph(
+           var graph = new Graph(
                 vertices.Single(v => v.Name == from.GetId()), 
                 vertices.Single(v => v.Name == to.GetId()),
                 vertices, 
