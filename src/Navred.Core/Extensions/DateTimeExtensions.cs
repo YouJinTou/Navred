@@ -107,5 +107,10 @@ namespace Navred.Core.Extensions
         {
             return new DateTimeTz(dt, Constants.UtcTimeZone);
         }
+
+        public static TimeSpan AddMinutes(this TimeSpan ts, int minutes)
+        {
+            return ts + TimeSpan.FromMinutes(minutes);
+        }
     }
 }
