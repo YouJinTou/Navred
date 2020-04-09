@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Navred.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -63,7 +64,9 @@ namespace Navred.Core.Extensions
             Func<T, Task> run,
             int delayBetweenBatches = 0,
             int delayBetweenBatchItems = 0,
-            bool inParallel = true)
+            bool withRetry = true,
+            int maximumBackoffSeconds = 64,
+            int maxRetries = 7)
         {
             var batches = ToBatches(enumerable, batchSize);
 
@@ -73,18 +76,19 @@ namespace Navred.Core.Extensions
 
                 foreach (var item in batch)
                 {
-                    if (inParallel)
+                    if (withRetry)
                     {
-                        var t = run(item);
+                        var t = new Web().WithBackoffAsync(
+                            async () => await run(item), maximumBackoffSeconds, maxRetries);
 
                         tasks.Add(t);
-
-                        await Task.Delay(delayBetweenBatchItems);
                     }
                     else
                     {
-                        await run(item);
+                        tasks.Add(run(item));
                     }
+
+                    await Task.Delay(delayBetweenBatchItems);
                 }
 
                 await Task.WhenAll(tasks);
