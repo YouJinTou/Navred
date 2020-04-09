@@ -9,14 +9,11 @@ namespace Navred.Core.Search
 
         public decimal? Price { get; set; }
 
-        public static Weight Max()
+        public static Weight Max => new Weight
         {
-            return new Weight
-            {
-                Duration = TimeSpan.MaxValue,
-                Price = decimal.MaxValue
-            };
-        }
+            Duration = TimeSpan.MaxValue,
+            Price = decimal.MaxValue
+        };
 
         public static Weight Zero()
         {
