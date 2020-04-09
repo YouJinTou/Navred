@@ -24,7 +24,7 @@ namespace Navred.Core.Itineraries
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to, window);
 
-            var legs = await this.repo.GetLegsAsync(from, to, window);
+            var legs = (await this.repo.GetLegsAsync(from, to, window)).ToList();
 
             if (legs.IsEmpty())
             {
@@ -32,7 +32,7 @@ namespace Navred.Core.Itineraries
             }
 
             var vertices = legs
-                .Select(i => new List<string> { i.From.GetId(), i.To.GetId() })
+                .Select(l => new List<string> { l.From.GetId(), l.To.GetId() })
                 .SelectMany(s => s)
                 .Distinct()
                 .Select(s => new Vertex { Name = s })
@@ -48,12 +48,6 @@ namespace Navred.Core.Itineraries
                 },
                 Leg = l
             }).ToList();
-
-            foreach (var vertex in vertices)
-            {
-                vertex.AddEdges(edges.Where(e => e.Source.Equals(vertices)).ToList());
-            }
-
             var graph = new Graph(
                 vertices.Single(v => v.Name == from.GetId()), 
                 vertices.Single(v => v.Name == to.GetId()),
