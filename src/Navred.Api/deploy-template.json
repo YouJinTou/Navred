@@ -103,6 +103,34 @@
         }
       }
     },
+    "QaLastEvaluatedKeysTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsQA",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "CrawlerId",
+            "AttributeType": "S"
+          }
+        ],
+        "BillingMode": "PROVISIONED",
+        "KeySchema": [
+          {
+            "AttributeName": "CrawlerId",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "1",
+          "WriteCapacityUnits": "1"
+        },
+        "TableName": "qa_LastEvaluatedKeys",
+        "TimeToLiveSpecification": {
+          "AttributeName": "ExpiresOn",
+          "Enabled": "true"
+        }
+      }
+    },
     "ProdItinerariesTable": {
       "Type": "AWS::DynamoDB::Table",
       "Condition": "IsProd",
@@ -135,6 +163,34 @@
         "TableName": "qa_Itineraries",
         "TimeToLiveSpecification": {
           "AttributeName": "UtcTimestamp",
+          "Enabled": "true"
+        }
+      }
+    },
+    "ProdLastEvaluatedKeysTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProd",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "CrawlerId",
+            "AttributeType": "S"
+          }
+        ],
+        "BillingMode": "PROVISIONED",
+        "KeySchema": [
+          {
+            "AttributeName": "CrawlerId",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": "1",
+          "WriteCapacityUnits": "1"
+        },
+        "TableName": "prod_LastEvaluatedKeys",
+        "TimeToLiveSpecification": {
+          "AttributeName": "ExpiresOn",
           "Enabled": "true"
         }
       }
