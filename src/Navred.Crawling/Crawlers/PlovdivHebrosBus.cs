@@ -31,6 +31,7 @@ namespace Navred.Crawling.Crawlers
         private readonly Place plovdiv;
         private readonly Place hisarya;
         private readonly string scrapeIdsUrl;
+        private readonly ICollection<string> bannedPlaces;
 
         public PlovdivHebrosBus(
             ILegRepository repo,
@@ -44,9 +45,11 @@ namespace Navred.Crawling.Crawlers
             this.estimator = estimator;
             this.cultureProvider = cultureProvider;
             this.logger = logger;
-            this.plovdiv = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Plovdiv);
+            this.plovdiv = this.placesManager.GetPlace(
+                BCP.CountryName, BCP.City.Plovdiv, BCP.Region.PDV);
             this.hisarya = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Hisarya);
             this.scrapeIdsUrl = string.Format(Url, "-1", "450");
+            this.bannedPlaces = new HashSet<string> { "Точиларци" };
         }
 
         public async Task UpdateLegsAsync()
@@ -60,12 +63,9 @@ namespace Navred.Crawling.Crawlers
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
 
-                await this.ProcessAsync(this.plovdiv, "http://hebrosbus.com/bg/pages/route-details/.6/100000796/2/0/702/56784/1/");
                 await this.ProcessAsync(this.hisarya, FromHisaryaUrl);
 
                 await this.UpdateLegsAsync(ids);
-
-                Console.WriteLine("Finished.");
             }
             catch (Exception ex)
             {
@@ -88,7 +88,7 @@ namespace Navred.Crawling.Crawlers
                         ?.Where(a => !string.IsNullOrWhiteSpace(a))
                         ?.ToList() ?? new List<string>();
 
-                    foreach (var l in detailLinks)
+                    await detailLinks.RunBatchesAsync(10, async (l) =>
                     {
                         try
                         {
@@ -97,11 +97,11 @@ namespace Navred.Crawling.Crawlers
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            Console.WriteLine(l);
 
                             this.logger.LogError(ex, $"{l} failed.");
                         }
-                    }
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -134,29 +134,22 @@ namespace Navred.Crawling.Crawlers
             var schedule = new Schedule();
             var legSpread = Defaults.DaysAhead;
 
-            foreach (var stopRow in stopRows.Skip(1))
+            for (int sr = 1; sr < stopRows.Count; sr++)
             {
-                var tds = stopRow.SelectNodes("td");
-                var arrivalString = tds[2].InnerText;
-                var departureString = tds[3].InnerText;
+                var row = this.ParseRow(stopRows[sr]);
 
-                if (Validator.AllNullOrWhiteSpace(arrivalString, departureString))
+                if (Validator.AllNullOrWhiteSpace(row.Arrival, row.Departure))
                 {
                     continue;
                 }
 
-                var place = placesByName[tds[0].InnerText];
-                var specificPlace = tds[1].InnerText;
-                var arrivalTime = string.IsNullOrWhiteSpace(arrivalString) ?
-                    (await this.estimator.EstimateArrivalTimeAsync(
-                        lastPlace, place, lastDeparture, Mode.Bus)).TimeOfDay :
-                    TimeSpan.Parse(arrivalString);
-                var departureTime = this.GetDeparture(arrivalTime, departureString);
+                var place = placesByName[row.PlaceName];
+                var arrivalTime = await this.GetArrivalAsync(row, lastPlace, place, lastDeparture);
                 var arrivalTimes =
                     daysOfWeek.GetValidUtcTimesAhead(arrivalTime, Defaults.DaysAhead).ToList();
                 var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
                     lastDeparture.TimeOfDay, Defaults.DaysAhead).ToList();
-                var price = this.cultureProvider.ParsePrice(tds[4].InnerText);
+                var price = this.cultureProvider.ParsePrice(row.Price);
                 legSpread = departureTimes.Count;
 
                 for (int t = 0; t < arrivalTimes.Count; t++)
@@ -171,14 +164,15 @@ namespace Navred.Crawling.Crawlers
                         info: link,
                         price: price,
                         fromSpecific: lastSpecific,
-                        toSpecific: specificPlace,
-                        arrivalEstimated: string.IsNullOrWhiteSpace(tds[2].InnerText));
+                        toSpecific: row.SpecificName,
+                        arrivalEstimated: string.IsNullOrWhiteSpace(row.Arrival));
 
                     schedule.AddLeg(leg);
                 }
 
                 lastPlace = place;
-                lastSpecific = specificPlace;
+                lastSpecific = row.SpecificName;
+                var departureTime = this.GetDeparture(arrivalTime, row.Departure, sr, stopRows);
                 lastDeparture = DateTime.UtcNow.Date + departureTime;
             }
 
@@ -189,8 +183,11 @@ namespace Navred.Crawling.Crawlers
 
         private IDictionary<string, Place> GetPlacesByName(IEnumerable<HtmlNode> stopRows)
         {
-            var stopNames = stopRows.Select(
-              r => r.SelectSingleNode("td").InnerText).Distinct().ToList();
+            var stopNames = stopRows
+                .Select(r => r.SelectSingleNode("td").InnerText)
+                .Where(p => !bannedPlaces.Contains(p))
+                .Distinct()
+                .ToList();
 
             if (stopNames.Count > 2)
             {
@@ -206,18 +203,83 @@ namespace Navred.Crawling.Crawlers
             return placesByName;
         }
 
-        private TimeSpan GetDeparture(TimeSpan arrival, string departureString)
+        private async Task<TimeSpan> GetArrivalAsync(
+            RowData row, Place lastPlace, Place place, DateTime lastDeparture)
         {
-            var departureTime = string.IsNullOrWhiteSpace(departureString) ?
-                    arrival : TimeSpan.Parse(departureString);
-            departureTime = (departureTime < arrival) ? arrival : departureTime;
+            var arrivalTime = string.IsNullOrWhiteSpace(row.Arrival) ?
+                (await this.estimator.EstimateArrivalTimeAsync(
+                    lastPlace, place, lastDeparture, Mode.Bus)).TimeOfDay :
+                TimeSpan.Parse(row.Arrival);
+            arrivalTime = (arrivalTime <= lastDeparture.TimeOfDay) ?
+                lastDeparture.TimeOfDay.AddMinutes(1) : arrivalTime;
 
-            if ((departureTime - arrival) > TimeSpan.FromHours(1))
+            return arrivalTime;
+        }
+
+        private TimeSpan GetDeparture(
+            TimeSpan arrival, string departureString, int current, IList<HtmlNode> stopRows)
+        {
+            var isLastStop = current.Equals(stopRows.Count - 1);
+
+            if (isLastStop || string.IsNullOrWhiteSpace(departureString))
             {
-                departureTime -= TimeSpan.FromHours(1);
+                return arrival.AddMinutes(1);
+            }
+
+            var departureTime = TimeSpan.Parse(departureString);
+            var nextStop = default(RowData);
+
+            for (int s = current + 1; s < stopRows.Count; s++)
+            {
+                nextStop = this.ParseRow(stopRows[s]);
+
+                if (!string.IsNullOrEmpty(nextStop.Arrival))
+                {
+                    break;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(nextStop.Arrival))
+            {
+                return departureTime;
+            }
+
+            var nextStopArrival = TimeSpan.Parse(nextStop.Arrival);
+            var hasError = (nextStopArrival <= departureTime);
+
+            if (hasError)
+            {
+                return arrival.AddMinutes(1);
             }
 
             return departureTime;
+        }
+
+        private RowData ParseRow(HtmlNode row)
+        {
+            var tds = row.SelectNodes("td");
+
+            return new RowData
+            {
+                Arrival = tds[2].InnerText,
+                Departure = tds[3].InnerText,
+                PlaceName = tds[0].InnerText,
+                SpecificName = tds[1].InnerText,
+                Price = tds[4].InnerText
+            };
+        }
+
+        private class RowData
+        {
+            public string Arrival { get; set; }
+
+            public string Departure { get; set; }
+
+            public string PlaceName { get; set; }
+
+            public string SpecificName { get; set; }
+
+            public string Price { get; set; }
         }
     }
 }
