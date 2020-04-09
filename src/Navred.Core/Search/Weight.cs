@@ -11,8 +11,8 @@ namespace Navred.Core.Search
 
         public static Weight Max => new Weight
         {
-            Duration = TimeSpan.MaxValue,
-            Price = decimal.MaxValue
+            Duration = TimeSpan.FromDays(999),
+            Price = 9999999m
         };
 
         public static Weight Zero()
@@ -39,8 +39,8 @@ namespace Navred.Core.Search
             var w = new Weight
             {
                 Duration = w1.Duration + w2.Duration,
-                Price = !(w1.Price.HasValue && w2.Price.HasValue) ? 
-                    (decimal?)null : (w1.Price ?? 0m) + (w2.Price ?? 0m)
+                Price = (w1.Price.HasValue || w2.Price.HasValue) ?
+                    (w1.Price ?? 0m) + (w2.Price ?? 0m) : (decimal?)null
             };
 
             return w;
@@ -51,8 +51,8 @@ namespace Navred.Core.Search
             var w = new Weight
             {
                 Duration = w1.Duration - w2.Duration,
-                Price = !(w1.Price.HasValue && w2.Price.HasValue) ?
-                    (decimal?)null : (w1.Price ?? 0m) - (w2.Price ?? 0m)
+                Price = (w1.Price.HasValue || w2.Price.HasValue) ?
+                    (w1.Price ?? 0m) - (w2.Price ?? 0m) : (decimal?)null
             };
 
             return w;
