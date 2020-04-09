@@ -62,7 +62,8 @@ namespace Navred.Core.Search
                 {
                     Source = v,
                     Destination = destination,
-                    Weight = e.Weight.Copy()
+                    Weight = e.Weight.Copy(),
+                    Leg = e.Leg.Copy()
                 });
             }
 
