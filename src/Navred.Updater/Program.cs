@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Navred.Core.Abstractions;
 using Navred.Core.Extensions;
+using Navred.Core.Itineraries.DB;
 using Navred.Crawling.Crawlers;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,43 @@ namespace Navred.Updates
         private const string All = "All";
 
         public static void Main()
+        {
+            var optionsByIndex = new Dictionary<int, string>
+            {
+                { 1, "1. Run crawlers" },
+                { 2, "2. Purge all routes" },
+            };
+
+            Console.WriteLine("Select an option to run: ");
+
+            foreach (var kvp in optionsByIndex)
+            {
+                Console.WriteLine(kvp.Value);
+            }
+
+            var parsed = int.TryParse(Console.ReadLine(), out int option);
+
+            if (!parsed)
+            {
+                throw new InvalidOperationException("Invalid option.");
+            }
+
+            switch (option)
+            {
+                case 1:
+                    RunCrawlers();
+
+                    break;
+                case 2:
+                    PurgeAllRoutes();
+
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private static void RunCrawlers()
         {
             Console.WriteLine("Choose crawlers to run: ");
 
@@ -61,6 +99,15 @@ namespace Navred.Updates
 
                 crawler.UpdateLegsAsync().Wait();
             }
+        }
+
+        private static void PurgeAllRoutes()
+        {
+            var provider = new ServiceCollection().AddCore().BuildServiceProvider();
+            var repo = provider.GetService<ILegRepository>();
+            var deleteTask = repo.DeleteAllLegsAsync();
+
+            deleteTask.Wait();
         }
 
         private static IDictionary<string, ICrawler> CreateCrawlersByKey()

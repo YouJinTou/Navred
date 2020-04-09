@@ -38,15 +38,15 @@ namespace Navred.Core.Itineraries.DB
             foreach (var dbl in dbLegs)
             {
                 legs.AddRange(dbl.Tos.Select(dl => new Leg(
-                    dl.FromId, 
-                    dl.ToId, 
-                    dl.UtcDeparture, 
+                    dl.FromId,
+                    dl.ToId,
+                    dl.UtcDeparture,
                     dl.UtcArrival,
-                    dl.Carrier, 
+                    dl.Carrier,
                     dl.Mode,
                     dl.Info,
-                    dl.Price, 
-                    dl.FromSpecific, 
+                    dl.Price,
+                    dl.FromSpecific,
                     dl.ToSpecific)));
             }
 
@@ -73,6 +73,44 @@ namespace Navred.Core.Itineraries.DB
 
                 await new Web().WithBackoffAsync(
                     async () => await this.db.UpdateItemAsync(request));
+            }
+        }
+
+        public async Task DeleteAllLegsAsync()
+        {
+            var request = new ScanRequest
+            {
+                TableName = this.settings.ItinerariesTable,
+                ExclusiveStartKey = null
+            };
+            var response = await this.db.ScanAsync(request);
+
+            while (!response.Items.IsEmpty())
+            {
+                foreach (var batch in response.Items.ToBatches(25))
+                {
+                    await this.db.BatchWriteItemAsync(new BatchWriteItemRequest
+                    {
+                        RequestItems = new Dictionary<string, List<WriteRequest>>
+                        {
+                            { this.settings.ItinerariesTable, batch.Select(i => new WriteRequest
+                            {
+                                DeleteRequest = new DeleteRequest
+                                {
+                                    Key = new Dictionary<string, AttributeValue>
+                                    {
+                                        { "From", i["From"] },
+                                        { "UtcTimestamp", i["UtcTimestamp"] }
+                                    }
+                                }
+                            }).ToList()
+                            }
+                        }
+                    });
+                }
+
+                request.ExclusiveStartKey = response.LastEvaluatedKey;
+                response = await this.db.ScanAsync(request);
             }
         }
 
