@@ -32,11 +32,18 @@ namespace Navred.Core.Search.Algorithms
 
             var reversed = g.Reverse();
             var backwardPass = this.DoPass(reversed);
+            var seenVertices = new HashSet<Vertex>();
             var diffs = new Dictionary<Edge, Weight>();
 
             foreach (var v in forwardPass.BestPath.Vertices)
             {
-                foreach (var nonBestEdge in v.Edges.Where(e => !forwardPass.BestPath.Contains(e)))
+                var nonBestEdges = v.Edges
+                    .Where(e => 
+                        !forwardPass.BestPath.Contains(e) && 
+                        !seenVertices.Contains(e.Destination))
+                    .ToList();
+
+                foreach (var nonBestEdge in nonBestEdges)
                 {
                     var diff =
                         backwardPass.Distances[nonBestEdge.Destination] -
@@ -45,6 +52,8 @@ namespace Navred.Core.Search.Algorithms
 
                     diffs.Add(nonBestEdge, diff);
                 }
+
+                seenVertices.Add(v);
             }
 
             if (diffs.IsEmpty())
@@ -63,6 +72,11 @@ namespace Navred.Core.Search.Algorithms
                 pathFromShortestDestination = pathFromShortestDestination
                     .Select(e => e.Reverse()).ToList();
 
+                if (pathFromShortestDestination.IsEmpty() && pathFromSource.IsEmpty())
+                {
+                    return graphResult.Merge().Filter().Sort();
+                }
+
                 path.AddMany(pathFromSource);
 
                 path.Add(nextShortestEdge.Key);
@@ -73,6 +87,8 @@ namespace Navred.Core.Search.Algorithms
 
                 diffs.Remove(nextShortestEdge.Key);
             }
+
+            var finalResult = graphResult.Merge().Filter().Sort();
 
             return graphResult;
         }
@@ -132,13 +148,19 @@ namespace Navred.Core.Search.Algorithms
             while (!current.Equals(from))
             {
                 var prev = result.Previous[current];
-                var edgeToFind = new Edge
+
+                if (prev == null)
                 {
-                    Source = prev,
-                    Destination = current,
-                    Weight = result.Distances[current] - result.Distances[prev]
-                };
-                var edge = g.Edges.Single(e => e.Equals(edgeToFind));
+                    return new List<Edge>();
+                }
+
+                var weight = result.Distances[current] - result.Distances[prev];
+                var edge = g.FindEdge(prev, current, weight);
+
+                if (edge == null)
+                {
+                    return new List<Edge>();
+                }
 
                 edges.Add(edge);
 
