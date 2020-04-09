@@ -2,6 +2,6 @@
 {
     public static class Defaults
     {
-        public const int DaysAhead = 7;
+        public const int DaysAhead = 5;
     }
 }
