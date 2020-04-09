@@ -63,8 +63,6 @@ namespace Navred.Crawling.Crawlers
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
 
-                await this.ProcessAsync(this.plovdiv, "http://hebrosbus.com/bg/pages/route-details/.6/412/2%2c20000004768372/0/6505/56784/1/");
-
                 await this.ProcessAsync(this.hisarya, FromHisaryaUrl);
 
                 await this.UpdateLegsAsync(ids);
@@ -94,8 +92,7 @@ namespace Navred.Crawling.Crawlers
                     {
                         try
                         {
-                            await new Web().WithBackoffAsync(
-                                async () => await this.ProcessAsync(this.plovdiv, l));
+                            await this.ProcessAsync(this.plovdiv, l);
                         }
                         catch (Exception ex)
                         {
