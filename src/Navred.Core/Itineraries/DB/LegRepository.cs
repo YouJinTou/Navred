@@ -93,17 +93,19 @@ namespace Navred.Core.Itineraries.DB
                     {
                         RequestItems = new Dictionary<string, List<WriteRequest>>
                         {
-                            { this.settings.ItinerariesTable, batch.Select(i => new WriteRequest
                             {
-                                DeleteRequest = new DeleteRequest
+                                this.settings.ItinerariesTable,
+                                batch.Select(i => new WriteRequest
                                 {
-                                    Key = new Dictionary<string, AttributeValue>
+                                    DeleteRequest = new DeleteRequest
                                     {
-                                        { "From", i["From"] },
-                                        { "UtcTimestamp", i["UtcTimestamp"] }
+                                        Key = new Dictionary<string, AttributeValue>
+                                        {
+                                            { "From", i["From"] },
+                                            { "UtcTimestamp", i["UtcTimestamp"] }
+                                        }
                                     }
-                                }
-                            }).ToList()
+                                }).ToList()
                             }
                         }
                     });
