@@ -18,7 +18,7 @@ namespace Navred.Core.Search.Algorithms
 
         public GraphSearchPath FindShortestPath(Graph g)
         {
-            var result = this.FindPath(g);
+            var result = this.DoPass(g);
 
             return result.BestPath;
         }
@@ -26,12 +26,12 @@ namespace Navred.Core.Search.Algorithms
         public GraphSearchResult FindKShortestPaths(Graph g, int k)
         {
             var graphResult = new GraphSearchResult();
-            var forwardPass = this.FindPath(g);
+            var forwardPass = this.DoPass(g);
 
             graphResult.Add(forwardPass.BestPath);
 
             var reversed = g.Reverse();
-            var backwardPass = this.FindPath(reversed);
+            var backwardPass = this.DoPass(reversed);
             var diffs = new Dictionary<Edge, Weight>();
 
             foreach (var v in forwardPass.BestPath.Vertices)
@@ -77,12 +77,12 @@ namespace Navred.Core.Search.Algorithms
             return graphResult;
         }
 
-        private Result FindPath(Graph g)
+        private Result DoPass(Graph g)
         {
             Validator.ThrowIfNull(g, "Graph is empty.");
 
             var unvisited = new HashSet<Vertex>(g.Vertices);
-            var distances = g.Vertices.ToDictionary(kvp => kvp, kvp => Weight.Max());
+            var distances = g.Vertices.ToDictionary(kvp => kvp, kvp => Weight.Max);
             var previous = g.Vertices.ToDictionary(kvp => kvp, kvp => default(Vertex));
             var paths = g.Vertices.ToDictionary(kvp => kvp, kvp => new List<Edge>());
             distances[g.Source] = Weight.Zero();
@@ -91,6 +91,13 @@ namespace Navred.Core.Search.Algorithms
             {
                 var current = distances.Where(
                     d => unvisited.Contains(d.Key)).GetMin(d => d.Value).Key;
+
+                if (distances[current].Equals(Weight.Max))
+                {
+                    unvisited.Remove(current);
+
+                    continue;
+                }
 
                 foreach (var e in current.Edges)
                 {
