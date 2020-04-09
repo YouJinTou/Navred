@@ -25,7 +25,7 @@ namespace Navred.Core.Itineraries
             string toSpecific = null,
             bool arrivalEstimated = false)
         {
-            if (utcDeparture > utcArrival)
+            if (utcDeparture >= utcArrival)
             {
                 throw new ArgumentException("Departure after arrival.");
             }
