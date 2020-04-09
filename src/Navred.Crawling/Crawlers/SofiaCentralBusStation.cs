@@ -74,7 +74,7 @@ namespace Navred.Crawling.Crawlers
                 .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
                 .ToList();
             var httpClient = this.httpClientFactory.CreateClient();
-            var dates = DateTime.UtcNow.GetDateTimesAhead(7)
+            var dates = DateTime.UtcNow.GetDateTimesAhead(Defaults.DaysAhead)
                 .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
 
             foreach (var date in dates)
@@ -103,7 +103,7 @@ namespace Navred.Crawling.Crawlers
 
                         this.logger.LogError(ex, $"{d} failed.");
                     }
-                }, 200, 5);
+                }, 200, 5, maxRetries: 3);
 
                 await this.repo.UpdateLegsAsync(legs);
             }
@@ -135,7 +135,7 @@ namespace Navred.Crawling.Crawlers
             foreach (var table in tables)
             {
                 var dataRow = table.FirstChild;
-                
+
                 if (!this.IsValidDate(date, dataRow))
                 {
                     continue;
@@ -175,32 +175,27 @@ namespace Navred.Crawling.Crawlers
 
         private bool IsValidDate(DateTime date, HtmlNode dataRow)
         {
-            try
-            {
-                var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
-                    .Select(n => n.InnerText).ToList();
+            var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
+                ?.Select(n => n.InnerText)?.ToList() ?? new List<string>();
 
-                return date.DayOfWeek switch
-                {
-                    DayOfWeek.Sunday => resultDays.Contains("нд"),
-                    DayOfWeek.Monday => resultDays.Contains("пн"),
-                    DayOfWeek.Tuesday => resultDays.Contains("вт"),
-                    DayOfWeek.Wednesday => resultDays.Contains("ср"),
-                    DayOfWeek.Thursday => resultDays.Contains("чт"),
-                    DayOfWeek.Friday => resultDays.Contains("пк"),
-                    DayOfWeek.Saturday => resultDays.Contains("сб"),
-                    _ => true,
-                };
-            }
-            catch (Exception ex)
+            if (resultDays.IsNullOrEmpty())
             {
-                Console.WriteLine(ex.Message);
-
-                this.logger.LogWarning(ex, $"Could not validate date: {dataRow.InnerText}");
+                this.logger.LogWarning($"Could not validate date: {dataRow.InnerText}");
 
                 return true;
             }
-            
+
+            return date.DayOfWeek switch
+            {
+                DayOfWeek.Sunday => resultDays.Contains("нд"),
+                DayOfWeek.Monday => resultDays.Contains("пн"),
+                DayOfWeek.Tuesday => resultDays.Contains("вт"),
+                DayOfWeek.Wednesday => resultDays.Contains("ср"),
+                DayOfWeek.Thursday => resultDays.Contains("чт"),
+                DayOfWeek.Friday => resultDays.Contains("пк"),
+                DayOfWeek.Saturday => resultDays.Contains("сб"),
+                _ => true,
+            };
         }
 
         private string GetRegionCode(string place)
