@@ -145,14 +145,6 @@
   },
   {
     "Country": "Bulgaria",
-    "Name": "Албена",
-    "Region": "Добрич",
-    "Municipality": "Балчик",
-    "Longitude": 28.0818,
-    "Latitude": 43.3664
-  },
-  {
-    "Country": "Bulgaria",
     "Name": "Алваново",
     "Region": "Търговище",
     "Municipality": "Търговище",
@@ -15846,14 +15838,6 @@
     "Municipality": "Ябланица",
     "Longitude": 24.150493621826172,
     "Latitude": 43.09187698364258
-  },
-  {
-    "Country": "Bulgaria",
-    "Name": "Златни Пясъци",
-    "Region": "Варна",
-    "Municipality": "Варна",
-    "Longitude": 28.0406,
-    "Latitude": 43.2856
   },
   {
     "Country": "Bulgaria",
@@ -34641,14 +34625,6 @@
   },
   {
     "Country": "Bulgaria",
-    "Name": "Слънчев Бряг",
-    "Region": "Бургас",
-    "Municipality": "Несебър",
-    "Longitude": 27.7139,
-    "Latitude": 42.6883
-  },
-  {
-    "Country": "Bulgaria",
     "Name": "Слънчево",
     "Region": "Варна",
     "Municipality": "Аксаково",
@@ -42086,5 +42062,45 @@
     "Municipality": "Дупница",
     "Longitude": 23.14190101623535,
     "Latitude": 42.288265228271484
+  },
+  {
+    "Country": "ЗЗФЛАГ",
+    "Name": "ЗЗФЛАГ",
+    "Region": "ЗЗФЛАГ",
+    "Municipality": "ЗЗФЛАГ",
+    "Longitude": 0,
+    "Latitude": 0
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Албена",
+    "Region": "Добрич",
+    "Municipality": "Балчик",
+    "Longitude": 28.0818,
+    "Latitude": 43.3664
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Златни Пясъци",
+    "Region": "Варна",
+    "Municipality": "Варна",
+    "Longitude": 28.0406,
+    "Latitude": 43.2856
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Слънчев Бряг",
+    "Region": "Бургас",
+    "Municipality": "Несебър",
+    "Longitude": 27.7139,
+    "Latitude": 42.6883
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Върховръх",
+    "Region": "Пловдив",
+    "Municipality": "Родопи",
+    "Longitude": 24.5439,
+    "Latitude": 41.9675
   }
 ]
