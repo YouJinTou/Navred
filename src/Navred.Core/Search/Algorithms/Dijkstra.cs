@@ -61,16 +61,14 @@ namespace Navred.Core.Search.Algorithms
                 return graphResult.Finalize();
             }
 
-            for (int i = 0; i < k - 1; i++)
+            while (k >= 0 && !diffs.IsEmpty())
             {
                 var nextShortestEdge = diffs.GetMin(kvp => kvp.Value);
                 var path = new GraphSearchPath();
                 var pathFromSource = this.RetrievePath(
-                    g.Source, nextShortestEdge.Key.Source, forwardPass, g);
+                    g.Source, nextShortestEdge.Key.Source, forwardPass, g, nextShortestEdge.Key);
                 var pathFromShortestDestination = this.RetrievePath(
-                    reversed.Source, nextShortestEdge.Key.Destination, backwardPass, reversed);
-                pathFromShortestDestination = pathFromShortestDestination
-                    .Select(e => e.Reverse()).ToList();
+                    nextShortestEdge.Key.Destination, g.Destination, forwardPass, g, nextShortestEdge.Key);
 
                 if (pathFromShortestDestination.IsEmpty() && pathFromSource.IsEmpty())
                 {
@@ -86,6 +84,8 @@ namespace Navred.Core.Search.Algorithms
                 graphResult.Add(path);
 
                 diffs.Remove(nextShortestEdge.Key);
+
+                k--;
             }
 
             var finalResult = graphResult.Finalize();
@@ -140,7 +140,8 @@ namespace Navred.Core.Search.Algorithms
             return result;
         }
 
-        private IEnumerable<Edge> RetrievePath(Vertex from, Vertex to, Result result, Graph g)
+        private IEnumerable<Edge> RetrievePath(
+            Vertex from, Vertex to, Result result, Graph g, Edge e)
         {
             var edges = new Stack<Edge>();
             var current = to;
@@ -155,7 +156,7 @@ namespace Navred.Core.Search.Algorithms
                 }
 
                 var weight = result.Distances[current] - result.Distances[prev];
-                var edge = g.FindEdge(prev, current, weight);
+                var edge = g.FindEdge(prev, current, weight, e);
 
                 if (edge == null)
                 {
