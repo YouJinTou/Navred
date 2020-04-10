@@ -142,7 +142,7 @@ namespace Navred.Core.Search.Algorithms
 
         private IEnumerable<Edge> RetrievePath(Vertex from, Vertex to, Result result, Graph g)
         {
-            var edges = new List<Edge>();
+            var edges = new Stack<Edge>();
             var current = to;
 
             while (!current.Equals(from))
@@ -162,7 +162,7 @@ namespace Navred.Core.Search.Algorithms
                     return new List<Edge>();
                 }
 
-                edges.Add(edge);
+                edges.Push(edge);
 
                 current = prev;
             }
