@@ -4,6 +4,7 @@ using Navred.Api.Models;
 using Navred.Core.Places;
 using Navred.Core.Tools;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -27,7 +28,10 @@ namespace Navred.Api.Controllers
         {
             try
             {
-                Validator.ThrowIfNullOrEmpty(country);
+                if (Validator.AnyNullOrWhiteSpace(country, prefix))
+                {
+                    return Ok(new List<PlaceViewModel>());
+                }
 
                 var places = this.placesManager.LoadPlacesFor(country);
                 var filteredPlaces = places.Where(
