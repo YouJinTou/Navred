@@ -1,4 +1,5 @@
-﻿using Navred.Core.Tools;
+﻿using Navred.Core.Places;
+using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -72,7 +73,16 @@ namespace Navred.Core.Itineraries
 
         private void SetPrices(IList<Leg> legs)
         {
-            var basePricesByDestination = this.legs.ToDictionary(kvp => kvp.To, kvp => kvp.Price);
+            var basePricesByDestination = new Dictionary<Place, decimal?>();
+
+            foreach (var leg in this.legs)
+            {
+                if (!basePricesByDestination.ContainsKey(leg.To))
+                {
+                    basePricesByDestination.Add(leg.To, leg.Price);
+                }
+            }
+
             var source = this.legs.First().From;
 
             foreach (var leg in legs)
