@@ -47,7 +47,9 @@ namespace Navred.Core.Itineraries.DB
                     dl.Info,
                     dl.Price,
                     dl.FromSpecific,
-                    dl.ToSpecific)));
+                    dl.ToSpecific,
+                    dl.ArrivalEstimated,
+                    dl.PriceEstimated)));
             }
 
             return legs;
