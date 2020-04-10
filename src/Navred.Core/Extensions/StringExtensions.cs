@@ -71,12 +71,12 @@ namespace Navred.Core.Extensions
 
                     var sourceShorter = (st.Length < tt.Length);
                     var matchPercentage = (double)matches / (sourceShorter ? tt : st).Length;
-                    matchMatrix[i,j] = matchPercentage;
+                    matchMatrix[i, j] = matchPercentage;
                 }
             }
 
             var percentage = matchMatrix.GetMatrixSum() / targetTokens.Length;
-            
+
             return percentage > threshold;
         }
 
@@ -90,6 +90,16 @@ namespace Navred.Core.Extensions
             var price = decimal.Parse(Regex.Match(s, @"(\d+[\.,]?\d*)").Groups[1].Value);
 
             return price;
+        }
+
+        public static string FromUnicode(this string s)
+        {
+            var result = Regex.Replace(
+                s, 
+                @"(?i)\\[uU]([0-9a-f]{4})", 
+                m => ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
+
+            return result;
         }
     }
 }
