@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Navred.Core.Abstractions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
+using Navred.Core.Places;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,11 +14,14 @@ namespace Navred.Crawling.Crawlers
     {
         private const string Url = "URL";
 
+        private readonly IPlacesManager placesManager;
         private readonly ILegRepository repo;
         private readonly ILogger<Template> logger;
 
-        public Template(ILegRepository repo, ILogger<Template> logger)
+        public Template(
+            IPlacesManager placesManager, ILegRepository repo, ILogger<Template> logger)
         {
+            this.placesManager = placesManager;
             this.repo = repo;
             this.logger = logger;
         }
