@@ -149,7 +149,7 @@ namespace Navred.Crawling.Crawlers
                     daysOfWeek.GetValidUtcTimesAhead(arrivalTime, Defaults.DaysAhead).ToList();
                 var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
                     lastDeparture.TimeOfDay, Defaults.DaysAhead).ToList();
-                var price = this.cultureProvider.ParsePrice(row.Price);
+                decimal? price = this.GetPrice(row, sr, stopRows);
                 legSpread = departureTimes.Count;
 
                 for (int t = 0; t < arrivalTimes.Count; t++)
@@ -253,6 +253,28 @@ namespace Navred.Crawling.Crawlers
             }
 
             return departureTime;
+        }
+
+        private decimal? GetPrice(RowData row, int sr, List<HtmlNode> stopRows)
+        {
+            if (sr.Equals(stopRows.Count - 1))
+            {
+                return this.cultureProvider.ParsePrice(row.Price);
+            }
+
+            var rowToExtractPriceFrom = row;
+
+            for (int i = sr + 1; i < stopRows.Count; i++)
+            {
+                var nextRow = this.ParseRow(stopRows[sr + 1]);
+
+                if (nextRow.PlaceName.Equals(row.PlaceName))
+                {
+                    rowToExtractPriceFrom = nextRow;
+                }
+            }
+
+            return this.cultureProvider.ParsePrice(rowToExtractPriceFrom.Price);
         }
 
         private RowData ParseRow(HtmlNode row)
