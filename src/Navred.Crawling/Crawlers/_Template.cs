@@ -11,6 +11,8 @@ namespace Navred.Crawling.Crawlers
 {
     public class Template : ICrawler
     {
+        private const string Url = "URL";
+
         private readonly ILegRepository repo;
         private readonly ILogger<Template> logger;
 
@@ -24,7 +26,7 @@ namespace Navred.Crawling.Crawlers
         {
             try
             {
-                var legs = await this.GetLegsAsync("URL");
+                var legs = await this.GetLegsAsync(Url);
 
                 await repo.UpdateLegsAsync(legs);
             }
