@@ -1,10 +1,11 @@
-﻿using Navred.Core.Extensions;
+﻿using Navred.Core.Abstractions;
+using Navred.Core.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Navred.Core.Search
 {
-    public class GraphSearchResult
+    public class GraphSearchResult : ICopyable<GraphSearchResult>
     {
         public ICollection<GraphSearchPath> Paths { get; private set; }
 
@@ -18,35 +19,56 @@ namespace Navred.Core.Search
             this.Paths.Add(path.Copy());
         }
 
+        public GraphSearchResult Finalize()
+        {
+            return this.Merge().Filter().Sort();
+        }
+
         public GraphSearchResult Sort()
         {
+            var copy = this.Copy();
+
             if (this.Paths.IsNullOrEmpty())
             {
-                return this;
+                return copy;
             }
 
-            this.Paths = this.Paths
+            copy.Paths = copy.Paths
                 .OrderBy(p => p.Weight)
                 .ThenBy(p => p.Path.Count)
                 .ToList();
 
-            return this;
+            return copy;
         }
 
         public GraphSearchResult Filter()
         {
-            this.Paths = new HashSet<GraphSearchPath>(
-                this.Paths, new GraphSearchPathEqualityComparer());
+            var copy = this.Copy();
+            copy.Paths = new HashSet<GraphSearchPath>(
+                copy.Paths, new GraphSearchPathEqualityComparer());
 
-            return this;
+            return copy;
         }
 
         public GraphSearchResult Merge()
         {
-            var merged = this.Paths.Select(p => p.Merge()).ToList();
-            this.Paths = merged;
+            var copy = this.Copy();
+            var merged = copy.Paths.Select(p => p.Merge()).ToList();
+            copy.Paths = merged;
 
-            return this;
+            return copy;
+        }
+
+        public GraphSearchResult Copy()
+        {
+            var copy = new GraphSearchResult();
+
+            foreach (var path in this.Paths)
+            {
+                copy.Add(path.Copy());
+            }
+
+            return copy;
         }
     }
 }

@@ -53,7 +53,7 @@ namespace Navred.Core.Itineraries
                 vertices.Single(v => v.Name == to.GetId()),
                 vertices, 
                 edges);
-            var result = new Dijkstra().FindKShortestPaths(graph, 10);
+            var result = new Dijkstra().FindKShortestPaths(graph, 4);
 
             return result.Paths;
         }

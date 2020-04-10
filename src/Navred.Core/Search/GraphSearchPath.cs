@@ -73,12 +73,13 @@ namespace Navred.Core.Search
                 Duration = this.Weight.Duration,
                 Price = this.Weight.Price
             };
-
-            return new GraphSearchPath
+            var path = new GraphSearchPath
             {
                 Weight = cost,
-                Path = new List<Edge>(this.Path)
+                Path = this.Path.Select(e => e.Copy()).ToList()
             };
+
+            return path;
         }
 
         public GraphSearchPath Merge()

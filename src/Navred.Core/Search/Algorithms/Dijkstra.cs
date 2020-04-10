@@ -58,7 +58,7 @@ namespace Navred.Core.Search.Algorithms
 
             if (diffs.IsEmpty())
             {
-                return graphResult;
+                return graphResult.Finalize();
             }
 
             for (int i = 0; i < k - 1; i++)
@@ -74,7 +74,7 @@ namespace Navred.Core.Search.Algorithms
 
                 if (pathFromShortestDestination.IsEmpty() && pathFromSource.IsEmpty())
                 {
-                    return graphResult.Merge().Filter().Sort();
+                    return graphResult.Finalize();
                 }
 
                 path.AddMany(pathFromSource);
@@ -88,9 +88,9 @@ namespace Navred.Core.Search.Algorithms
                 diffs.Remove(nextShortestEdge.Key);
             }
 
-            var finalResult = graphResult.Merge().Filter().Sort();
+            var finalResult = graphResult.Finalize();
 
-            return graphResult;
+            return finalResult;
         }
 
         private Result DoPass(Graph g)
