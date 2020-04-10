@@ -25,7 +25,8 @@ namespace Navred.Core.Places
             string regionCode = null, 
             string municipalityCode = null,
             IEnumerable<string> neighbors = null,
-            bool throwOnFail = true);
+            bool throwOnFail = true,
+            bool doFuzzyMatch = true);
 
         IDictionary<string, Place> DeducePlacesFromStops(string country, IList<string> stops);
     }

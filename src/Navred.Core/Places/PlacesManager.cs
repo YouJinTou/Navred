@@ -133,7 +133,8 @@ namespace Navred.Core.Places
         {
             var place = (Place)id;
 
-            return this.GetPlace(place.Country, place.Name, place.Region, place.Municipality);
+            return this.GetPlace(
+                place.Country, place.Name, place.Region, place.Municipality, doFuzzyMatch: false);
         }
 
         public IEnumerable<Place> GetPlaces(string country, string name)
@@ -143,7 +144,7 @@ namespace Navred.Core.Places
             var places = this.LoadPlacesFor(country);
             var normalizedName = this.FormatPlace(name);
             var results = places
-                .Where(p => normalizedName.Contains(this.FormatPlace(p.Name)))
+                .Where(p => normalizedName.Equals(this.FormatPlace(p.Name)))
                 .ToList();
 
             return results;
@@ -155,7 +156,8 @@ namespace Navred.Core.Places
             string regionCode = null, 
             string municipalityCode = null,
             IEnumerable<string> neighbors = null,
-            bool throwOnFail = true)
+            bool throwOnFail = true,
+            bool doFuzzyMatch = true)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
 
@@ -176,7 +178,9 @@ namespace Navred.Core.Places
                 result = this.GetPlace(results, regionCode, municipalityCode);
             }
 
-            result = (result == null) ? this.DoFuzzyMatch(places, normalizedName) : result;
+            result = (result == null) ? 
+                doFuzzyMatch ? this.DoFuzzyMatch(places, normalizedName) : null :
+                result;
 
             if (result != null)
             {
@@ -195,15 +199,15 @@ namespace Navred.Core.Places
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, stops);
 
-            if (stops.Count <= 2)
-            {
-                throw new InvalidOperationException("Cannot resolve from two stops only.");
-            }
-
             var placesByStop = stops.ToDictionary(
                 kvp => kvp, kvp => this.GetPlace(country, kvp, throwOnFail: false));
 
             Validator.ThrowIfAllNull(placesByStop.Values, "Unresolvable itinerary.");
+
+            if (stops.Count <= 2 && placesByStop.Any(p => p.Value == null))
+            {
+                throw new InvalidOperationException("Cannot resolve from two stops only.");
+            }
 
             while (Validator.AnyNull(placesByStop.Values))
             {
@@ -311,7 +315,7 @@ namespace Navred.Core.Places
             {
                 try
                 {
-                    var neighborPlace = this.GetPlace(country, neighbor);
+                    var neighborPlace = this.GetPlace(country, neighbor, doFuzzyMatch: false);
 
                     regions.Add(neighborPlace.Region);
                 }
