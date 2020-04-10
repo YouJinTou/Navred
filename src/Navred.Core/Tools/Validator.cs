@@ -65,9 +65,9 @@ namespace Navred.Core.Tools
             }
         }
 
-        public static bool AnyNull(params object[] objects)
+        public static bool AnyNull(System.Collections.IEnumerable enumerable)
         {
-            foreach (var item in objects)
+            foreach (var item in enumerable)
             {
                 if (item == null)
                 {
