@@ -38,7 +38,7 @@ namespace Navred.Core.Itineraries
         public IEnumerable<Leg> GetWithChildren(int legTimeSpread)
         {
             var current = this.legs.ToArray();
-            var all = new HashSet<Leg>(current, new LegEqualityComparer());
+            var all = new HashSet<Leg>(new LegEqualityComparer());
 
             for (int t = 0; t < legTimeSpread; t++)
             {
@@ -57,14 +57,39 @@ namespace Navred.Core.Itineraries
                             price: current[j].Price,
                             fromSpecific: current[i].FromSpecific,
                             toSpecific: current[j].ToSpecific,
-                            arrivalEstimated: current[j].ArrivalEstimated);
+                            arrivalEstimated: current[j].ArrivalEstimated,
+                            priceEstimated: current[j].PriceEstimated);
 
                         all.Add(leg);
                     }
                 }
             }
 
+            this.SetPrices(all.ToList());
+
             return all;
+        }
+
+        private void SetPrices(IList<Leg> legs)
+        {
+            var basePricesByDestination = this.legs.ToDictionary(kvp => kvp.To, kvp => kvp.Price);
+            var source = this.legs.First().From;
+
+            foreach (var leg in legs)
+            {
+                if (leg.From.Equals(source))
+                {
+                    continue;
+                }
+
+                var price = leg.Price - basePricesByDestination[leg.From];
+
+                if (price > 0m)
+                {
+                    leg.Price = price;
+                    leg.PriceEstimated = true;
+                }
+            }
         }
     }
 }

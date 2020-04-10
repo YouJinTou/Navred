@@ -23,7 +23,8 @@ namespace Navred.Core.Itineraries
             decimal? price = null,
             string fromSpecific = null,
             string toSpecific = null,
-            bool arrivalEstimated = false)
+            bool arrivalEstimated = false,
+            bool priceEstimated = false)
         {
             if (utcDeparture >= utcArrival)
             {
@@ -43,6 +44,7 @@ namespace Navred.Core.Itineraries
             this.FromSpecific = fromSpecific?.Trim();
             this.ToSpecific = toSpecific?.Trim();
             this.ArrivalEstimated = arrivalEstimated;
+            this.PriceEstimated = priceEstimated;
         }
 
         public Place From { get; private set; }
@@ -69,13 +71,15 @@ namespace Navred.Core.Itineraries
 
         public string Info { get; private set; }
 
-        public decimal? Price { get; private set; }
+        public decimal? Price { get; set; }
 
         public string FromSpecific { get; private set; }
 
         public string ToSpecific { get; private set; }
 
         public bool ArrivalEstimated { get; private set; }
+
+        public bool PriceEstimated { get; set; }
 
         public string GetUniqueId()
         {
@@ -105,7 +109,7 @@ namespace Navred.Core.Itineraries
                 return false;
             }
 
-            var info = this.Info?.Equals(other.Info) ?? true ? 
+            var info = this.Info?.Equals(other.Info) ?? true ?
                 this.Info : $"{this.Info} | {other.Info}";
             merged = new Leg(
                 this.From,
@@ -118,7 +122,8 @@ namespace Navred.Core.Itineraries
                 this.Price + other.Price,
                 this.FromSpecific,
                 other.ToSpecific,
-                this.ArrivalEstimated || other.ArrivalEstimated);
+                this.ArrivalEstimated || other.ArrivalEstimated,
+                this.PriceEstimated || other.PriceEstimated);
 
             return true;
         }
@@ -143,7 +148,8 @@ namespace Navred.Core.Itineraries
                 this.Price, 
                 this.FromSpecific, 
                 this.ToSpecific, 
-                this.ArrivalEstimated);
+                this.ArrivalEstimated,
+                this.PriceEstimated);
         }
 
         public Leg CopyReverse()
