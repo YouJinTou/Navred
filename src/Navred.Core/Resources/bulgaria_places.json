@@ -42102,5 +42102,21 @@
     "Municipality": "Родопи",
     "Longitude": 24.5439,
     "Latitude": 41.9675
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Божурлука",
+    "Region": "Плевен",
+    "Municipality": "Левски",
+    "Longitude": 25.182424545288086,
+    "Latitude": 43.53570556640625
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Беклеме",
+    "Region": "Плевен",
+    "Municipality": "Левски",
+    "Longitude": 24.6058,
+    "Latitude": 42.7806
   }
 ]
