@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -98,6 +99,40 @@ namespace Navred.Core.Extensions
                 s, 
                 @"(?i)\\[uU]([0-9a-f]{4})", 
                 m => ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
+
+            return result;
+        }
+
+        public static string ReplaceTokens(this string s, IEnumerable<string> replaces)
+        {
+            var tokens = s.Split(" ");
+            var result = new List<string>();
+
+            foreach (var t in tokens)
+            {
+                var current = t;
+
+                foreach (var r in replaces)
+                {
+                    current = current.Replace(r, string.Empty);
+                }
+
+                result.Add(current);
+            }
+
+            var resultString = string.Join(" ", result.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+            return resultString;
+        }
+
+        public static string ChainReplace(this string s, IEnumerable<string> replaces)
+        {
+            var result = s;
+
+            foreach (var r in replaces)
+            {
+                result = result.Replace(r, string.Empty);
+            }
 
             return result;
         }
