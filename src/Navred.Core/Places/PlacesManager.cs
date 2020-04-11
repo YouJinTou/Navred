@@ -134,7 +134,7 @@ namespace Navred.Core.Places
             var place = (Place)id;
 
             return this.GetPlace(
-                place.Country, place.Name, place.Region, place.Municipality, doFuzzyMatch: false);
+                place.Country, place.Name, place.Region, place.Municipality, fallbackToFuzzyMatch: false);
         }
 
         public IEnumerable<Place> GetPlaces(string country, string name)
@@ -157,7 +157,8 @@ namespace Navred.Core.Places
             string municipalityCode = null,
             IEnumerable<string> neighbors = null,
             bool throwOnFail = true,
-            bool doFuzzyMatch = true)
+            bool useExactMatching = true,
+            bool fallbackToFuzzyMatch = true)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
 
@@ -179,7 +180,7 @@ namespace Navred.Core.Places
             }
 
             result = (result == null) ? 
-                doFuzzyMatch ? this.DoFuzzyMatch(places, normalizedName) : null :
+                fallbackToFuzzyMatch ? this.DoFuzzyMatch(places, normalizedName) : null :
                 result;
 
             if (result != null)
@@ -195,7 +196,8 @@ namespace Navred.Core.Places
             return null;
         }
 
-        public IDictionary<string, Place> DeducePlacesFromStops(string country, IList<string> stops)
+        public IDictionary<string, Place> DeducePlacesFromStops(
+            string country, IList<string> stops, bool throwOnUnresolvable = true)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, stops);
 
@@ -209,7 +211,10 @@ namespace Navred.Core.Places
                 throw new InvalidOperationException("Cannot resolve from two stops only.");
             }
 
-            while (Validator.AnyNull(placesByStop.Values))
+            var maxIterations = 5;
+            var iteration = 0;
+
+            while (iteration < maxIterations)
             {
                 for (int s = 1; s < stops.Count - 1; s++)
                 {
@@ -227,17 +232,32 @@ namespace Navred.Core.Places
                     if (previous == null)
                     {
                         var places = this.GetPlaces(country, prevValue);
-                        var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
-                        placesByStop[prevValue] = closestPlace;
+
+                        if (places.Any())
+                        {
+                            var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
+                            placesByStop[prevValue] = closestPlace;
+                        }
                     }
 
                     if (next == null)
                     {
                         var places = this.GetPlaces(country, nextValue);
-                        var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
-                        placesByStop[nextValue] = closestPlace;
+                        
+                        if (places.Any())
+                        {
+                            var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
+                            placesByStop[nextValue] = closestPlace;
+                        }
                     }
                 }
+
+                iteration++;
+            }
+
+            if (throwOnUnresolvable && Validator.AnyNull(placesByStop.Values))
+            {
+                throw new Exception("Unresolvable route.");
             }
 
             return placesByStop;
@@ -315,7 +335,7 @@ namespace Navred.Core.Places
             {
                 try
                 {
-                    var neighborPlace = this.GetPlace(country, neighbor, doFuzzyMatch: false);
+                    var neighborPlace = this.GetPlace(country, neighbor, fallbackToFuzzyMatch: false);
 
                     regions.Add(neighborPlace.Region);
                 }
