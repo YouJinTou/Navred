@@ -83,7 +83,7 @@ namespace Navred.Core.Itineraries
 
         public string GetUniqueId()
         {
-            var id = $"{this.To}_{this.Carrier}";
+            var id = $"{this.To}_{this.Carrier}_{this.UtcArrival}_{this.UtcDeparture}";
 
             return id;
         }
