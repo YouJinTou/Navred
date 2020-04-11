@@ -37,7 +37,7 @@ namespace Navred.Core.Itineraries
             this.ToId = this.To.GetId();
             this.UtcDeparture = utcDeparture;
             this.UtcArrival = utcArrival;
-            this.Carrier = Validator.ReturnOrThrowIfNullOrWhiteSpace(carrier);
+            this.Carrier = string.IsNullOrWhiteSpace(carrier) ? Constants.UnknownCarrier : carrier;
             this.Mode = mode;
             this.Info = info;
             this.Price = price;
