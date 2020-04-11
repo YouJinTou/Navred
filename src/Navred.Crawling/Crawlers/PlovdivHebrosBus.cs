@@ -109,7 +109,7 @@ namespace Navred.Crawling.Crawlers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"{ex.Message}: {l}");
+                    Console.WriteLine($"{ex.Message}: {id}");
 
                     this.logger.LogError(ex, $"{id} failed.");
                 }
