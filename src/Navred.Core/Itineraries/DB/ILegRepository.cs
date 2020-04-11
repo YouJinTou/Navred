@@ -8,7 +8,7 @@ namespace Navred.Core.Itineraries.DB
     {
         Task<IEnumerable<Leg>> GetLegsAsync(Place from, Place to, TimeWindow window);
 
-        Task UpdateLegsAsync(IEnumerable<Leg> itineraries);
+        Task UpdateLegsAsync(IEnumerable<Leg> legs);
 
         Task DeleteAllLegsAsync();
     }

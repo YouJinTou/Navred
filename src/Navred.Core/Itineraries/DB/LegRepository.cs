@@ -212,9 +212,9 @@ namespace Navred.Core.Itineraries.DB
 
         private string GetUpdateExp(DBLeg i)
         {
-            var equalities = i.Tos.Select(l =>
+            var equalities = i.Tos.Select((l, index) =>
             {
-                var value = this.FormatLegId(l);
+                var value = this.FormatLegId(l, index);
                 var result = $"{value} = :{value}";
 
                 return result;
@@ -228,8 +228,9 @@ namespace Navred.Core.Itineraries.DB
         {
             var values = new Dictionary<string, AttributeValue>();
 
-            foreach (var to in leg.Tos)
+            for (int t = 0; t < leg.Tos.Count; t++)
             {
+                var to = leg.Tos[t];
                 var map = new Dictionary<string, AttributeValue>();
                 map[nameof(Leg.FromId)] = new AttributeValue { S = to.From.GetId() };
                 map[nameof(Leg.ToId)] = new AttributeValue { S = to.To.GetId() };
@@ -256,19 +257,19 @@ namespace Navred.Core.Itineraries.DB
                     map[nameof(Leg.Price)] = new AttributeValue { N = to.Price.ToString() };
                 }
 
-                values[$":{this.FormatLegId(to)}"] = new AttributeValue { M = map };
+                values[$":{this.FormatLegId(to, t)}"] = new AttributeValue { M = map };
             }
 
             return values;
         }
 
-        private string FormatLegId(Leg leg)
+        private string FormatLegId(Leg leg, int index)
         {
             var id = leg.GetUniqueId();
             var latinizedId = this.cultureProvider.Latinize(id);
             var result = Hashing.ComputeSha256Hash(latinizedId);
             var firstLetter = result.First(c => char.IsLetter(c));
-            result = firstLetter + result.Substring(0, 8);
+            result = firstLetter + result.Substring(0, 5) + index;
 
             return result;
         }
