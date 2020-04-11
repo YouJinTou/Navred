@@ -20,12 +20,14 @@ namespace Navred.Crawling.Crawlers
         private readonly ILegRepository repo;
         private readonly IPlacesManager placesManager;
         private readonly ILogger<Boydevi> logger;
+        private readonly ICollection<string> stopTrims;
 
         public Boydevi(ILegRepository repo, IPlacesManager placesManager, ILogger<Boydevi> logger)
         {
             this.repo = repo;
             this.placesManager = placesManager;
             this.logger = logger;
+            this.stopTrims = new HashSet<string> { "АГ", "Централна" };
         }
 
         public async Task UpdateLegsAsync()
@@ -50,7 +52,7 @@ namespace Navred.Crawling.Crawlers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                this.logger.LogError(ex, "Update failed.");
             }
         }
 
@@ -64,43 +66,50 @@ namespace Navred.Crawling.Crawlers
 
             foreach (var scheduleString in scheduleStrings)
             {
-                var schedule = new Schedule();
-                var daysOfWeek = this.GetDaysOfWeek(scheduleString);
-                var stopMatches = Regex.Matches(
-                    scheduleString, @$"([{BCP.AllLetters} .]+)\s*\((\d+:\d+)\)")
-                    .ToList();
-                var legSpread = Defaults.DaysAhead;
-
-                for (int i = 0; i < stopMatches.Count - 1; i++)
+                try
                 {
-                    var fromMatch = stopMatches[i];
-                    var toMatch = stopMatches[i + 1];
-                    var from = this.placesManager.GetPlace(
-                        BCP.CountryName, fromMatch.Groups[1].Value);
-                    var to = this.placesManager.GetPlace(
-                        BCP.CountryName, toMatch.Groups[1].Value);
-                    var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
-                        fromMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
-                    var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(
-                        toMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
-                    legSpread = arrivalTimes.Count;
+                    var schedule = new Schedule();
+                    var daysOfWeek = this.GetDaysOfWeek(scheduleString);
+                    var stopMatches = Regex.Matches(
+                        scheduleString, @$"([{BCP.AllLetters} .]+)\s*\((\d+:\d+)\)")
+                        .ToList();
+                    var legSpread = Defaults.DaysAhead;
 
-                    for (int t = 0; t < arrivalTimes.Count; t++)
+                    for (int i = 0; i < stopMatches.Count - 1; i++)
                     {
-                        schedule.AddLeg(new Leg(
-                            from, 
-                            to, 
-                            departureTimes[t], 
-                            arrivalTimes[t], 
-                            "Бойдеви", 
-                            Mode.Bus,
-                            url,
-                            fromSpecific: fromMatch.Groups[1].Value,
-                            toSpecific: toMatch.Groups[1].Value));
-                    }
-                }
+                        var fromMatch = stopMatches[i];
+                        var toMatch = stopMatches[i + 1];
+                        var formattedFrom = fromMatch.Groups[1].Value.ChainReplace(this.stopTrims);
+                        var formattedTo = toMatch.Groups[1].Value.ChainReplace(this.stopTrims);
+                        var from = this.placesManager.GetPlace(BCP.CountryName, formattedFrom);
+                        var to = this.placesManager.GetPlace(BCP.CountryName, formattedTo);
+                        var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
+                            fromMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
+                        var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(
+                            toMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
+                        legSpread = arrivalTimes.Count;
 
-                legs.AddRange(schedule.GetWithChildren(legSpread));
+                        for (int t = 0; t < arrivalTimes.Count; t++)
+                        {
+                            schedule.AddLeg(new Leg(
+                                from,
+                                to,
+                                departureTimes[t],
+                                arrivalTimes[t],
+                                "Бойдеви",
+                                Mode.Bus,
+                                url,
+                                fromSpecific: fromMatch.Groups[1].Value,
+                                toSpecific: toMatch.Groups[1].Value));
+                        }
+                    }
+
+                    legs.AddRange(schedule.GetWithChildren(legSpread));
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogError(ex, scheduleString);
+                }
             }
 
             return legs;
