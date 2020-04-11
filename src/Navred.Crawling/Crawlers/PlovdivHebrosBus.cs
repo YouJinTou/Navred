@@ -87,31 +87,36 @@ namespace Navred.Crawling.Crawlers
                         ?.Select(a => BaseUrl + a.GetAttributeValue("href", null)?.Replace("../", ""))
                         ?.Where(a => !string.IsNullOrWhiteSpace(a))
                         ?.ToList() ?? new List<string>();
+                    var all = new List<Leg>();
 
                     await detailLinks.RunBatchesAsync(10, async (l) =>
                     {
                         try
                         {
-                            await this.ProcessAsync(this.plovdiv, l);
+                            var legs = await this.ProcessAsync(this.plovdiv, l);
+
+                            all.AddRange(legs);
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(l);
+                            Console.WriteLine($"{ex.Message}: {l}");
 
                             this.logger.LogError(ex, $"{l} failed.");
                         }
                     }, delayBetweenBatches: 1000, delayBetweenBatchItems: 100);
+
+                    await this.repo.UpdateLegsAsync(all);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine($"{ex.Message}: {l}");
 
                     this.logger.LogError(ex, $"{id} failed.");
                 }
             }, 30);
         }
 
-        private async Task ProcessAsync(Place from, string link)
+        private async Task<IEnumerable<Leg>> ProcessAsync(Place from, string link)
         {
             var web = new HtmlWeb();
             var detailsDoc = await web.LoadFromWebAsync(link);
@@ -178,7 +183,7 @@ namespace Navred.Crawling.Crawlers
 
             var all = schedule.GetWithChildren(legSpread);
 
-            await this.repo.UpdateLegsAsync(all);
+            return all;
         }
 
         private IDictionary<string, Place> GetPlacesByName(IEnumerable<HtmlNode> stopRows)
