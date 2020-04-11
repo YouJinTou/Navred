@@ -12,11 +12,12 @@ namespace Navred.Core.Extensions
             this DaysOfWeek daysOfWeek, LegTime legTime, int daysAhead)
         {
             var offset = DateTimeOffset.Now;
+            var firstDate = GetFirstAvailableUtcDate(daysOfWeek);
             var times = new List<DateTime>();
 
             for (int d = 0; d < daysAhead; d++)
             {
-                var currentDate = offset.UtcDateTime.AddDays(d);
+                var currentDate = firstDate.AddDays(d);
 
                 if (currentDate.DayOfWeek.Matches(daysOfWeek))
                 {
@@ -131,6 +132,11 @@ namespace Navred.Core.Extensions
 
                 current = current.AddDays(1);
             }
+        }
+
+        public static DateTime ToUtcDateTimeDate(this TimeSpan ts, DateTime dt)
+        {
+            return dt.Date + ts - DateTimeOffset.Now.Offset;
         }
     }
 }
