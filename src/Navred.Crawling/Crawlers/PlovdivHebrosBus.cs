@@ -142,13 +142,13 @@ namespace Navred.Crawling.Crawlers
             for (int sr = 1; sr < stopRows.Count; sr++)
             {
                 var row = this.ParseRow(stopRows[sr]);
+                var place = placesByName[row.PlaceName];
 
-                if (Validator.AllNullOrWhiteSpace(row.Arrival, row.Departure))
+                if (Validator.AllNullOrWhiteSpace(row.Arrival, row.Departure) || place == null)
                 {
                     continue;
                 }
 
-                var place = placesByName[row.PlaceName];
                 var arrivalTime = await this.GetArrivalAsync(row, lastPlace, place, lastDeparture);
                 var arrivalTimes =
                     daysOfWeek.GetValidUtcTimesAhead(arrivalTime, Defaults.DaysAhead).ToList();
@@ -196,7 +196,7 @@ namespace Navred.Crawling.Crawlers
 
             if (stopNames.Count > 2)
             {
-                return this.placesManager.DeducePlacesFromStops(BCP.CountryName, stopNames);
+                return this.placesManager.DeducePlacesFromStops(BCP.CountryName, stopNames, false);
             }
 
             var to = this.placesManager.GetPlace(BCP.CountryName, stopNames[1]);
