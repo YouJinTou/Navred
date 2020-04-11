@@ -26,7 +26,7 @@ namespace Navred.Core.Itineraries
 
             var legs = (await this.repo.GetLegsAsync(from, to, window)).ToList();
 
-            if (legs.IsEmpty())
+            if (legs.IsEmpty() || !legs.Any(l => l.To.Equals(to)))
             {
                 return new List<GraphSearchPath>();
             }
