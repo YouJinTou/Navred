@@ -22,10 +22,14 @@ namespace Navred.Core
             DaysOfWeek.Thursday |
             DaysOfWeek.Friday;
 
+        public const DaysOfWeek Weekend = DaysOfWeek.Saturday | DaysOfWeek.Sunday;
+
         public const double EarthRadiusInKm = 6371;
 
         public const string UtcTimeZone = "UTC";
 
         public const string BulgariaTimeZone = "FLE Standard Time";
+
+        public const string UnknownCarrier = "Unknown";
     }
 }
