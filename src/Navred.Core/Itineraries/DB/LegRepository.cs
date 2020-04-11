@@ -218,8 +218,7 @@ namespace Navred.Core.Itineraries.DB
                 var result = $"{value} = :{value}";
 
                 return result;
-            })
-            .ToList();
+            }).ToList();
             var exp = $"SET {string.Join(", ", equalities)}";
 
             return exp;
@@ -240,6 +239,7 @@ namespace Navred.Core.Itineraries.DB
                 map[nameof(Leg.UtcDeparture)] = new AttributeValue { S = to.UtcDeparture.ToString() };
                 map[nameof(Leg.Duration)] = new AttributeValue { S = to.Duration.ToString() };
                 map[nameof(Leg.ArrivalEstimated)] = new AttributeValue { BOOL = to.ArrivalEstimated };
+                map[nameof(Leg.PriceEstimated)] = new AttributeValue { BOOL = to.PriceEstimated };
 
                 if (!string.IsNullOrWhiteSpace(to.FromSpecific))
                 {
@@ -266,7 +266,9 @@ namespace Navred.Core.Itineraries.DB
         {
             var id = leg.GetUniqueId();
             var latinizedId = this.cultureProvider.Latinize(id);
-            var result = Regex.Replace(latinizedId, "[^a-zA-Z]", "_");
+            var result = Hashing.ComputeSha256Hash(latinizedId);
+            var firstLetter = result.First(c => char.IsLetter(c));
+            result = firstLetter + result.Substring(0, 8);
 
             return result;
         }
