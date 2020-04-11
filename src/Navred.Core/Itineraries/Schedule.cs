@@ -1,5 +1,6 @@
 ﻿using Navred.Core.Places;
 using Navred.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,16 +37,17 @@ namespace Navred.Core.Itineraries
             }
         }
 
-        public IEnumerable<Leg> GetWithChildren(int legTimeSpread)
+        public IEnumerable<Leg> GetWithChildren()
         {
+            var legSpread = this.legs.GroupBy(l => l.UtcDeparture.Date).Select(g => g.Key).Count();
             var current = this.legs.ToArray();
             var all = new HashSet<Leg>(new LegEqualityComparer());
 
-            for (int t = 0; t < legTimeSpread; t++)
+            for (int t = 0; t < legSpread; t++)
             {
-                for (int i = t; i < current.Length; i += legTimeSpread)
+                for (int i = t; i < current.Length; i += legSpread)
                 {
-                    for (int j = i; j < current.Length; j += legTimeSpread)
+                    for (int j = i; j < current.Length; j += legSpread)
                     {
                         var leg = new Leg(
                             from: current[i].From,

@@ -73,7 +73,6 @@ namespace Navred.Crawling.Crawlers
                     var stopMatches = Regex.Matches(
                         scheduleString, @$"([{BCP.AllLetters} .]+)\s*\((\d+:\d+)\)")
                         .ToList();
-                    var legSpread = Defaults.DaysAhead;
 
                     for (int i = 0; i < stopMatches.Count - 1; i++)
                     {
@@ -87,7 +86,6 @@ namespace Navred.Crawling.Crawlers
                             fromMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
                         var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(
                             toMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
-                        legSpread = arrivalTimes.Count;
 
                         for (int t = 0; t < arrivalTimes.Count; t++)
                         {
@@ -104,7 +102,7 @@ namespace Navred.Crawling.Crawlers
                         }
                     }
 
-                    legs.AddRange(schedule.GetWithChildren(legSpread));
+                    legs.AddRange(schedule.GetWithChildren());
                 }
                 catch (Exception ex)
                 {

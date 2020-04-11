@@ -68,7 +68,6 @@ namespace Navred.Crawling.Crawlers
                 {
                     var stopTimes = this.GetStopTimes(v);
                     var schedule = new Schedule();
-                    var daysAhead = Defaults.DaysAhead;
 
                     for (int s = 0; s < stopTimes.Count - 1; s++)
                     {
@@ -77,7 +76,6 @@ namespace Navred.Crawling.Crawlers
                             var fromStopTime = stopTimes[s];
                             var toStopTime = stopTimes[s + 1];
                             var departureTimes = this.GetDatesAhead(fromStopTime.Item2, v.OnDays);
-                            daysAhead = departureTimes.Count();
 
                             foreach (var departureTime in departureTimes)
                             {
@@ -106,7 +104,7 @@ namespace Navred.Crawling.Crawlers
                         }
                     }
 
-                    legs.AddRange(schedule.GetWithChildren(daysAhead));
+                    legs.AddRange(schedule.GetWithChildren());
 
                     await Task.CompletedTask;
                 }

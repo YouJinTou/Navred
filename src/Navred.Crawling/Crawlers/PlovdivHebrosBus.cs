@@ -134,7 +134,6 @@ namespace Navred.Crawling.Crawlers
             var lastPlace = from;
             var lastSpecific = detailsDoc.DocumentNode.SelectSingleNode(
                 "//span[@class='route_details_row']").InnerText;
-            var legSpread = Defaults.DaysAhead;
             var firstAvailableDate = daysOfWeek.GetFirstAvailableUtcDate();
             var lastDeparture = firstAvailableDate + sourceDeparture;
             var schedule = new Schedule();
@@ -155,7 +154,6 @@ namespace Navred.Crawling.Crawlers
                 var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
                     lastDeparture.TimeOfDay, Defaults.DaysAhead).ToList();
                 decimal? price = this.GetPrice(row, sr, stopRows);
-                legSpread = departureTimes.Count;
 
                 for (int t = 0; t < arrivalTimes.Count; t++)
                 {
@@ -181,7 +179,7 @@ namespace Navred.Crawling.Crawlers
                 lastDeparture = firstAvailableDate + departureTime;
             }
 
-            var all = schedule.GetWithChildren(legSpread);
+            var all = schedule.GetWithChildren();
 
             return all;
         }
