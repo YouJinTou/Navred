@@ -230,7 +230,7 @@ namespace Navred.Core.Places
 
             if (throwOnUnresolvable && Validator.AnyNull(placesByStop.Values))
             {
-                throw new Exception("Unresolvable route.");
+                throw new Exception($"Unresolvable route: {string.Join(',', stops)}");
             }
 
             return placesByStop;
