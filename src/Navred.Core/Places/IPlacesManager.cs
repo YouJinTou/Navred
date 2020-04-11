@@ -15,8 +15,6 @@ namespace Navred.Core.Places
 
         string FormatPlace(string place);
 
-        Place GetPlace(string id);
-
         IEnumerable<Place> GetPlaces(string country, string name);
 
         Place GetPlace(
@@ -25,9 +23,7 @@ namespace Navred.Core.Places
             string regionCode = null, 
             string municipalityCode = null,
             IEnumerable<string> neighbors = null,
-            bool throwOnFail = true,
-            bool useExactMatching = true,
-            bool fallbackToFuzzyMatch = true);
+            bool throwOnFail = true);
 
         IDictionary<string, Place> DeducePlacesFromStops(
             string country, IList<string> stops, bool throwOnUnresolvable = true);

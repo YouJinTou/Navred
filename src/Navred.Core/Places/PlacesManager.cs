@@ -129,14 +129,6 @@ namespace Navred.Core.Places
             return formattedPlace;
         }
 
-        public Place GetPlace(string id)
-        {
-            var place = (Place)id;
-
-            return this.GetPlace(
-                place.Country, place.Name, place.Region, place.Municipality, fallbackToFuzzyMatch: false);
-        }
-
         public IEnumerable<Place> GetPlaces(string country, string name)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
@@ -156,44 +148,25 @@ namespace Navred.Core.Places
             string regionCode = null, 
             string municipalityCode = null,
             IEnumerable<string> neighbors = null,
-            bool throwOnFail = true,
-            bool useExactMatching = true,
-            bool fallbackToFuzzyMatch = true)
+            bool throwOnFail = true)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
 
             var places = this.LoadPlacesFor(country);
             var normalizedName = this.FormatPlace(name);
             var results = places
-                .Where(p => normalizedName.Contains(this.FormatPlace(p.Name)))
+                .Where(p => normalizedName.Equals(this.FormatPlace(p.Name)))
                 .ToList();
             regionCode = string.IsNullOrWhiteSpace(regionCode) ? 
                 this.TryGetRegionFromNeighbors(neighbors, country) : regionCode;
             var result = this.GetPlace(results, regionCode, municipalityCode);
 
-            if (result == null)
-            {
-                results = places
-                    .Where(p => this.FormatPlace(p.Name).Contains(normalizedName))
-                    .ToList();
-                result = this.GetPlace(results, regionCode, municipalityCode);
-            }
-
-            result = (result == null) ? 
-                fallbackToFuzzyMatch ? this.DoFuzzyMatch(places, normalizedName) : null :
-                result;
-
-            if (result != null)
-            {
-                return result;
-            }
-
-            if (throwOnFail)
+            if (result == null && throwOnFail)
             {
                 throw new ArgumentException($"Could not find a match for {country}/{name}.");
             }
 
-            return null;
+            return result;
         }
 
         public IDictionary<string, Place> DeducePlacesFromStops(
@@ -284,42 +257,6 @@ namespace Navred.Core.Places
             return result;
         }
 
-        private Place DoFuzzyMatch(IEnumerable<Place> places, string normalizedPlace)
-        {
-            var separators = new string[] { ".", "-", " " };
-
-            foreach (var separator in separators)
-            {
-                var tokens = normalizedPlace.Split(separator);
-
-                if (tokens.Length <= 1)
-                {
-                    continue;
-                }
-
-                foreach (var p in places)
-                {
-                    if (p.Name.IsFuzzyMatch(normalizedPlace))
-                    {
-                        return p;
-                    }
-                }
-            }
-
-            if (normalizedPlace.Split(" ").Length > 1)
-            {
-                foreach (var p in places)
-                {
-                    if (p.Name.Replace(" ", "").ToLower() == normalizedPlace.Replace(" ", ""))
-                    {
-                        return p;
-                    }
-                }
-            }
-
-            return default;
-        }
-
         private string TryGetRegionFromNeighbors(
            IEnumerable<string> neighbors, string country)
         {
@@ -335,7 +272,7 @@ namespace Navred.Core.Places
             {
                 try
                 {
-                    var neighborPlace = this.GetPlace(country, neighbor, fallbackToFuzzyMatch: false);
+                    var neighborPlace = this.GetPlace(country, neighbor);
 
                     regions.Add(neighborPlace.Region);
                 }
