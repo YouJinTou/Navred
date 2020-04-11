@@ -61,9 +61,8 @@ namespace Navred.Crawling.Crawlers
             var itineraries = JsonConvert.DeserializeObject<IEnumerable<Itinerary>>(decoded);
             var values = itineraries.Select(i => i.Value).ToList();
             var legs = new List<Leg>();
-            var dows = values.Select(v => v.OnDays).Distinct().ToList();
 
-            foreach (var v in values)
+            await values.RunBatchesAsync(30, async (v) =>
             {
                 try
                 {
@@ -73,40 +72,49 @@ namespace Navred.Crawling.Crawlers
 
                     for (int s = 0; s < stopTimes.Count - 1; s++)
                     {
-                        var fromStopTime = stopTimes[s];
-                        var toStopTime = stopTimes[s + 1];
-                        var departureTimes = this.GetDatesAhead(fromStopTime.Item2, v.OnDays);
-                        daysAhead = departureTimes.Count();
-
-                        foreach (var departureTime in departureTimes)
+                        try
                         {
-                            var utcArrival = toStopTime.Item2.ToUtcDateTimeDate(departureTime);
+                            var fromStopTime = stopTimes[s];
+                            var toStopTime = stopTimes[s + 1];
+                            var departureTimes = this.GetDatesAhead(fromStopTime.Item2, v.OnDays);
+                            daysAhead = departureTimes.Count();
 
-                            if (departureTime.Equals(utcArrival))
+                            foreach (var departureTime in departureTimes)
                             {
-                                continue;
+                                var utcArrival = toStopTime.Item2.ToUtcDateTimeDate(departureTime);
+
+                                if (departureTime.Equals(utcArrival))
+                                {
+                                    continue;
+                                }
+
+                                var leg = new Leg(
+                                    from: fromStopTime.Item1,
+                                    to: toStopTime.Item1,
+                                    utcDeparture: departureTime,
+                                    utcArrival: utcArrival,
+                                    carrier: v.Carrier,
+                                    mode: Mode.Bus,
+                                    info: url);
+
+                                schedule.AddLeg(leg);
                             }
-
-                            var leg = new Leg(
-                                from: fromStopTime.Item1,
-                                to: toStopTime.Item1,
-                                utcDeparture: departureTime,
-                                utcArrival: utcArrival,
-                                carrier: v.Carrier,
-                                mode: Mode.Bus,
-                                info: url);
-
-                            schedule.AddLeg(leg);
+                        }
+                        catch (Exception ex)
+                        {
+                            this.logger.LogError(ex, v.Legs);
                         }
                     }
 
                     legs.AddRange(schedule.GetWithChildren(daysAhead));
+
+                    await Task.CompletedTask;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    this.logger.LogError(ex, v.Legs);
                 }
-            }
+            });
 
             return legs;
         }
