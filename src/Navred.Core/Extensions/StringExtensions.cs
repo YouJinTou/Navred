@@ -55,7 +55,7 @@ namespace Navred.Core.Extensions
         {
             var result = s;
 
-            foreach (var r in replacements)
+            foreach (var r in replacements.OrderByDescending(r => r.Length))
             {
                 result = result.Replace(r, string.Empty);
             }
@@ -67,7 +67,7 @@ namespace Navred.Core.Extensions
         {
             var result = s;
 
-            foreach (var kvp in replacements)
+            foreach (var kvp in replacements.OrderByDescending(r => r.Value.Length))
             {
                 result = result.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
             }
