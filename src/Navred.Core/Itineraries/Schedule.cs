@@ -1,5 +1,6 @@
 ﻿using Navred.Core.Places;
 using Navred.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,22 +8,68 @@ namespace Navred.Core.Itineraries
 {
     public class Schedule
     {
-        private bool ignoreInvalidRoutes;
-        private ICollection<Leg> legs;
+        private readonly IDictionary<Place, IList<Leg>> legsByPlace;
+        private readonly IDictionary<Place, DateTime> currentArrivals;
+        private readonly ICollection<Leg> legs;
 
-        public Schedule(bool ignoreInvalidRoutes = true)
+        public Schedule()
         {
-            this.ignoreInvalidRoutes = ignoreInvalidRoutes;
             this.legs = new List<Leg>();
+            this.legsByPlace = new Dictionary<Place, IList<Leg>>();
+            this.currentArrivals = new Dictionary<Place, DateTime>();
+        }
+
+        private int LegSpread
+        {
+            get
+            {
+                var groupCounts = this.legsByPlace.Select(kvp => kvp.Value.Count).Distinct();
+
+                if (groupCounts.Count() > 1)
+                {
+                    throw new InvalidOperationException("Invalid leg spread.");
+                }
+
+                return groupCounts.First();
+            }
         }
 
         public void AddLeg(Leg leg)
         {
             Validator.ThrowIfNull(leg);
 
-            if (this.ignoreInvalidRoutes && leg.IsZeroLength())
+            if (leg.IsZeroLength())
             {
                 return;
+            }
+
+            foreach (var kvp in this.legsByPlace)
+            {
+                if (kvp.Key.Equals(leg.From))
+                {
+                    continue;
+                }
+
+                var comparableIndex = this.legsByPlace.ContainsKey(leg.From) ?
+                    this.legsByPlace[leg.From].Count : 0;
+                var targetComparable = kvp.Value[comparableIndex];
+
+                if (targetComparable.UtcArrival > leg.UtcDeparture)
+                {
+                    throw new InvalidOperationException("Leg timeline mismatch.");
+                }
+            }
+
+            if (this.legsByPlace.ContainsKey(leg.From))
+            {
+                this.legsByPlace[leg.From].Add(leg);
+                this.currentArrivals[leg.From] = leg.UtcArrival;
+            }
+            else
+            {
+                this.legsByPlace.Add(leg.From, new List<Leg> { leg });
+
+                this.currentArrivals.Add(leg.From, leg.UtcArrival);
             }
 
             this.legs.Add(leg);
@@ -38,29 +85,28 @@ namespace Navred.Core.Itineraries
 
         public IEnumerable<Leg> GetWithChildren()
         {
-            var legSpread = this.legs.GroupBy(l => l.UtcDeparture.Date).Select(g => g.Key).Count();
-            var current = this.legs.ToArray();
+            var legs = this.legs.ToArray();
             var all = new HashSet<Leg>(new LegEqualityComparer());
 
-            for (int t = 0; t < legSpread; t++)
+            for (int t = 0; t < this.LegSpread; t++)
             {
-                for (int i = t; i < current.Length; i += legSpread)
+                for (int i = t; i < legs.Length; i += this.LegSpread)
                 {
-                    for (int j = i; j < current.Length; j += legSpread)
+                    for (int j = i; j < legs.Length; j += this.LegSpread)
                     {
                         var leg = new Leg(
-                            from: current[i].From,
-                            to: current[j].To,
-                            utcDeparture: current[i].UtcDeparture,
-                            utcArrival: current[j].UtcArrival,
-                            carrier: current[j].Carrier,
-                            mode: current[j].Mode,
-                            info: current[j].Info,
-                            price: current[j].Price,
-                            fromSpecific: current[i].FromSpecific,
-                            toSpecific: current[j].ToSpecific,
-                            arrivalEstimated: current[j].ArrivalEstimated,
-                            priceEstimated: current[j].PriceEstimated);
+                            from: legs[i].From,
+                            to: legs[j].To,
+                            utcDeparture: legs[i].UtcDeparture,
+                            utcArrival: legs[j].UtcArrival,
+                            carrier: legs[j].Carrier,
+                            mode: legs[j].Mode,
+                            info: legs[j].Info,
+                            price: legs[j].Price,
+                            fromSpecific: legs[i].FromSpecific,
+                            toSpecific: legs[j].ToSpecific,
+                            arrivalEstimated: legs[j].ArrivalEstimated,
+                            priceEstimated: legs[j].PriceEstimated);
 
                         all.Add(leg);
                     }
