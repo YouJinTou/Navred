@@ -192,6 +192,7 @@ namespace Navred.Core.Places
                 for (int s = 1; s < stops.Count - 1; s++)
                 {
                     var prevValue = stops[s - 1];
+                    var currentValue = stops[s];
                     var nextValue = stops[s + 1];
                     var previous = placesByStop[prevValue];
                     var current = placesByStop[stops[s]];
@@ -199,29 +200,22 @@ namespace Navred.Core.Places
 
                     if (current == null)
                     {
+                        if (previous != null)
+                        {
+                            this.TrySetClosest(placesByStop, country, currentValue, previous);
+                        }
+
                         continue;
                     }
 
                     if (previous == null)
                     {
-                        var places = this.GetPlaces(country, prevValue);
-
-                        if (places.Any())
-                        {
-                            var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
-                            placesByStop[prevValue] = closestPlace;
-                        }
+                        this.TrySetClosest(placesByStop, country, prevValue, current);
                     }
 
                     if (next == null)
                     {
-                        var places = this.GetPlaces(country, nextValue);
-                        
-                        if (places.Any())
-                        {
-                            var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
-                            placesByStop[nextValue] = closestPlace;
-                        }
+                        this.TrySetClosest(placesByStop, country, nextValue, current);
                     }
                 }
 
@@ -234,6 +228,23 @@ namespace Navred.Core.Places
             }
 
             return placesByStop;
+        }
+
+        private void TrySetClosest(
+            IDictionary<string, Place> map, string country, string value, Place current)
+        {
+            if (current == null)
+            {
+                return;
+            }
+
+            var places = this.GetPlaces(country, value);
+
+            if (places.Any())
+            {
+                var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
+                map[value] = closestPlace;
+            }
         }
 
         private Place GetPlace(
