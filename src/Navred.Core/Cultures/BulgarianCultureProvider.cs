@@ -224,23 +224,19 @@ namespace Navred.Core.Cultures
         {
             Validator.ThrowIfNullOrWhiteSpace(dayString, "Empty day string.");
 
-            if (dayString.Length.Equals(2))
-            {
-                switch (dayString.ToLower())
-                {
-                    case "нд": return DaysOfWeek.Sunday;
-                    case "пн": return DaysOfWeek.Monday;
-                    case "вт": return DaysOfWeek.Tuesday;
-                    case "ср": return DaysOfWeek.Wednesday;
-                    case "чт": return DaysOfWeek.Thursday;
-                    case "пк": return DaysOfWeek.Friday;
-                    case "пт": return DaysOfWeek.Friday;
-                    case "сб": return DaysOfWeek.Saturday;
-                    default: throw new KeyNotFoundException($"Could not map {dayString}.");
-                }
-            }
+            var d = dayString.Trim().ToLower();
 
-            throw new KeyNotFoundException($"Could not map {dayString}.");
+            switch (d)
+            {
+                case var _ when d.Equals("нд") || d.Equals("неделя"): return DaysOfWeek.Sunday;
+                case var _ when d.Equals("пн") || d.Equals("понеделник"): return DaysOfWeek.Monday;
+                case var _ when d.Equals("вт") || d.Equals("вторник"): return DaysOfWeek.Tuesday;
+                case var _ when d.Equals("ср") || d.Equals("сряда"): return DaysOfWeek.Wednesday;
+                case var _ when d.Equals("чт") || d.Equals("четвъртък"): return DaysOfWeek.Thursday;
+                case var _ when d.Equals("пт") || d.Equals("пк") || d.Equals("петък"): return DaysOfWeek.Friday;
+                case var _ when d.Equals("сб") || d.Equals("събота"): return DaysOfWeek.Saturday;
+                default: throw new KeyNotFoundException($"Could not map {dayString}.");
+            }
         }
 
         public DaysOfWeek ToDaysOfWeek(IEnumerable<string> dayStrings)
