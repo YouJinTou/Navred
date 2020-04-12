@@ -27,7 +27,7 @@ namespace Navred.Crawling.Crawlers
         private readonly ILogger<PlevenBusStation> logger;
         private readonly ICollection<string> bannedStops;
         private readonly ICollection<string> stopTrims;
-        private readonly ICollection<string> textElements;
+        private readonly IDictionary<string, string> replacements;
 
         public PlevenBusStation(
             IPlacesManager placesManager, ILegRepository repo, ILogger<PlevenBusStation> logger)
@@ -37,17 +37,25 @@ namespace Navred.Crawling.Crawlers
             this.logger = logger;
             this.bannedStops = new HashSet<string> { "гара" };
             this.stopTrims = new List<string> { "АГ", "Юг", "-", "ч.", "Централна" };
-            this.textElements = new List<string> { "</p>", "\n" };
+            this.replacements = new Dictionary<string, string>
+            {
+                { "оряховица", "ореховица" },
+                { "</p>", string.Empty },
+                {  "\n", string.Empty }
+            };
         }
 
         public async Task UpdateLegsAsync()
         {
             try
             {
-                var arrivals = await this.GetLegsAsync(Arrivals);
-                var departures = await this.GetLegsAsync(Departures);
+                var arrivals = await this.GetLegsAsync<Arrival>(Arrivals);
+                var departures = await this.GetLegsAsync<Departure>(Departures);
+                var legs = new List<Leg>(arrivals);
 
-                await repo.UpdateLegsAsync(departures);
+                legs.AddRange(departures);
+
+                await repo.UpdateLegsAsync(legs);
             }
             catch (Exception ex)
             {
@@ -55,20 +63,22 @@ namespace Navred.Crawling.Crawlers
             }
         }
 
-        private async Task<IEnumerable<Leg>> GetLegsAsync(string url)
+        private async Task<IEnumerable<Leg>> GetLegsAsync<T>(string url) where T : Itinerary
         {
             var web = new HtmlWeb();
             var doc = await web.LoadFromWebAsync(url);
             var decoded = doc.DocumentNode.InnerText.FromUnicode();
-            var itineraries = JsonConvert.DeserializeObject<IEnumerable<Itinerary>>(decoded);
-            var values = itineraries.Select(i => i.Value).ToList();
+            var itineraries = JsonConvert.DeserializeObject<IEnumerable<T>>(decoded);
+            var values = itineraries.Select(i => i).ToList();
+            var dows = values.Select(v => v.Ref.OnDays).Distinct().ToList();
             var legs = new List<Leg>();
 
-            await values.RunBatchesAsync(30, async (v) =>
+            await values.RunBatchesAsync(30, async (r) =>
             {
                 try
                 {
-                    var stopTimes = this.GetStopTimes(v);
+                    var v = r.Ref;
+                    var stopTimes = this.GetStopTimes(r);
                     var schedule = new Schedule();
 
                     for (int s = 0; s < stopTimes.Count - 1; s++)
@@ -112,16 +122,16 @@ namespace Navred.Crawling.Crawlers
                 }
                 catch (Exception ex)
                 {
-                    this.logger.LogError(ex, v.Legs);
+                    this.logger.LogError(ex, r.Ref.Legs);
                 }
             });
 
             return legs;
         }
 
-        private IList<Tuple<Place, TimeSpan>> GetStopTimes(Value v)
+        private IList<Tuple<Place, TimeSpan>> GetStopTimes<T>(T v) where T : Itinerary
         {
-            var legs = v.Legs.ReplaceTokens(this.stopTrims).ChainReplace(this.textElements);
+            var legs = v.Ref.Legs.ReplaceTokens(this.stopTrims).ChainReplace(this.replacements);
             var pattern = @$"([\d]{{2}}:[\d]{{2}})\s*?([{BCP.AllLetters}\s]+)";
             var matches = Regex.Matches(legs, pattern);
             var stops = new HashSet<string>();
@@ -162,53 +172,26 @@ namespace Navred.Crawling.Crawlers
 
         private IEnumerable<DateTime> GetDatesAhead(TimeSpan time, string onDays)
         {
-            var dow = DaysOfWeek.Empty;
-
-            switch (onDays.ToLower())
+            DaysOfWeek dow = (onDays.ToLower()) switch
             {
-                case "всички дни":
-                    dow = Constants.AllWeek;
-                    break;
-                case "само петък и неделя":
-                    dow = DaysOfWeek.Friday | DaysOfWeek.Sunday;
-                    break;
-                case "от неделя до петък":
-                    dow = DaysOfWeek.Sunday | Constants.MondayToFriday;
-                    break;
-                case "без събота, неделя и празнични дни":
-                    dow = Constants.MondayToFriday;
-                    break;
-                case "без събота, неделя и понеделник":
-                    dow = Constants.MondayToFriday ^ DaysOfWeek.Monday;
-                    break;
-                case "без събота, неделя и празничен ден":
-                    dow = Constants.MondayToFriday;
-                    break;
-                case "само събота и неделя":
-                    dow = Constants.Weekend;
-                    break;
-                case "от понеделник до събота":
-                    dow = Constants.MondayToFriday | DaysOfWeek.Saturday;
-                    break;
-                case "само събота":
-                    dow = DaysOfWeek.Saturday;
-                    break;
-                case "само неделя":
-                    dow = DaysOfWeek.Sunday;
-                    break;
-                case "от понеделник до петък":
-                    dow = Constants.MondayToFriday;
-                    break;
-                case "понеделник - събота":
-                    dow = Constants.MondayToFriday | DaysOfWeek.Saturday;
-                    break;
-                case "само в неделя":
-                    dow = DaysOfWeek.Sunday;
-                    break;
-                default:
-                    throw new Exception("Could not determine days of week.");
-            }
-
+                "всички дни" => Constants.AllWeek,
+                "всеки ден" => Constants.AllWeek,
+                "само петък и неделя" => DaysOfWeek.Friday | DaysOfWeek.Sunday,
+                "от неделя до петък" => DaysOfWeek.Sunday | Constants.MondayToFriday,
+                "без събота, неделя и празнични дни" => Constants.MondayToFriday,
+                "без събота, неделя и понеделник" => Constants.MondayToFriday ^ DaysOfWeek.Monday,
+                "без събота, неделя и празничен ден" => Constants.MondayToFriday,
+                "само събота и неделя" => Constants.Weekend,
+                "от понеделник до събота" => Constants.MondayToFriday | DaysOfWeek.Saturday,
+                "само събота" => DaysOfWeek.Saturday,
+                "само неделя" => DaysOfWeek.Sunday,
+                "от понеделник до петък" => Constants.MondayToFriday,
+                "понеделник - събота" => Constants.MondayToFriday | DaysOfWeek.Saturday,
+                "понеделник - петък" => Constants.MondayToFriday,
+                "само в неделя" => DaysOfWeek.Sunday,
+                "без неделя" => Constants.AllWeek ^ DaysOfWeek.Sunday,
+                _ => throw new Exception("Could not determine days of week."),
+            };
             var datesAhead = dow.GetValidUtcTimesAhead(time, Defaults.DaysAhead);
 
             return datesAhead;
