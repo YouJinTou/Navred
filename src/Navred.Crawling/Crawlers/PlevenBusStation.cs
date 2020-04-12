@@ -178,10 +178,6 @@ namespace Navred.Crawling.Crawlers
 
         private IEnumerable<DateTime> GetDatesAhead(TimeSpan time, string onDays)
         {
-            if (onDays.Contains("празни"))
-            {
-                var qqweq = 5;
-            }
             DaysOfWeek dow = (onDays.ToLower()) switch
             {
                 "всички дни" => Constants.AllWeek,
