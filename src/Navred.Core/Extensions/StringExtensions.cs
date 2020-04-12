@@ -51,13 +51,25 @@ namespace Navred.Core.Extensions
             return resultString;
         }
 
-        public static string ChainReplace(this string s, IEnumerable<string> replaces)
+        public static string ChainReplace(this string s, IEnumerable<string> replacements)
         {
             var result = s;
 
-            foreach (var r in replaces)
+            foreach (var r in replacements)
             {
                 result = result.Replace(r, string.Empty);
+            }
+
+            return result;
+        }
+
+        public static string ChainReplace(this string s, IDictionary<string, string> replacements)
+        {
+            var result = s;
+
+            foreach (var kvp in replacements)
+            {
+                result = result.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
             }
 
             return result;
