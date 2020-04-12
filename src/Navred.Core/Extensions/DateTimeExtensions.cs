@@ -94,8 +94,8 @@ namespace Navred.Core.Extensions
             var dates = new List<DateTime>();
 
             for (
-                int d = currentInclusive ? 0 : 1; 
-                d < (currentInclusive ? daysAhead : daysAhead + 1); 
+                int d = currentInclusive ? 0 : 1;
+                d < (currentInclusive ? daysAhead : daysAhead + 1);
                 d++)
             {
                 dates.Add(dt.AddDays(d));
@@ -137,6 +137,52 @@ namespace Navred.Core.Extensions
         public static DateTime ToUtcDateTimeDate(this TimeSpan ts, DateTime dt)
         {
             return dt.Date + ts - DateTimeOffset.Now.Offset;
+        }
+
+        // https://www.codeproject.com/Articles/10860/Calculating-Christian-Holidays
+        public static DateTime ToOrthodoxEaster(this int year)
+        {
+            var easter = CalculateEaster(year, false);
+
+            return easter;
+        }
+
+        private static DateTime CalculateEaster(int year, bool isCatholic)
+        {
+            // Gauss algorithm implementation
+
+            // Calculate the difference between Julian and Gregorian calendars for the given year
+            var century = year / 100;
+            var gregorian_shift = century - century / 4 - 2;
+            var x = 15;
+            var y = 6;
+
+            // Metonic cycle correction
+            x += (2 - (13 + 8 * century) / 25 + gregorian_shift) & (isCatholic ? -1 : 0);
+            y += gregorian_shift & (isCatholic ? -1 : 0);
+
+            // The core formula
+            var g = year % 19;
+            var d = (g * 19 + x) % 30; // Paschal Full Moon
+            var e = (2 * (year % 4) + 4 * year - d + y) % 7; // Sunday after PFM
+
+            var day = d + e;
+
+            // Correction for the length of the moon month
+            day -= (e == 6) & ((d == 29) | ((d == 28) & (g > 10))) ? 7 : 0;
+
+            // Convert Orthodox Easter to Grigorian calendar
+            day += gregorian_shift & (isCatholic ? 0 : -1);
+
+            // Calculate month and day
+            var is_may = (day >= 40);
+            var is_not_march = (day >= 10);
+
+            var month = 3 + (is_not_march ? 1 : 0) + (is_may ? 1 : 0);
+            day += 22 - (is_not_march ? 31 : 0) - (is_may ? 30 : 0);
+
+            //Your Easter date is in 'year', 'month', 'day'
+            return new DateTime(year, month, day);
         }
     }
 }

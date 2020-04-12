@@ -1,5 +1,7 @@
-﻿using Navred.Core.Itineraries;
+﻿using Navred.Core.Extensions;
+using Navred.Core.Itineraries;
 using Navred.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -251,6 +253,37 @@ namespace Navred.Core.Cultures
             }
 
             return days;
+        }
+
+        public IEnumerable<DateTime> GetHolidays()
+        {
+            var dates = new List<DateTime>();
+            var d = DateTime.UtcNow;
+            var newYears = new DateTime(d.Year, 1, 1);
+            var liberationDay = new DateTime(d.Year, 3, 3);
+            var easter = d.Year.ToOrthodoxEaster();
+            var laborDay = new DateTime(d.Year, 5, 1);
+            var armyDay = new DateTime(d.Year, 5, 6);
+            var cultureDay = new DateTime(d.Year, 5, 24);
+            var unionDay = new DateTime(d.Year, 9, 6);
+            var independenceDay = new DateTime(d.Year, 9, 22);
+            var christmasEve = new DateTime(d.Year, 12, 24);
+            var christmasDay = new DateTime(d.Year, 12, 25);
+            var christmasDayAfter = new DateTime(d.Year, 12, 26);
+
+            dates.Add(newYears);
+            dates.Add(liberationDay);
+            dates.Add(easter);
+            dates.Add(laborDay);
+            dates.Add(armyDay);
+            dates.Add(cultureDay);
+            dates.Add(unionDay);
+            dates.Add(independenceDay);
+            dates.Add(christmasEve);
+            dates.Add(christmasDay);
+            dates.Add(christmasDayAfter);
+
+            return dates;
         }
 
         public Encoding GetEncoding()
