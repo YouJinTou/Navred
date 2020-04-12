@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Navred.Core;
 using Navred.Core.Abstractions;
+using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
@@ -23,6 +24,7 @@ namespace Navred.Crawling.Crawlers
         private const string Arrivals = "https://avtogara.pleven.bg/wp-admin/admin-ajax.php?action=wp_ajax_ninja_tables_public_action&table_id=365&target_action=get-all-data&default_sorting=new_first";
 
         private readonly IPlacesManager placesManager;
+        private readonly ICultureProvider cultureProvider;
         private readonly ILegRepository repo;
         private readonly ILogger<PlevenBusStation> logger;
         private readonly ICollection<string> bannedStops;
@@ -30,9 +32,13 @@ namespace Navred.Crawling.Crawlers
         private readonly IDictionary<string, string> replacements;
 
         public PlevenBusStation(
-            IPlacesManager placesManager, ILegRepository repo, ILogger<PlevenBusStation> logger)
+            IPlacesManager placesManager, 
+            ICultureProvider cultureProvider,
+            ILegRepository repo, 
+            ILogger<PlevenBusStation> logger)
         {
             this.placesManager = placesManager;
+            this.cultureProvider = cultureProvider;
             this.repo = repo;
             this.logger = logger;
             this.bannedStops = new HashSet<string> { "гара" };
@@ -172,15 +178,19 @@ namespace Navred.Crawling.Crawlers
 
         private IEnumerable<DateTime> GetDatesAhead(TimeSpan time, string onDays)
         {
+            if (onDays.Contains("празни"))
+            {
+                var qqweq = 5;
+            }
             DaysOfWeek dow = (onDays.ToLower()) switch
             {
                 "всички дни" => Constants.AllWeek,
                 "всеки ден" => Constants.AllWeek,
                 "само петък и неделя" => DaysOfWeek.Friday | DaysOfWeek.Sunday,
                 "от неделя до петък" => DaysOfWeek.Sunday | Constants.MondayToFriday,
-                "без събота, неделя и празнични дни" => Constants.MondayToFriday,
+                "без събота, неделя и празнични дни" => Constants.MondayToFriday | DaysOfWeek.HolidayExclusive,
                 "без събота, неделя и понеделник" => Constants.MondayToFriday ^ DaysOfWeek.Monday,
-                "без събота, неделя и празничен ден" => Constants.MondayToFriday,
+                "без събота, неделя и празничен ден" => Constants.MondayToFriday | DaysOfWeek.HolidayExclusive,
                 "само събота и неделя" => Constants.Weekend,
                 "от понеделник до събота" => Constants.MondayToFriday | DaysOfWeek.Saturday,
                 "само събота" => DaysOfWeek.Saturday,
@@ -192,7 +202,8 @@ namespace Navred.Crawling.Crawlers
                 "без неделя" => Constants.AllWeek ^ DaysOfWeek.Sunday,
                 _ => throw new Exception("Could not determine days of week."),
             };
-            var datesAhead = dow.GetValidUtcTimesAhead(time, Defaults.DaysAhead);
+            var datesAhead = dow.GetValidUtcTimesAhead(
+                time, Defaults.DaysAhead, this.cultureProvider.GetHolidays());
 
             return datesAhead;
         }

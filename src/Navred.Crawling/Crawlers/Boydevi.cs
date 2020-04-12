@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Navred.Core;
 using Navred.Core.Abstractions;
+using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
@@ -19,15 +20,21 @@ namespace Navred.Crawling.Crawlers
     {
         private readonly ILegRepository repo;
         private readonly IPlacesManager placesManager;
+        private readonly ICultureProvider cultureProvider;
         private readonly ILogger<Boydevi> logger;
         private readonly ICollection<string> stopTrims;
 
-        public Boydevi(ILegRepository repo, IPlacesManager placesManager, ILogger<Boydevi> logger)
+        public Boydevi(
+            ILegRepository repo, 
+            IPlacesManager placesManager, 
+            ICultureProvider cultureProvider, 
+            ILogger<Boydevi> logger)
         {
             this.repo = repo;
             this.placesManager = placesManager;
+            this.cultureProvider = cultureProvider;
             this.logger = logger;
-            this.stopTrims = new HashSet<string> { "АГ", "Централна" };
+            this.stopTrims = new HashSet<string> { "АГ", "АГ Юг", "Централна" };
         }
 
         public async Task UpdateLegsAsync()
@@ -83,9 +90,13 @@ namespace Navred.Crawling.Crawlers
                         var from = this.placesManager.GetPlace(BCP.CountryName, formattedFrom);
                         var to = this.placesManager.GetPlace(BCP.CountryName, formattedTo);
                         var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
-                            fromMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
+                            fromMatch.Groups[2].Value, 
+                            Defaults.DaysAhead, 
+                            this.cultureProvider.GetHolidays()).ToList();
                         var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(
-                            toMatch.Groups[2].Value, Defaults.DaysAhead).ToList();
+                            toMatch.Groups[2].Value, 
+                            Defaults.DaysAhead, 
+                            this.cultureProvider.GetHolidays()).ToList();
 
                         for (int t = 0; t < arrivalTimes.Count; t++)
                         {
@@ -137,7 +148,8 @@ namespace Navred.Crawling.Crawlers
 
             if (scheduleString.Contains("празничн"))
             {
-                daysOfWeek = isFound ? daysOfWeek | DaysOfWeek.Holiday : DaysOfWeek.Holiday;
+                daysOfWeek = isFound ? 
+                    daysOfWeek | DaysOfWeek.HolidayInclusive : DaysOfWeek.HolidayInclusive;
                 isFound = true;
             }
 

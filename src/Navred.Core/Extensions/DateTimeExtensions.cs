@@ -2,6 +2,7 @@
 using Navred.Core.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TimeZoneConverter;
 
 namespace Navred.Core.Extensions
@@ -9,20 +10,45 @@ namespace Navred.Core.Extensions
     public static class DateTimeExtensions
     {
         public static IEnumerable<DateTime> GetValidUtcTimesAhead(
-            this DaysOfWeek daysOfWeek, LegTime legTime, int daysAhead)
+            this DaysOfWeek dow,
+            LegTime legTime,
+            int daysAhead,
+            IEnumerable<DateTime> holidays = null)
         {
+            var includeHolidays = (dow & DaysOfWeek.HolidayInclusive) > 0;
+            var excludeHolidays = (dow & DaysOfWeek.HolidayExclusive) > 0;
+
+            if (includeHolidays && excludeHolidays)
+            {
+                throw new InvalidOperationException("Cannot include and exclude holidays.");
+            }
+
+            if ((includeHolidays || excludeHolidays) && holidays.IsNullOrEmpty())
+            {
+                throw new InvalidOperationException("No holidays provided.");
+            }
+
             var offset = DateTimeOffset.Now;
-            var firstDate = GetFirstAvailableUtcDate(daysOfWeek);
-            var times = new List<DateTime>();
+            var firstDate = GetFirstAvailableUtcDate(dow);
+            var times = new HashSet<DateTime>();
+            holidays = holidays ?? new List<DateTime>();
 
             for (int d = 0; d < daysAhead; d++)
             {
                 var currentDate = firstDate.AddDays(d);
+                var time = currentDate.Date + legTime.Time - offset.Offset;
 
-                if (currentDate.DayOfWeek.Matches(daysOfWeek))
+                if (excludeHolidays && holidays.Contains(currentDate))
                 {
-                    var time = currentDate.Date + legTime.Time - offset.Offset;
+                    continue;
+                }
 
+                if (includeHolidays && holidays.Contains(currentDate))
+                {
+                    times.Add(time);
+                }
+                else if (currentDate.DayOfWeek.Matches(dow))
+                {
                     times.Add(time);
                 }
             }

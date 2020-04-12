@@ -17,7 +17,7 @@ namespace Navred.Core.Cultures
 
         DaysOfWeek ToDaysOfWeek(IEnumerable<string> dayStrings);
 
-        IEnumerable<DateTime> GetHolidays();
+        IEnumerable<DateTime> GetHolidays(uint yearsAhead = 2);
 
         decimal? ParsePrice(string priceString);
 

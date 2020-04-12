@@ -13,6 +13,7 @@ namespace Navred.Core.Itineraries
         Friday = 1 << 5,
         Saturday = 1 << 6,
         Sunday = 1 << 7,
-        Holiday = 1 << 8
+        HolidayInclusive = 1 << 8,
+        HolidayExclusive = 1 << 9
     }
 }
