@@ -69,8 +69,6 @@ namespace Navred.Crawling.Crawlers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-
                 this.logger.LogError(ex, "Update failed.");
             }
         }
@@ -99,8 +97,6 @@ namespace Navred.Crawling.Crawlers
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"{ex.Message}: {l}");
-
                             this.logger.LogError(ex, $"{l} failed.");
                         }
                     }, delayBetweenBatches: 1000, delayBetweenBatchItems: 100);
@@ -109,8 +105,6 @@ namespace Navred.Crawling.Crawlers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"{ex.Message}: {id}");
-
                     this.logger.LogError(ex, $"{id} failed.");
                 }
             }, 30);

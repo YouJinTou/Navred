@@ -58,8 +58,6 @@ namespace Navred.Crawling.Crawlers
             catch (Exception ex)
             {
                 this.logger.LogError(ex, $"Update failed.");
-
-                Console.WriteLine(ex.Message);
             }
         }
 
@@ -99,8 +97,6 @@ namespace Navred.Crawling.Crawlers
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.Message);
-
                         this.logger.LogError(ex, $"{d} failed.");
                     }
                 }, 200, 5, maxRetries: 3);
