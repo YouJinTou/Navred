@@ -19,7 +19,8 @@ namespace Navred.Crawling.Crawlers
 {
     public class PlevenBusStation : ICrawler
     {
-        private const string Url = "https://avtogara.pleven.bg/wp-admin/admin-ajax.php?action=wp_ajax_ninja_tables_public_action&table_id=271&target_action=get-all-data&default_sorting=new_first";
+        private const string Departures = "https://avtogara.pleven.bg/wp-admin/admin-ajax.php?action=wp_ajax_ninja_tables_public_action&table_id=271&target_action=get-all-data&default_sorting=new_first";
+        private const string Arrivals = "https://avtogara.pleven.bg/wp-admin/admin-ajax.php?action=wp_ajax_ninja_tables_public_action&table_id=365&target_action=get-all-data&default_sorting=new_first";
 
         private readonly IPlacesManager placesManager;
         private readonly ILegRepository repo;
@@ -43,9 +44,10 @@ namespace Navred.Crawling.Crawlers
         {
             try
             {
-                var legs = await this.GetLegsAsync(Url);
+                var arrivals = await this.GetLegsAsync(Arrivals);
+                var departures = await this.GetLegsAsync(Departures);
 
-                await repo.UpdateLegsAsync(legs);
+                await repo.UpdateLegsAsync(departures);
             }
             catch (Exception ex)
             {
