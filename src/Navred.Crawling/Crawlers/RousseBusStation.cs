@@ -96,7 +96,7 @@ namespace Navred.Crawling.Crawlers
             var info = this.GetInfo(url, infoBoxParagraphs[4].InnerText);
             var dow = this.GetDow(infoBoxParagraphs[5].InnerText);
             var stopInfos = this.GetStops(doc.DocumentNode);
-            var schedule = new Schedule();
+            var schedule = new Itinerary();
 
             for (int st = 0; st < stopInfos.Count - 1; st++)
             {

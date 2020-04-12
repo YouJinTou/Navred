@@ -75,7 +75,7 @@ namespace Navred.Crawling.Crawlers
             {
                 try
                 {
-                    var schedule = new Schedule();
+                    var schedule = new Itinerary();
                     var daysOfWeek = this.GetDaysOfWeek(scheduleString);
                     var stopMatches = Regex.Matches(
                         scheduleString, @$"([{BCP.AllLetters} .]+)\s*\((\d+:\d+)\)")

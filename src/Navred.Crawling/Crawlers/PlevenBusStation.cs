@@ -69,7 +69,7 @@ namespace Navred.Crawling.Crawlers
             }
         }
 
-        private async Task<IEnumerable<Leg>> GetLegsAsync<T>(string url) where T : Itinerary
+        private async Task<IEnumerable<Leg>> GetLegsAsync<T>(string url) where T : Models.PlevenBusStation.Itinerary
         {
             var web = new HtmlWeb();
             var doc = await web.LoadFromWebAsync(url);
@@ -85,7 +85,7 @@ namespace Navred.Crawling.Crawlers
                 {
                     var v = r.Ref;
                     var stopTimes = this.GetStopTimes(r);
-                    var schedule = new Schedule();
+                    var schedule = new Core.Itineraries.Itinerary();
 
                     for (int s = 0; s < stopTimes.Count - 1; s++)
                     {
@@ -135,7 +135,7 @@ namespace Navred.Crawling.Crawlers
             return legs;
         }
 
-        private IList<Tuple<Place, TimeSpan>> GetStopTimes<T>(T v) where T : Itinerary
+        private IList<Tuple<Place, TimeSpan>> GetStopTimes<T>(T v) where T : Models.PlevenBusStation.Itinerary
         {
             var legs = v.Ref.Legs.ReplaceTokens(this.stopTrims).ChainReplace(this.replacements);
             var pattern = @$"([\d]{{2}}:[\d]{{2}})\s*?([{BCP.AllLetters}\s]+)";
