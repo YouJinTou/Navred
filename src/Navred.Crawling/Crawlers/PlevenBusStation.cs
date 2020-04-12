@@ -20,8 +20,8 @@ namespace Navred.Crawling.Crawlers
 {
     public class PlevenBusStation : ICrawler
     {
-        private const string Departures = "https://avtogara.pleven.bg/wp-admin/admin-ajax.php?action=wp_ajax_ninja_tables_public_action&table_id=271&target_action=get-all-data&default_sorting=new_first";
-        private const string Arrivals = "https://avtogara.pleven.bg/wp-admin/admin-ajax.php?action=wp_ajax_ninja_tables_public_action&table_id=365&target_action=get-all-data&default_sorting=new_first";
+        private const string DeparturesUrl = "https://avtogara.pleven.bg/wp-admin/admin-ajax.php?action=wp_ajax_ninja_tables_public_action&table_id=271&target_action=get-all-data&default_sorting=new_first";
+        private const string ArrivalsUrl = "https://avtogara.pleven.bg/wp-admin/admin-ajax.php?action=wp_ajax_ninja_tables_public_action&table_id=365&target_action=get-all-data&default_sorting=new_first";
 
         private readonly IPlacesManager placesManager;
         private readonly ICultureProvider cultureProvider;
@@ -55,8 +55,8 @@ namespace Navred.Crawling.Crawlers
         {
             try
             {
-                var arrivals = await this.GetLegsAsync<Arrival>(Arrivals);
-                var departures = await this.GetLegsAsync<Departure>(Departures);
+                var arrivals = await this.GetLegsAsync<Arrival>(ArrivalsUrl);
+                var departures = await this.GetLegsAsync<Departure>(DeparturesUrl);
                 var legs = new List<Leg>(arrivals);
 
                 legs.AddRange(departures);

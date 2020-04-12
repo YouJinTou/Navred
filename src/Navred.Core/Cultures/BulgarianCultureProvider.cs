@@ -13,7 +13,7 @@ namespace Navred.Core.Cultures
         public static string AllLetters = "ѝабвгдежзийклмнопрстуфхцчшщъьыюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЮЯ" + "ь".ToUpper() + "ы".ToUpper();
         public const string CountryName = "Bulgaria";
 
-        public class Region
+        public static class Region
         {
             public const string BLG = "Благоевград";
             public const string BGS = "Бургас";
@@ -77,7 +77,7 @@ namespace Navred.Core.Cultures
             };
         }
 
-        public class City
+        public static class City
         {
             public const string Sofia = "София";
             public const string VelikoTarnovo = "Велико Търново";

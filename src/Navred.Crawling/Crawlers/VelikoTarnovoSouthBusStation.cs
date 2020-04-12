@@ -18,7 +18,8 @@ namespace Navred.Crawling.Crawlers
 {
     public class VelikoTarnovoSouthBusStation : ICrawler
     {
-        private const string Url = "http://avtogaratarnovo.eu/?mode=schedule";
+        private const string DeparturesUrl = "http://avtogaratarnovo.eu/?mode=schedule";
+        private const string ArrivalsUrl = "http://avtogaratarnovo.eu/?mode=schedule&type=arrive";
 
         private readonly IPlacesManager placesManager;
         private readonly ITimeEstimator timeEstimator;
@@ -43,7 +44,11 @@ namespace Navred.Crawling.Crawlers
         {
             try
             {
-                var legs = await this.GetLegsAsync(Url);
+                var departures = await this.GetLegsAsync(DeparturesUrl);
+                var arrivals = await this.GetLegsAsync(ArrivalsUrl);
+                var legs = new List<Leg>(departures);
+
+                legs.AddRange(arrivals);
 
                 await this.repo.UpdateLegsAsync(legs);
             }
@@ -61,7 +66,6 @@ namespace Navred.Crawling.Crawlers
             var trs = doc.DocumentNode.SelectNodes("//div[@class='table-responsive']//tr")
                 .TakeAllButLast(1)
                 .ToList();
-            var from = this.placesManager.GetPlace(BCP.CountryName, BCP.City.VelikoTarnovo);
 
             foreach (var tr in trs)
             {
@@ -69,6 +73,7 @@ namespace Navred.Crawling.Crawlers
                 {
                     var tds = tr.SelectNodes("td").ToList();
                     var region = this.GetRegion(tds[2].InnerText);
+                    var from = this.placesManager.GetPlace(BCP.CountryName, tds[1].InnerText);
                     var to = this.placesManager.GetPlace(
                         BCP.CountryName, tds[2].InnerText, region);
                     var departureTime = tds[3].InnerText;
@@ -90,7 +95,7 @@ namespace Navred.Crawling.Crawlers
                             utcArrival: arrival,
                             carrier: carrier,
                             mode: Mode.Bus,
-                            info: Url,
+                            info: DeparturesUrl,
                             price: price,
                             arrivalEstimated: true);
 
