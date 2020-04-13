@@ -109,39 +109,27 @@ namespace Navred.Core.Itineraries
                 }
             }
 
-            this.SetPrices(legs, all.ToList());
+            this.SetPrices(all);
 
             return all;
         }
 
-        private void SetPrices(IList<Leg> legs, IList<Leg> allLegs)
+        private void SetPrices(ICollection<Leg> legs)
         {
-            var basePricesByDestination = new Dictionary<Place, decimal?>();
+            var priceByPlace = this.legsByPlace.ToDictionary(
+                kvp => kvp.Value.First().To, kvp => kvp.Value.First().Price);
 
             foreach (var leg in legs)
             {
-                if (!basePricesByDestination.ContainsKey(leg.To))
-                {
-                    basePricesByDestination.Add(leg.To, leg.Price);
-                }
-            }
-
-            var source = legs.First().From;
-
-            foreach (var leg in allLegs)
-            {
-                if (leg.From.Equals(source))
+                if (!priceByPlace.ContainsKey(leg.From) || !priceByPlace.ContainsKey(leg.To))
                 {
                     continue;
                 }
 
-                var price = leg.Price - basePricesByDestination[leg.From];
-
-                if (price > 0m)
-                {
-                    leg.Price = price;
-                    leg.PriceEstimated = true;
-                }
+                var sourcePrice = priceByPlace[leg.From];
+                var destinationPrice = priceByPlace[leg.To];
+                leg.Price = (sourcePrice == null || destinationPrice == null) ? 
+                    null : destinationPrice - sourcePrice;
             }
         }
     }

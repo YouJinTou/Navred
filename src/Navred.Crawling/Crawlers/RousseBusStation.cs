@@ -100,35 +100,28 @@ namespace Navred.Crawling.Crawlers
 
             for (int st = 0; st < stopInfos.Count - 1; st++)
             {
-                try
-                {
-                    var departureTimes = dow.GetValidUtcTimesAhead(
-                    stopInfos[st].Time, Defaults.DaysAhead);
-                    var arrivalTimes = dow.GetValidUtcTimesAhead(
-                        stopInfos[st + 1].Time, Defaults.DaysAhead);
+                var departureTimes = dow.GetValidUtcTimesAhead(
+                stopInfos[st].Time, Defaults.DaysAhead);
+                var arrivalTimes = dow.GetValidUtcTimesAhead(
+                    stopInfos[st + 1].Time, Defaults.DaysAhead);
 
-                    foreach (var (departure, arrival) in departureTimes.Zip(arrivalTimes))
-                    {
-                        var fixedArrival = (departure >= arrival) ?
-                            await this.estimator.EstimateArrivalTimeAsync(
-                                stopInfos[st].Stop, stopInfos[st + 1].Stop, departure, Mode.Bus) :
-                            arrival;
-                        var leg = new Leg(
-                            from: stopInfos[st].Stop,
-                            to: stopInfos[st + 1].Stop,
-                            utcDeparture: departure,
-                            utcArrival: fixedArrival,
-                            carrier: carrier,
-                            mode: Mode.Bus,
-                            info: info,
-                            price: stopInfos[st + 1].Price);
-
-                        schedule.AddLeg(leg);
-                    }
-                }
-                catch (Exception ex)
+                foreach (var (departure, arrival) in departureTimes.Zip(arrivalTimes))
                 {
-                    this.logger.LogError(ex, stopInfos[st].ToString());
+                    var fixedArrival = (departure >= arrival) ?
+                        await this.estimator.EstimateArrivalTimeAsync(
+                            stopInfos[st].Stop, stopInfos[st + 1].Stop, departure, Mode.Bus) :
+                        arrival;
+                    var leg = new Leg(
+                        from: stopInfos[st].Stop,
+                        to: stopInfos[st + 1].Stop,
+                        utcDeparture: departure,
+                        utcArrival: fixedArrival,
+                        carrier: carrier,
+                        mode: Mode.Bus,
+                        info: info,
+                        price: stopInfos[st + 1].Price);
+
+                    schedule.AddLeg(leg);
                 }
             }
 
