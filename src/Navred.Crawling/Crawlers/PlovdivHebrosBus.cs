@@ -130,7 +130,7 @@ namespace Navred.Crawling.Crawlers
                 "//span[@class='route_details_row']").InnerText;
             var firstAvailableDate = daysOfWeek.GetFirstAvailableUtcDate();
             var lastDeparture = firstAvailableDate + sourceDeparture;
-            var schedule = new Itinerary();
+            var schedule = new Schedule();
 
             for (int sr = 1; sr < stopRows.Count; sr++)
             {

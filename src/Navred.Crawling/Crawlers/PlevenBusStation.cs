@@ -85,7 +85,7 @@ namespace Navred.Crawling.Crawlers
                 {
                     var v = r.Ref;
                     var stopTimes = this.GetStopTimes(r);
-                    var schedule = new Core.Itineraries.Itinerary();
+                    var schedule = new Schedule();
 
                     for (int s = 0; s < stopTimes.Count - 1; s++)
                     {

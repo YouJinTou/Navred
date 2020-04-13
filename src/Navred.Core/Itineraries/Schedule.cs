@@ -6,12 +6,12 @@ using System.Linq;
 
 namespace Navred.Core.Itineraries
 {
-    public class Itinerary
+    public class Schedule
     {
         private readonly IDictionary<Place, IList<Leg>> legsByPlace;
         private readonly IDictionary<Place, DateTime> currentArrivals;
 
-        public Itinerary()
+        public Schedule()
         {
             this.legsByPlace = new Dictionary<Place, IList<Leg>>();
             this.currentArrivals = new Dictionary<Place, DateTime>();
