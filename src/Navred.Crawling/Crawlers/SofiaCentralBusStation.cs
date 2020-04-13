@@ -20,9 +20,10 @@ namespace Navred.Crawling.Crawlers
 {
     public class SofiaCentralBusStation : ICrawler
     {
-        private readonly Place From;
-        private const string Url =
+        private const string DeparturesUrl =
             "https://www.centralnaavtogara.bg/index.php?mod=0461ebd2b773878eac9f78a891912d65";
+        private const string ArrivalsUrl = 
+            "https://www.centralnaavtogara.bg/index.php?mod=06a943c59f33a34bb5924aaf72cd2995&d=c#b";
 
         private readonly ILegRepository repo;
         private readonly IHttpClientFactory httpClientFactory;
@@ -30,6 +31,8 @@ namespace Navred.Crawling.Crawlers
         private readonly ITimeEstimator estimator;
         private readonly ICultureProvider cultureProvider;
         private readonly ILogger<SofiaCentralBusStation> logger;
+        private readonly Place sofia;
+        private readonly IDictionary<string, string> replacements;
 
         public SofiaCentralBusStation(
             ILegRepository repo,
@@ -45,15 +48,21 @@ namespace Navred.Crawling.Crawlers
             this.estimator = estimator;
             this.cultureProvider = cultureProvider;
             this.logger = logger;
+            this.sofia = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Sofia);
+            this.replacements = new Dictionary<string, string>
+            {
+                { "бели мел", "Белимел" }
+            };
             Console.OutputEncoding = this.cultureProvider.GetEncoding();
-            this.From = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Sofia);
         }
 
         public async Task UpdateLegsAsync()
         {
             try
             {
-                await this.UpdateAsync();
+                await this.UpdateAsync(DeparturesUrl);
+
+                await this.UpdateAsync(ArrivalsUrl);
             }
             catch (Exception ex)
             {
@@ -61,15 +70,16 @@ namespace Navred.Crawling.Crawlers
             }
         }
 
-        private async Task UpdateAsync()
+        private async Task UpdateAsync(string url)
         {
             var web = new HtmlWeb();
             var doc = await web.LoadFromWebAsync(
-                Url, encoding: this.cultureProvider.GetEncoding());
+                url, encoding: this.cultureProvider.GetEncoding());
             var destinations = doc.DocumentNode
-                .SelectNodes("//form[@id='iq_form']/select[@id='city_menu']/option")
+                .SelectNodes("//select[@id='city_menu']/option")
                 .Skip(3)
                 .Select(v => Regex.Match(v.OuterHtml, "value=\"(.*?)\">").Groups[1].Value)
+                .Distinct()
                 .ToList();
             var httpClient = this.httpClientFactory.CreateClient();
             var dates = DateTime.UtcNow.GetDateTimesAhead(Defaults.DaysAhead)
@@ -79,7 +89,7 @@ namespace Navred.Crawling.Crawlers
             {
                 var legs = new List<Leg>();
 
-                await dates.RunBatchesAsync(20, async (d) =>
+                await destinations.RunBatchesAsync(20, async (d) =>
                 {
                     try
                     {
@@ -88,10 +98,10 @@ namespace Navred.Crawling.Crawlers
                             new KeyValuePair<string, string>("city_menu", d),
                             new KeyValuePair<string, string>("for_date", date),
                         });
-                        var response = await httpClient.PostAsync(Url, content);
+                        var response = await httpClient.PostAsync(url, content);
                         var responseText = await response.Content.ReadAsByteArrayAsync();
                         var encodedText = this.cultureProvider.GetEncoding().GetString(responseText);
-                        var currentLegs = await this.GetLegsAsync(encodedText, date, d);
+                        var currentLegs = await this.GetLegsAsync(encodedText, date, d, url);
 
                         legs.AddRange(currentLegs);
                     }
@@ -106,12 +116,11 @@ namespace Navred.Crawling.Crawlers
         }
 
         private async Task<IEnumerable<Leg>> GetLegsAsync(
-            string encodedText, string dateString, string destination)
+            string encodedText, string dateString, string placeString, string url)
         {
             var legs = new List<Leg>();
             var doc = new HtmlDocument();
             encodedText = encodedText.Replace("\t", "").Replace("\n", "");
-            var formattedDestination = this.placesManager.FormatPlace(destination);
 
             doc.LoadHtml(encodedText);
 
@@ -127,6 +136,7 @@ namespace Navred.Crawling.Crawlers
             }
 
             var date = DateTime.ParseExact(dateString, "dd.MM.yyyy", null);
+            var isDeparture = url.Equals(DeparturesUrl);
 
             foreach (var table in tables)
             {
@@ -137,29 +147,25 @@ namespace Navred.Crawling.Crawlers
                     continue;
                 }
 
-                var neighbors = this.TryGetNeighbors(table, formattedDestination);
-                var to = this.placesManager.GetPlace(
-                    BCP.CountryName,
-                    formattedDestination,
-                    this.GetRegionCode(formattedDestination),
-                    this.GetMunicipalityCode(formattedDestination),
-                    neighbors);
+                var place = this.ResolvePlace(table, placeString);
+                var from = isDeparture ? sofia : place;
+                var to = isDeparture ? place : sofia;
                 var carrier = dataRow.ChildNodes[1].InnerText;
                 var departureTimeString =
                     Regex.Match(dataRow.ChildNodes[3].InnerText, @"(\d+:\d+)").Groups[1].Value;
                 var departure = date + TimeSpan.Parse(departureTimeString);
                 var arrival = await this.estimator.EstimateArrivalTimeAsync(
-                    this.From, to, departure, Mode.Bus);
+                    from, to, departure, Mode.Bus);
                 var priceString = dataRow.ChildNodes[5].InnerText;
                 var price = priceString.StripCurrency();
                 var leg = new Leg(
-                    From,
+                    from,
                     to,
                     departure.ToUtcDateTime(Constants.BulgariaTimeZone),
                     arrival.ToUtcDateTime(Constants.BulgariaTimeZone),
                     carrier,
                     Mode.Bus,
-                    Url,
+                    url,
                     price,
                     arrivalEstimated: true);
 
@@ -231,31 +237,42 @@ namespace Navred.Crawling.Crawlers
             return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
         }
 
-        private IEnumerable<string> TryGetNeighbors(HtmlNode table, string destination)
+        private Place ResolvePlace(HtmlNode table, string placeString)
         {
+            var formattedPlace = this.placesManager.FormatPlace(placeString);
+            formattedPlace = this.replacements.ContainsKey(formattedPlace) ? 
+                this.replacements[formattedPlace] : formattedPlace;
+            var place = this.placesManager.GetPlace(
+                BCP.CountryName,
+                formattedPlace,
+                this.GetRegionCode(formattedPlace),
+                this.GetMunicipalityCode(formattedPlace),
+                throwOnFail: false);
+
+            if (place != null)
+            {
+                return place;
+            }
+
             var routeTd = table.Descendants("td").FirstOrDefault(
                 n => n.HasClass("sr_full_route"));
 
             if (routeTd == null)
             {
-                return null;
+                throw new Exception($"Unresolvable route for {placeString}");
             }
 
             var route = routeTd.InnerText;
             var stops = route.Split('-').Select(s => this.placesManager.FormatPlace(s)).ToList();
-            var destinationIndex = stops.IndexOf(destination);
-            var previousNeighbor = stops[destinationIndex - 1];
-            var neighbors = new List<string>
-            {
-                previousNeighbor
-            };
+            var placesByName = this.placesManager.DeducePlacesFromStops(
+                BCP.CountryName, stops, false);
 
-            if (stops.Count - 1 > destinationIndex)
+            if (placesByName[formattedPlace] == null)
             {
-                neighbors.Add(stops[destinationIndex + 1]);
+                throw new Exception($"Unresolvable route for {placeString}");
             }
 
-            return neighbors;
+            return placesByName[formattedPlace];
         }
     }
 }

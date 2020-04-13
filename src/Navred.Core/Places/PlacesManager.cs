@@ -147,8 +147,8 @@ namespace Navred.Core.Places
             string name, 
             string regionCode = null, 
             string municipalityCode = null,
-            IEnumerable<string> neighbors = null,
-            bool throwOnFail = true)
+            bool throwOnFail = true,
+            bool doFuzzyMatch = false)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, name);
 
@@ -157,9 +157,15 @@ namespace Navred.Core.Places
             var results = places
                 .Where(p => normalizedName.Equals(this.FormatPlace(p.Name)))
                 .ToList();
-            regionCode = string.IsNullOrWhiteSpace(regionCode) ? 
-                this.TryGetRegionFromNeighbors(neighbors, country) : regionCode;
             var result = this.GetPlace(results, regionCode, municipalityCode);
+            
+            if (result == null && doFuzzyMatch)
+            {
+                var fuzzyResults = places
+                    .Where(p => normalizedName.IsFuzzyMatch(this.FormatPlace(p.Name)))
+                    .ToList();
+                result = this.GetPlace(fuzzyResults, regionCode, municipalityCode);
+            }
 
             if (result == null && throwOnFail)
             {
@@ -266,36 +272,6 @@ namespace Navred.Core.Places
             }
 
             return result;
-        }
-
-        private string TryGetRegionFromNeighbors(
-           IEnumerable<string> neighbors, string country)
-        {
-            if (neighbors.IsNullOrEmpty())
-            {
-                return null;
-            }
-            
-            var regions = new List<string>();
-            var allFound = true;
-
-            foreach (var neighbor in neighbors)
-            {
-                try
-                {
-                    var neighborPlace = this.GetPlace(country, neighbor);
-
-                    regions.Add(neighborPlace.Region);
-                }
-                catch
-                {
-                    allFound = false;
-                }
-            }
-
-            var areInSameRegion = regions.Distinct().ContainsOne();
-
-            return allFound && areInSameRegion ? regions.First() : null;
         }
     }
 }
