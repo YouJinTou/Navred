@@ -18,6 +18,8 @@ namespace Navred.Crawling.Crawlers
 {
     public class RousseBusStation : ICrawler
     {
+        private const string Departures = "0";
+        private const string Arrivals = "1";
         private const string IdsUrl = "https://www.avtogararuse.org/razpisanie.cgi";
         private const string DetailsUrl = "https://www.avtogararuse.org/result.cgi?id={0}&rev={1}";
 
@@ -70,8 +72,8 @@ namespace Navred.Crawling.Crawlers
             {
                 try
                 {
-                    var departures = await ProcessIdAsync(id, "0");
-                    var arrivals = await ProcessIdAsync(id, "1");
+                    var departures = await ProcessIdAsync(id, Departures);
+                    var arrivals = await ProcessIdAsync(id, Arrivals);
 
                     legs.AddRange(departures);
 
@@ -95,7 +97,7 @@ namespace Navred.Crawling.Crawlers
             var carrier = Regex.Match(infoBoxParagraphs[3].InnerText, @"-\s+(.*)").Groups[1].Value;
             var info = this.GetInfo(url, infoBoxParagraphs[4].InnerText);
             var dow = this.GetDow(infoBoxParagraphs[5].InnerText);
-            var stopInfos = this.GetStops(doc.DocumentNode);
+            var stopInfos = this.GetStops(doc.DocumentNode, rev);
             var schedule = new Schedule();
 
             for (int st = 0; st < stopInfos.Count - 1; st++)
@@ -158,7 +160,7 @@ namespace Navred.Crawling.Crawlers
             return result;
         }
 
-        private IList<StopInfo> GetStops(HtmlNode doc)
+        private IList<StopInfo> GetStops(HtmlNode doc, string rev)
         {
             var stopInfos = new List<StopInfo>();
             var stops = doc.SelectNodes("//div[@class='panel style1']//a")
@@ -189,10 +191,13 @@ namespace Navred.Crawling.Crawlers
                 var price = Regex.Match(
                     datum.InnerText,
                     @"(\d+[\.,]?\d*)\s*(?:(?:лева)|(?:лв\.?))").Groups[1].Value.Replace(',', '.');
+                var isDeparture = rev.Equals(Departures);
 
                 stopInfos.Add(new StopInfo
                 {
-                    Price = string.IsNullOrWhiteSpace(price) ? (decimal?)null : decimal.Parse(price),
+                    Price = string.IsNullOrWhiteSpace(price) ? 
+                        null : 
+                        isDeparture ? decimal.Parse(price) : (decimal?)null,
                     Stop = place,
                     Time = TimeSpan.Parse(departure)
                 });
