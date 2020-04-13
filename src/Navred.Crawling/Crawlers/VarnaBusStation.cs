@@ -46,13 +46,13 @@ namespace Navred.Crawling.Crawlers
         {
             try
             {
-                //var departures = await this.GetLegsAsync(DeparturesUrl);
+                var departures = await this.GetLegsAsync(DeparturesUrl);
                 var arrivals = await this.GetLegsAsync(ArrivalsUrl);
-                //var legs = new List<Leg>(departures);
+                var legs = new List<Leg>(departures);
 
-                //legs.AddRange(arrivals);
+                legs.AddRange(arrivals);
 
-                //await repo.UpdateLegsAsync(legs);
+                await repo.UpdateLegsAsync(legs);
             }
             catch (Exception ex)
             {
