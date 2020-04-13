@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Navred.Core.Cultures
 {
@@ -215,9 +216,16 @@ namespace Navred.Core.Cultures
 
             var info = new CultureInfo("bg-BG");
             var parsed = decimal.TryParse(
-                priceString, NumberStyles.Any, info,  out decimal price);
+                priceString.Trim(), NumberStyles.Any, info,  out decimal price);
 
-            return parsed ? price : default(decimal?);
+            if (parsed)
+            {
+                return price;
+            }
+
+            var fallback = Regex.Match(priceString.Trim(), @"(\d+[\.,]?\d*)").Groups[1].Value;
+
+            return string.IsNullOrWhiteSpace(fallback) ? (decimal?)null : decimal.Parse(fallback);
         }
 
         public DaysOfWeek ToDaysOfWeek(string dayString)
