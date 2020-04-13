@@ -87,12 +87,10 @@ namespace Navred.Crawling.Crawlers
                     var stopTimes = this.GetStopTimes(r);
                     var schedule = new Schedule();
 
-                    for (int s = 0; s < stopTimes.Count - 1; s++)
+                    foreach (var (fromStopTime, toStopTime) in stopTimes.AsPairs())
                     {
                         try
                         {
-                            var fromStopTime = stopTimes[s];
-                            var toStopTime = stopTimes[s + 1];
                             var departureTimes = this.GetDatesAhead(fromStopTime.Item2, v.OnDays);
 
                             foreach (var departureTime in departureTimes)

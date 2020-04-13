@@ -127,5 +127,15 @@ namespace Navred.Core.Extensions
 
             return currentMinItem;
         }
+
+        public static IEnumerable<(T, T)> AsPairs<T>(this IEnumerable<T> enumerable)
+        {
+            var list = enumerable.ToList();
+
+            for (int i = 0; i < list.Count - 1; i++)
+            {
+                yield return (list[i], list[i + 1]);
+            }
+        }
     }
 }

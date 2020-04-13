@@ -81,21 +81,19 @@ namespace Navred.Crawling.Crawlers
                         scheduleString, @$"([{BCP.AllLetters} .]+)\s*\((\d+:\d+)\)")
                         .ToList();
 
-                    for (int i = 0; i < stopMatches.Count - 1; i++)
+                    foreach (var (fromMatch, toMatch) in stopMatches.AsPairs())
                     {
-                        var fromMatch = stopMatches[i];
-                        var toMatch = stopMatches[i + 1];
                         var formattedFrom = fromMatch.Groups[1].Value.ChainReplace(this.stopTrims);
                         var formattedTo = toMatch.Groups[1].Value.ChainReplace(this.stopTrims);
                         var from = this.placesManager.GetPlace(BCP.CountryName, formattedFrom);
                         var to = this.placesManager.GetPlace(BCP.CountryName, formattedTo);
                         var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
-                            fromMatch.Groups[2].Value, 
-                            Defaults.DaysAhead, 
+                            fromMatch.Groups[2].Value,
+                            Defaults.DaysAhead,
                             this.cultureProvider.GetHolidays()).ToList();
                         var arrivalTimes = daysOfWeek.GetValidUtcTimesAhead(
-                            toMatch.Groups[2].Value, 
-                            Defaults.DaysAhead, 
+                            toMatch.Groups[2].Value,
+                            Defaults.DaysAhead,
                             this.cultureProvider.GetHolidays()).ToList();
 
                         for (int t = 0; t < arrivalTimes.Count; t++)
