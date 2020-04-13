@@ -79,7 +79,7 @@ namespace Navred.Core.Itineraries
             }
         }
 
-        public IEnumerable<Leg> GetWithChildren()
+        public IEnumerable<Leg> Permute()
         {
             var legs = this.legsByPlace.SelectMany(l => l.Value).ToArray();
             var all = new HashSet<Leg>(new LegEqualityComparer());

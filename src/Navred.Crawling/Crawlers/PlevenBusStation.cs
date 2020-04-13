@@ -122,7 +122,7 @@ namespace Navred.Crawling.Crawlers
                         }
                     }
 
-                    legs.AddRange(schedule.GetWithChildren());
+                    legs.AddRange(schedule.Permute());
 
                     await Task.CompletedTask;
                 }

@@ -173,7 +173,7 @@ namespace Navred.Crawling.Crawlers
                 lastDeparture = firstAvailableDate + departureTime;
             }
 
-            var all = schedule.GetWithChildren();
+            var all = schedule.Permute();
 
             return all;
         }

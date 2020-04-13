@@ -132,7 +132,7 @@ namespace Navred.Crawling.Crawlers
                 }
             }
 
-            return schedule.GetWithChildren();
+            return schedule.Permute();
         }
 
         private DaysOfWeek GetDow(string dowText)
