@@ -81,15 +81,7 @@ namespace Navred.Core.Itineraries
 
         public IEnumerable<Leg> GetWithChildren()
         {
-            var legGroups = this.legsByPlace.Select(l => l.Value).ToList();
-            var groupedLegs = new List<Leg>();
-
-            for (int g = 0; g < this.LegSpread; g++)
-            {
-                groupedLegs.AddRange(legGroups.SelectMany(l => l.Skip(g).Take(1)));
-            }
-
-            var legs = groupedLegs.ToArray();
+            var legs = this.legsByPlace.SelectMany(l => l.Value).ToArray();
             var all = new HashSet<Leg>(new LegEqualityComparer());
 
             for (int t = 0; t < this.LegSpread; t++)
@@ -117,7 +109,7 @@ namespace Navred.Core.Itineraries
                 }
             }
 
-            this.SetPrices(groupedLegs, all.ToList());
+            this.SetPrices(legs, all.ToList());
 
             return all;
         }
