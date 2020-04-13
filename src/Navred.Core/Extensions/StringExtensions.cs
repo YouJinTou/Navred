@@ -22,8 +22,8 @@ namespace Navred.Core.Extensions
         public static string FromUnicode(this string s)
         {
             var result = Regex.Replace(
-                s, 
-                @"(?i)\\[uU]([0-9a-f]{4})", 
+                s,
+                @"(?i)\\[uU]([0-9a-f]{4})",
                 m => ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
 
             return result;
@@ -73,6 +73,56 @@ namespace Navred.Core.Extensions
             }
 
             return result;
+        }
+
+        public static bool IsFuzzyMatch(this string a, string b)
+        {
+            var preprocessedA = a.ToLower().Replace("-", " ").Replace(".", string.Empty);
+            preprocessedA = Regex.Replace(preprocessedA, "\\s+", " ");
+            var preprocessedB = b.ToLower().Replace("-", " ").Replace(".", string.Empty);
+            preprocessedB = Regex.Replace(preprocessedB, "\\s+", " ");
+            var ratio = CalculateLevenshteinRatio(preprocessedA.ToLower(), preprocessedB.ToLower());
+            var isFuzzyMatch = ratio >= 0.8d;
+
+            return isFuzzyMatch;
+        }
+
+        // https://stackoverflow.com/questions/9453731/how-to-calculate-distance-similarity-measure-of-given-2-strings
+        // https://www.datacamp.com/community/tutorials/fuzzy-string-python
+        public static double CalculateLevenshteinRatio(this string a, string b)
+        {
+            if (String.IsNullOrEmpty(a) && String.IsNullOrEmpty(b))
+            {
+                return 0;
+            }
+            if (String.IsNullOrEmpty(a))
+            {
+                return b.Length;
+            }
+            if (String.IsNullOrEmpty(b))
+            {
+                return a.Length;
+            }
+            int lengthA = a.Length;
+            int lengthB = b.Length;
+            var distances = new int[lengthA + 1, lengthB + 1];
+            for (int i = 0; i <= lengthA; distances[i, 0] = i++) ;
+            for (int j = 0; j <= lengthB; distances[0, j] = j++) ;
+
+            for (int i = 1; i <= lengthA; i++)
+                for (int j = 1; j <= lengthB; j++)
+                {
+                    int cost = b[j - 1] == a[i - 1] ? 0 : 1;
+                    distances[i, j] = Math.Min
+                        (
+                        Math.Min(distances[i - 1, j] + 1, distances[i, j - 1] + 1),
+                        distances[i - 1, j - 1] + cost
+                        );
+                }
+
+            var ratio = (double)((lengthA + lengthB) - distances[lengthA, lengthB]) / (lengthA + lengthB);
+
+            return ratio;
         }
     }
 }
