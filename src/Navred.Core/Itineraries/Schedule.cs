@@ -1,4 +1,5 @@
-﻿using Navred.Core.Places;
+﻿using Navred.Core.Extensions;
+using Navred.Core.Places;
 using Navred.Core.Tools;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,11 @@ namespace Navred.Core.Itineraries
                 if (groupCounts.Count() > 1)
                 {
                     throw new InvalidOperationException("Invalid leg spread.");
+                }
+
+                if (groupCounts.IsEmpty())
+                {
+                    return 0;
                 }
 
                 return groupCounts.First();
