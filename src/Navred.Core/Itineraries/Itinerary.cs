@@ -10,11 +10,9 @@ namespace Navred.Core.Itineraries
     {
         private readonly IDictionary<Place, IList<Leg>> legsByPlace;
         private readonly IDictionary<Place, DateTime> currentArrivals;
-        private readonly ICollection<Leg> legs;
 
         public Itinerary()
         {
-            this.legs = new List<Leg>();
             this.legsByPlace = new Dictionary<Place, IList<Leg>>();
             this.currentArrivals = new Dictionary<Place, DateTime>();
         }
@@ -71,8 +69,6 @@ namespace Navred.Core.Itineraries
 
                 this.currentArrivals.Add(leg.From, leg.UtcArrival);
             }
-
-            this.legs.Add(leg);
         }
 
         public void AddLegs(IEnumerable<Leg> legs)
@@ -85,7 +81,15 @@ namespace Navred.Core.Itineraries
 
         public IEnumerable<Leg> GetWithChildren()
         {
-            var legs = this.legs.ToArray();
+            var legGroups = this.legsByPlace.Select(l => l.Value).ToList();
+            var groupedLegs = new List<Leg>();
+
+            for (int g = 0; g < this.LegSpread; g++)
+            {
+                groupedLegs.AddRange(legGroups.SelectMany(l => l.Skip(g).Take(1)));
+            }
+
+            var legs = groupedLegs.ToArray();
             var all = new HashSet<Leg>(new LegEqualityComparer());
 
             for (int t = 0; t < this.LegSpread; t++)
@@ -113,16 +117,16 @@ namespace Navred.Core.Itineraries
                 }
             }
 
-            this.SetPrices(all.ToList());
+            this.SetPrices(groupedLegs, all.ToList());
 
             return all;
         }
 
-        private void SetPrices(IList<Leg> legs)
+        private void SetPrices(IList<Leg> legs, IList<Leg> allLegs)
         {
             var basePricesByDestination = new Dictionary<Place, decimal?>();
 
-            foreach (var leg in this.legs)
+            foreach (var leg in legs)
             {
                 if (!basePricesByDestination.ContainsKey(leg.To))
                 {
@@ -130,9 +134,9 @@ namespace Navred.Core.Itineraries
                 }
             }
 
-            var source = this.legs.First().From;
+            var source = legs.First().From;
 
-            foreach (var leg in legs)
+            foreach (var leg in allLegs)
             {
                 if (leg.From.Equals(source))
                 {
