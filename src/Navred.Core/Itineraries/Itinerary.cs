@@ -38,7 +38,7 @@ namespace Navred.Core.Itineraries
 
             if (leg.IsZeroLength())
             {
-                return;
+                throw new InvalidOperationException("Leg is zero length.");
             }
 
             foreach (var kvp in this.legsByPlace)
