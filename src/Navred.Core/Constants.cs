@@ -31,5 +31,7 @@ namespace Navred.Core
         public const string BulgariaTimeZone = "FLE Standard Time";
 
         public const string UnknownCarrier = "Unknown";
+
+        public const int CrawlLookaheadDays = 5;
     }
 }

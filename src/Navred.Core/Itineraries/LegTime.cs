@@ -1,16 +1,21 @@
-﻿using System;
+﻿using Navred.Core.Tools;
+using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Navred.Core.Itineraries
 {
     public class LegTime
     {
-        public LegTime(string time)
+        public LegTime(string time, bool estimated = false)
         {
-            this.Time = this.TimeToTimeSpan(time);
+            this.Time = this.TimeToTimeSpan(Validator.ReturnOrThrowIfNullOrWhiteSpace(time));
+            this.Estimated = estimated;
         }
 
         public TimeSpan Time { get; }
+
+        public bool Estimated { get; }
 
         public static implicit operator LegTime(string time)
         {
@@ -51,6 +56,11 @@ namespace Navred.Core.Itineraries
             var span = hoursTimeSpan + minutesTimeSpan;
 
             return span;
+        }
+
+        public override string ToString()
+        {
+            return this.Time.ToString();
         }
     }
 }

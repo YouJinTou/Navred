@@ -1,4 +1,5 @@
-﻿using Navred.Core.Places;
+﻿using Navred.Core.Itineraries;
+using Navred.Core.Places;
 using System;
 
 namespace Navred.Crawling.Models
@@ -7,7 +8,9 @@ namespace Navred.Crawling.Models
     {
         public Place Stop { get; set; }
 
-        public TimeSpan Time { get; set; }
+        public string DetailedName { get; set; }
+
+        public LegTime Time { get; set; }
 
         public decimal? Price { get; set; }
 

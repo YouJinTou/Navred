@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using Navred.Core.Processing;
+using System.Linq;
 
 namespace Navred.Core.Extensions
 {
@@ -16,6 +17,11 @@ namespace Navred.Core.Extensions
             var name = $"{tokens[0]} ({string.Join(", ", tokens.Skip(1))})";
 
             return name;
+        }
+
+        public static bool Matches(this StopTimeOptions options, StopTimeOptions other)
+        {
+            return (options & other) > 0;
         }
     }
 }
