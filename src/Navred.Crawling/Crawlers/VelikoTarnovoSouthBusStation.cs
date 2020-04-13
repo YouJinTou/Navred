@@ -61,6 +61,7 @@ namespace Navred.Crawling.Crawlers
         private async Task<IEnumerable<Leg>> GetLegsAsync(string url)
         {
             var web = new HtmlWeb();
+            var isDeparture = url.Equals(DeparturesUrl);
             var doc = await web.LoadFromWebAsync(url);
             var legs = new List<Leg>();
             var trs = doc.DocumentNode.SelectNodes("//div[@class='table-responsive']//tr")
@@ -72,10 +73,9 @@ namespace Navred.Crawling.Crawlers
                 try
                 {
                     var tds = tr.SelectNodes("td").ToList();
-                    var region = this.GetRegion(tds[2].InnerText);
-                    var from = this.placesManager.GetPlace(BCP.CountryName, tds[1].InnerText);
-                    var to = this.placesManager.GetPlace(
-                        BCP.CountryName, tds[2].InnerText, region);
+                    var region = this.GetRegion(isDeparture ? tds[2].InnerText : tds[1].InnerText);
+                    var from = this.placesManager.GetPlace(BCP.CountryName, tds[1].InnerText, region);
+                    var to = this.placesManager.GetPlace(BCP.CountryName, tds[2].InnerText, region);
                     var departureTime = tds[3].InnerText;
                     var carrier = tds[4].InnerText;
                     var price = tds[5].InnerText.StripCurrency();
