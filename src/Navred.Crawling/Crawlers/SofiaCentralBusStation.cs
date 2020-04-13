@@ -79,7 +79,7 @@ namespace Navred.Crawling.Crawlers
             {
                 var legs = new List<Leg>();
 
-                await destinations.RunBatchesAsync(20, async (d) =>
+                await dates.RunBatchesAsync(20, async (d) =>
                 {
                     try
                     {

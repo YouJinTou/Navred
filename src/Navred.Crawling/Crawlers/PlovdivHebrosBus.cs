@@ -28,8 +28,6 @@ namespace Navred.Crawling.Crawlers
         private readonly ITimeEstimator estimator;
         private readonly ICultureProvider cultureProvider;
         private readonly ILogger<PlovdivHebrosBus> logger;
-        private readonly Place plovdiv;
-        private readonly Place hisarya;
         private readonly string scrapeIdsUrl;
         private readonly ICollection<string> bannedPlaces;
 
@@ -45,9 +43,6 @@ namespace Navred.Crawling.Crawlers
             this.estimator = estimator;
             this.cultureProvider = cultureProvider;
             this.logger = logger;
-            this.plovdiv = this.placesManager.GetPlace(
-                BCP.CountryName, BCP.City.Plovdiv, BCP.Region.PDV);
-            this.hisarya = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Hisarya);
             this.scrapeIdsUrl = string.Format(Url, "-1", "450");
             this.bannedPlaces = new HashSet<string> { "Точиларци" };
         }
@@ -63,9 +58,11 @@ namespace Navred.Crawling.Crawlers
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
 
-                await this.ProcessAsync(this.hisarya, FromHisaryaUrl);
+                await this.ProcessAsync(FromHisaryaUrl);
 
-                await this.UpdateLegsAsync(ids);
+                await this.UpdateLegsAsync(ids, true);
+
+                await this.UpdateLegsAsync(ids, false);
             }
             catch (Exception ex)
             {
@@ -73,14 +70,16 @@ namespace Navred.Crawling.Crawlers
             }
         }
 
-        private async Task UpdateLegsAsync(IEnumerable<string> ids)
+        private async Task UpdateLegsAsync(IEnumerable<string> ids, bool isDeparture)
         {
             await ids.RunBatchesAsync(30, async (id) =>
             {
                 try
                 {
                     var web = new HtmlWeb();
-                    var mainDoc = await web.LoadFromWebAsync(string.Format(Url, PlovdivId, id));
+                    var fromId = isDeparture ? PlovdivId : id;
+                    var toId = isDeparture ? id : PlovdivId;
+                    var mainDoc = await web.LoadFromWebAsync(string.Format(Url, fromId, toId));
                     var detailLinks = mainDoc.DocumentNode.SelectNodes("//a[@class='table_link']")
                         ?.Select(a => BaseUrl + a.GetAttributeValue("href", null)?.Replace("../", ""))
                         ?.Where(a => !string.IsNullOrWhiteSpace(a))
@@ -91,7 +90,7 @@ namespace Navred.Crawling.Crawlers
                     {
                         try
                         {
-                            var legs = await this.ProcessAsync(this.plovdiv, l);
+                            var legs = await this.ProcessAsync(l);
 
                             all.AddRange(legs);
                         }
@@ -100,8 +99,6 @@ namespace Navred.Crawling.Crawlers
                             this.logger.LogError(ex, $"{l} failed.");
                         }
                     }, delayBetweenBatches: 1000, delayBetweenBatchItems: 100);
-
-                    await this.repo.UpdateLegsAsync(all);
                 }
                 catch (Exception ex)
                 {
@@ -110,7 +107,7 @@ namespace Navred.Crawling.Crawlers
             }, 30);
         }
 
-        private async Task<IEnumerable<Leg>> ProcessAsync(Place from, string link)
+        private async Task<IEnumerable<Leg>> ProcessAsync(string link)
         {
             var web = new HtmlWeb();
             var detailsDoc = await web.LoadFromWebAsync(link);
@@ -125,7 +122,7 @@ namespace Navred.Crawling.Crawlers
                 "//table[@class='route_table']/tr").Skip(1).ToList();
             var placesByName = this.GetPlacesByName(stopRows);
             var sourceDeparture = TimeSpan.Parse(stopRows[0].SelectNodes("td")[3].InnerText);
-            var lastPlace = from;
+            var lastPlace = placesByName.First().Value;
             var lastSpecific = detailsDoc.DocumentNode.SelectSingleNode(
                 "//span[@class='route_details_row']").InnerText;
             var firstAvailableDate = daysOfWeek.GetFirstAvailableUtcDate();
@@ -134,43 +131,50 @@ namespace Navred.Crawling.Crawlers
 
             for (int sr = 1; sr < stopRows.Count; sr++)
             {
-                var row = this.ParseRow(stopRows[sr]);
-                var place = placesByName[row.PlaceName];
-
-                if (Validator.AllNullOrWhiteSpace(row.Arrival, row.Departure) || place == null)
+                try
                 {
-                    continue;
+                    var row = this.ParseRow(stopRows[sr]);
+                    var place = placesByName[row.PlaceName];
+
+                    if (Validator.AllNullOrWhiteSpace(row.Arrival, row.Departure) || place == null)
+                    {
+                        continue;
+                    }
+
+                    var arrivalTime = await this.GetArrivalAsync(row, lastPlace, place, lastDeparture);
+                    var arrivalTimes =
+                        daysOfWeek.GetValidUtcTimesAhead(arrivalTime, Defaults.DaysAhead).ToList();
+                    var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
+                        lastDeparture.TimeOfDay, Defaults.DaysAhead).ToList();
+                    decimal? price = this.GetPrice(row, sr, stopRows);
+
+                    for (int t = 0; t < arrivalTimes.Count; t++)
+                    {
+                        var leg = new Leg(
+                            from: lastPlace,
+                            to: place,
+                            utcDeparture: departureTimes[t],
+                            utcArrival: arrivalTimes[t],
+                            carrier: carrier,
+                            mode: Mode.Bus,
+                            info: link,
+                            price: price,
+                            fromSpecific: lastSpecific,
+                            toSpecific: row.SpecificName,
+                            arrivalEstimated: string.IsNullOrWhiteSpace(row.Arrival));
+
+                        schedule.AddLeg(leg);
+                    }
+
+                    lastPlace = place;
+                    lastSpecific = row.SpecificName;
+                    var departureTime = this.GetDeparture(arrivalTime, row.Departure, sr, stopRows);
+                    lastDeparture = firstAvailableDate + departureTime;
                 }
-
-                var arrivalTime = await this.GetArrivalAsync(row, lastPlace, place, lastDeparture);
-                var arrivalTimes =
-                    daysOfWeek.GetValidUtcTimesAhead(arrivalTime, Defaults.DaysAhead).ToList();
-                var departureTimes = daysOfWeek.GetValidUtcTimesAhead(
-                    lastDeparture.TimeOfDay, Defaults.DaysAhead).ToList();
-                decimal? price = this.GetPrice(row, sr, stopRows);
-
-                for (int t = 0; t < arrivalTimes.Count; t++)
+                catch (Exception ex)
                 {
-                    var leg = new Leg(
-                        from: lastPlace,
-                        to: place,
-                        utcDeparture: departureTimes[t],
-                        utcArrival: arrivalTimes[t],
-                        carrier: carrier,
-                        mode: Mode.Bus,
-                        info: link,
-                        price: price,
-                        fromSpecific: lastSpecific,
-                        toSpecific: row.SpecificName,
-                        arrivalEstimated: string.IsNullOrWhiteSpace(row.Arrival));
-
-                    schedule.AddLeg(leg);
+                    this.logger.LogError(ex, stopRows[sr].InnerText);
                 }
-
-                lastPlace = place;
-                lastSpecific = row.SpecificName;
-                var departureTime = this.GetDeparture(arrivalTime, row.Departure, sr, stopRows);
-                lastDeparture = firstAvailableDate + departureTime;
             }
 
             var all = schedule.Permute();
