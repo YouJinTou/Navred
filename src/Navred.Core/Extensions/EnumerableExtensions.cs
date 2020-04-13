@@ -13,9 +13,24 @@ namespace Navred.Core.Extensions
             return enumerable.Count() == 0;
         }
 
+        public static bool IsEmpty(this System.Collections.IEnumerable enumerable)
+        {
+            return enumerable.Cast<object>().Count() == 0;
+        }
+
         public static bool ContainsOne<T>(this IEnumerable<T> enumerable)
         {
             return enumerable.Count() == 1;
+        }
+
+        public static bool IsNullOrEmpty(this System.Collections.IEnumerable enumerable)
+        {
+            if (enumerable == null || IsEmpty(enumerable))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> enumerable)
@@ -136,6 +151,17 @@ namespace Navred.Core.Extensions
             {
                 yield return (list[i], list[i + 1]);
             }
+        }
+
+        public static string GetOrReturn(
+            this IDictionary<string, string> dict, string key)
+        {
+            if (dict.ContainsKey(key))
+            {
+                return dict[key];
+            }
+
+            return key;
         }
     }
 }

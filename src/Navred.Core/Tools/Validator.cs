@@ -57,11 +57,31 @@ namespace Navred.Core.Tools
             return item;
         }
 
+        public static IEnumerable<T> ReturnOrThrowIfNullOrEmpty<T>(
+            IEnumerable<T> item, string message = null)
+        {
+            ThrowIfNullOrEmpty(item, message);
+
+            return item;
+        }
+
         public static void ThrowIfNullOrEmpty<T>(IEnumerable<T> enumerable, string message = null)
         {
             if (enumerable.IsNullOrEmpty())
             {
                 throw new ArgumentNullException(message ?? "Enumerable is null or empty.");
+            }
+        }
+
+        public static void ThrowIfAnyNullOrEmpty(
+            params System.Collections.IEnumerable[] collections)
+        {
+            foreach (var collection in collections)
+            {
+                if (collection.IsNullOrEmpty())
+                {
+                    throw new ArgumentNullException("Enumerable is null or empty.");
+                }
             }
         }
 
