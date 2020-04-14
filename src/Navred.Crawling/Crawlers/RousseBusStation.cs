@@ -94,7 +94,7 @@ namespace Navred.Crawling.Crawlers
             var stops = doc.DocumentNode.SelectNodes("//div[@class='panel style1']//a")
                .Select(a => a.InnerText).ToList();
             var (stopTimes, prices) = this.GetStopData(doc.DocumentNode, rev);
-            var route = new RouteData(
+            var route = new Route(
                 this.cultureProvider.Name, 
                 dow, 
                 carrier, 

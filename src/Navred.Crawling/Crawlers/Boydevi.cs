@@ -75,7 +75,7 @@ namespace Navred.Crawling.Crawlers
                     .ToList();
                 var addresses = matches.Select(m => m.Groups[1].Value);
                 var stopTimes = matches.Select(m => new LegTime(m.Groups[2].Value));
-                var route = new RouteData(
+                var route = new Route(
                     BCP.CountryName,
                     dow,
                     "Бойдеви",

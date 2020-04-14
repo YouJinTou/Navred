@@ -7,6 +7,6 @@ namespace Navred.Core.Processing
     public interface IRouteParser
     {
         Task<IEnumerable<Leg>> ParseRouteAsync(
-            RouteData route, StopTimeOptions stopTimeOptions = StopTimeOptions.None);
+            Route route, StopTimeOptions stopTimeOptions = StopTimeOptions.None);
     }
 }

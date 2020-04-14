@@ -7,9 +7,9 @@ using System.Linq;
 
 namespace Navred.Core.Processing
 {
-    public class RouteData
+    public class Route
     {
-        public RouteData(
+        public Route(
             string country,
             DaysOfWeek dow,
             string carrier,
@@ -66,9 +66,9 @@ namespace Navred.Core.Processing
 
         public IList<string> Prices { get; }
 
-        public RouteData Copy()
+        public Route Copy()
         {
-            return new RouteData(
+            return new Route(
                 this.Country,
                 this.DaysOfWeek,
                 this.Carrier,

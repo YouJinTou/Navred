@@ -133,7 +133,7 @@ namespace Navred.Crawling.Crawlers
             var prices = doc.DocumentNode
                 .SelectNodes("//table[@class='route_table']//td[position() mod 5 = 0]")
                 .Select(t => t.InnerText).ToList();
-            var route = new RouteData(
+            var route = new Route(
                 BCP.CountryName,
                 dow,
                 carrier,

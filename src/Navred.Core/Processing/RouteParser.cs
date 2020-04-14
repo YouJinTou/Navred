@@ -33,7 +33,7 @@ namespace Navred.Core.Processing
         }
 
         public async Task<IEnumerable<Leg>> ParseRouteAsync(
-            RouteData route, StopTimeOptions stopTimeOptions = StopTimeOptions.None)
+            Route route, StopTimeOptions stopTimeOptions = StopTimeOptions.None)
         {
             var preprocessedRoute = this.PreprocessRoute(route);
             var stopInfos = this.GetStopInfos(preprocessedRoute);
@@ -89,7 +89,7 @@ namespace Navred.Core.Processing
             return result;
         }
 
-        private IEnumerable<StopInfo> GetStopInfos(RouteData route)
+        private IEnumerable<StopInfo> GetStopInfos(Route route)
         {
             var placesByKey = this.placesManager.DeducePlacesFromStops(
                 route.Country, route.Stops, false);
@@ -104,7 +104,7 @@ namespace Navred.Core.Processing
             return stopInfos;
         }
 
-        private RouteData PreprocessRoute(RouteData route)
+        private Route PreprocessRoute(Route route)
         {
             Validator.ThrowIfNull(route, "Empty route.");
 
@@ -113,7 +113,7 @@ namespace Navred.Core.Processing
             return this.RemoveDuplicateStops(copy);
         }
 
-        private RouteData RemoveDuplicateStops(RouteData route)
+        private Route RemoveDuplicateStops(Route route)
         {
             var copy = route.Copy();
             var seenStops = new HashSet<string>();
