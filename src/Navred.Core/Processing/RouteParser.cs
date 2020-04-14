@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Navred.Core.Cultures;
 using Navred.Core.Estimation;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
@@ -16,15 +17,18 @@ namespace Navred.Core.Processing
     {
         private readonly IPlacesManager placesManager;
         private readonly ITimeEstimator estimator;
+        private readonly ICultureProvider cultureProvider;
         private readonly ILogger<RouteParser> logger;
 
         public RouteParser(
             IPlacesManager placesManager,
             ITimeEstimator estimator,
+            ICultureProvider cultureProvider,
             ILogger<RouteParser> logger)
         {
             this.placesManager = placesManager;
             this.estimator = estimator;
+            this.cultureProvider = cultureProvider;
             this.logger = logger;
         }
 
@@ -32,7 +36,7 @@ namespace Navred.Core.Processing
             RouteData route, StopTimeOptions stopTimeOptions = StopTimeOptions.None)
         {
             var preprocessedRoute = this.PreprocessRoute(route);
-            var stopInfos = this.GetStopInfos(route);
+            var stopInfos = this.GetStopInfos(preprocessedRoute);
             var schedule = new Schedule();
 
             foreach (var (current, next) in stopInfos.AsPairs())
@@ -57,18 +61,18 @@ namespace Navred.Core.Processing
                         if (enforceResult.Item1)
                         {
                             var leg = new Leg(
-                            from: current.Stop,
-                            to: next.Stop,
-                            utcDeparture: departureTimes[t],
-                            utcArrival: enforceResult.Item2,
-                            carrier: route.Carrier,
-                            mode: route.Mode,
-                            info: route.Info,
-                            price: next.Price,
-                            fromSpecific: current.DetailedName,
-                            toSpecific: next.DetailedName,
-                            arrivalEstimated: next.Time.Estimated,
-                            priceEstimated: false);
+                                from: current.Stop,
+                                to: next.Stop,
+                                utcDeparture: departureTimes[t],
+                                utcArrival: enforceResult.Item2,
+                                carrier: route.Carrier,
+                                mode: route.Mode,
+                                info: route.Info,
+                                price: next.Price,
+                                fromSpecific: current.DetailedName,
+                                toSpecific: next.DetailedName,
+                                arrivalEstimated: next.Time.Estimated,
+                                priceEstimated: false);
 
                             schedule.AddLeg(leg);
                         }
@@ -91,8 +95,8 @@ namespace Navred.Core.Processing
                 route.Country, route.Stops, false);
             var stopInfos = route.Stops.Select((kvp, i) => new StopInfo
             {
-                DetailedName = route.Addresses[i],
-                Price = route.Prices[i],
+                DetailedName = route.Addresses?[i],
+                Price = this.cultureProvider.ParsePrice(route.Prices?[i]),
                 Stop = placesByKey[route.Stops[i]],
                 Time = route.StopTimes[i]
             }).Where(s => s.Stop != null).ToList();
@@ -104,38 +108,43 @@ namespace Navred.Core.Processing
         {
             Validator.ThrowIfNull(route, "Empty route.");
 
-            return this.RemoveDuplicateStops(route);
+            var copy = route.Copy();
+
+            return this.RemoveDuplicateStops(copy);
         }
 
         private RouteData RemoveDuplicateStops(RouteData route)
         {
+            var copy = route.Copy();
             var seenStops = new HashSet<string>();
             var duplicateIndices = new List<int>();
 
-            for (int s = 0; s < route.Stops.Count; s++)
+            for (int s = 0; s < copy.Stops.Count; s++)
             {
-                if (seenStops.Contains(route.Stops[s]))
+                if (seenStops.Contains(copy.Stops[s]))
                 {
                     duplicateIndices.Add(s);
                 }
                 else
                 {
-                    seenStops.Add(route.Stops[s]);
+                    seenStops.Add(copy.Stops[s]);
                 }
             }
 
-            for (int s = 0; s < route.Stops.Count; s++)
+            var firstRemoved = false;
+
+            foreach (var index in duplicateIndices)
             {
-                if (duplicateIndices.Contains(s))
-                {
-                    route.StopTimes.RemoveAt(s);
-                    route.Stops.RemoveAt(s);
-                    route.Addresses?.RemoveAt(s);
-                    route.Prices?.RemoveAt(s);
-                }
+                var toRemove = firstRemoved ? index - 1 : index;
+                firstRemoved = true;
+
+                copy.StopTimes.RemoveAt(toRemove);
+                copy.Stops.RemoveAt(toRemove);
+                copy.Addresses?.RemoveAt(toRemove);
+                copy.Prices?.RemoveAt(toRemove);
             }
 
-            return route;
+            return copy;
         }
 
         private async Task<Tuple<bool, DateTime>> TryEnforceStopTimeOptionsAsync(

@@ -163,5 +163,10 @@ namespace Navred.Core.Extensions
 
             return key;
         }
+
+        public static IEnumerable<T> AsList<T>(this T obj)
+        {
+            return new List<T> { obj };
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace Navred.Core.Processing
             IEnumerable<LegTime> stopTimes,
             IEnumerable<string> stops,
             IEnumerable<string> addresses = null,
-            IEnumerable<decimal?> prices = null,
+            IEnumerable<string> prices = null,
             string info = null)
         {
             this.Country = Validator.ReturnOrThrowIfNullOrWhiteSpace(country, "Country is empty.");
@@ -64,6 +64,20 @@ namespace Navred.Core.Processing
 
         public IList<string> Addresses { get; }
 
-        public IList<decimal?> Prices { get; }
+        public IList<string> Prices { get; }
+
+        public RouteData Copy()
+        {
+            return new RouteData(
+                this.Country,
+                this.DaysOfWeek,
+                this.Carrier,
+                this.Mode,
+                this.StopTimes,
+                this.Stops,
+                this.Addresses,
+                this.Prices,
+                this.Info);
+        }
     }
 }

@@ -2,12 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
-using Navred.Core.Estimation;
-using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
-using Navred.Core.Places;
-using Navred.Crawling.Models;
+using Navred.Core.Processing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,22 +20,19 @@ namespace Navred.Crawling.Crawlers
         private const string IdsUrl = "https://www.avtogararuse.org/razpisanie.cgi";
         private const string DetailsUrl = "https://www.avtogararuse.org/result.cgi?id={0}&rev={1}";
 
-        private readonly IPlacesManager placesManager;
+        private readonly IRouteParser routeParser;
         private readonly ICultureProvider cultureProvider;
-        private readonly ITimeEstimator estimator;
         private readonly ILegRepository repo;
         private readonly ILogger<Template> logger;
 
         public RousseBusStation(
-            IPlacesManager placesManager,
+            IRouteParser routeParser,
             ICultureProvider cultureProvider,
-            ITimeEstimator estimator,
             ILegRepository repo,
             ILogger<Template> logger)
         {
-            this.placesManager = placesManager;
+            this.routeParser = routeParser;
             this.cultureProvider = cultureProvider;
-            this.estimator = estimator;
             this.repo = repo;
             this.logger = logger;
         }
@@ -97,43 +91,21 @@ namespace Navred.Crawling.Crawlers
             var carrier = Regex.Match(infoBoxParagraphs[3].InnerText, @"-\s+(.*)").Groups[1].Value;
             var info = this.GetInfo(url, infoBoxParagraphs[4].InnerText);
             var dow = this.GetDow(infoBoxParagraphs[5].InnerText);
-            var stopInfos = this.GetStops(doc.DocumentNode, rev);
-            var schedule = new Schedule();
+            var stops = doc.DocumentNode.SelectNodes("//div[@class='panel style1']//a")
+               .Select(a => a.InnerText).ToList();
+            var (stopTimes, prices) = this.GetStopData(doc.DocumentNode, rev);
+            var route = new RouteData(
+                this.cultureProvider.Name, 
+                dow, 
+                carrier, 
+                Mode.Bus, 
+                stopTimes, 
+                stops, 
+                prices: prices, 
+                info: info);
+            var legs = await this.routeParser.ParseRouteAsync(route);
 
-            foreach (var (current, next) in stopInfos.AsPairs())
-            {
-                try
-                {
-                    var departureTimes = dow.GetValidUtcTimesAhead(
-                    current.Time, Defaults.DaysAhead);
-                    var arrivalTimes = dow.GetValidUtcTimesAhead(next.Time, Defaults.DaysAhead);
-
-                    foreach (var (departure, arrival) in departureTimes.Zip(arrivalTimes))
-                    {
-                        var fixedArrival = (departure >= arrival) ?
-                            await this.estimator.EstimateArrivalTimeAsync(
-                                current.Stop, next.Stop, departure, Mode.Bus) :
-                            arrival;
-                        var leg = new Leg(
-                            from: current.Stop,
-                            to: next.Stop,
-                            utcDeparture: departure,
-                            utcArrival: fixedArrival,
-                            carrier: carrier,
-                            mode: Mode.Bus,
-                            info: info,
-                            price: next.Price);
-
-                        schedule.AddLeg(leg);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    this.logger.LogError(ex, current.ToString());
-                }
-            }
-
-            return schedule.Permute();
+            return legs;
         }
 
         private DaysOfWeek GetDow(string dowText)
@@ -159,30 +131,18 @@ namespace Navred.Crawling.Crawlers
             return result;
         }
 
-        private IList<StopInfo> GetStops(HtmlNode doc, string rev)
+        private (IEnumerable<LegTime>, IEnumerable<string>) GetStopData(
+            HtmlNode doc, string rev)
         {
-            var stopInfos = new List<StopInfo>();
-            var stops = doc.SelectNodes("//div[@class='panel style1']//a")
-                .Select(a => a.InnerText).ToList();
             var data = doc.SelectNodes("//div[@class='panel-content']").ToList();
+            var stopTimes = new List<LegTime>();
+            var prices = new List<string>();
+            var isDeparture = rev.Equals(Departures);
 
-            if (!stops.Count.Equals(data.Count))
+            foreach (var datum in data)
             {
-                throw new InvalidOperationException("Stop data count mismatch.");
-            }
-
-            var places = this.placesManager.DeducePlacesFromStops(
-                this.cultureProvider.Name, stops, false).Select(kvp => kvp.Value).ToList();
-
-            foreach (var (place, datum) in places.Zip(data))
-            {
-                if (place == null)
-                {
-                    continue;
-                }
-
                 var departure = Regex.Match(
-                    datum.InnerText, @"тръгване\s*[-:]\s*(\d{1,2}:\d{1,2})").Groups[1].Value;
+                  datum.InnerText, @"тръгване\s*[-:]\s*(\d{1,2}:\d{1,2})").Groups[1].Value;
                 departure = string.IsNullOrWhiteSpace(departure) ?
                     Regex.Match(
                     datum.InnerText, @"пристигане\s*[-:]\s*(\d{1,2}:\d{1,2})").Groups[1].Value :
@@ -190,19 +150,15 @@ namespace Navred.Crawling.Crawlers
                 var price = Regex.Match(
                     datum.InnerText,
                     @"(\d+[\.,]?\d*)\s*(?:(?:лева)|(?:лв\.?))").Groups[1].Value.Replace(',', '.');
-                var isDeparture = rev.Equals(Departures);
+                price = string.IsNullOrWhiteSpace(price) ? 
+                    null : isDeparture ? price : null;
 
-                stopInfos.Add(new StopInfo
-                {
-                    Price = string.IsNullOrWhiteSpace(price) ? 
-                        null : 
-                        isDeparture ? decimal.Parse(price) : (decimal?)null,
-                    Stop = place,
-                    Time = TimeSpan.Parse(departure)
-                });
+                stopTimes.Add(departure);
+
+                prices.Add(price);
             }
 
-            return stopInfos;
+            return (stopTimes, prices);
         }
     }
 }

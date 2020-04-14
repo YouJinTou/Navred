@@ -89,7 +89,7 @@ namespace Navred.Crawling.Crawlers
                             .ToList();
                         var addresses = row.SelectNodes(".//address").Select(n => n.InnerText).ToList();
                         var prices = row.SelectNodes(".//div[@class='point-price-wrap']")
-                            .Select(n => this.cultureProvider.ParsePrice(n.InnerText)).ToList();
+                            .Select(n => n.InnerText).ToList();
                         var route = new RouteData(
                             this.cultureProvider.Name, dow, carrier, Mode.Bus, stopTimes, stops, addresses, prices);
                         var currentLegs = await this.routeParser.ParseRouteAsync(

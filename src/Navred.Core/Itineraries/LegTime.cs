@@ -31,7 +31,7 @@ namespace Navred.Core.Itineraries
         {
             var formattedTime = time.Trim();
 
-            if (!Regex.IsMatch(formattedTime, @"\d\d:\d\d"))
+            if (!Regex.IsMatch(formattedTime, @"\d{1,2}:\d{1,2}"))
             {
                 throw new ArgumentException(
                     $"{nameof(time)} must be in the dd:dd format, where 'd' is a digit.");
