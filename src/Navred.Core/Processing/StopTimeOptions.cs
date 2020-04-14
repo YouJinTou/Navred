@@ -8,6 +8,7 @@ namespace Navred.Core.Processing
         None = 0,
         RemoveDuplicates = 1 << 1,
         EstimateDuplicates = 1 << 2,
-        AdjustInvalidArrivals = 1 << 3
+        AdjustInvalidArrivals = 1 << 3,
+        EstimateDeparture = 1 << 4
     }
 }

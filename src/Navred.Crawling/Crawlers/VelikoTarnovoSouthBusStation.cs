@@ -3,11 +3,11 @@ using Microsoft.Extensions.Logging;
 using Navred.Core;
 using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
-using Navred.Core.Estimation;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
 using Navred.Core.Places;
+using Navred.Core.Processing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,20 +21,20 @@ namespace Navred.Crawling.Crawlers
         private const string DeparturesUrl = "http://avtogaratarnovo.eu/?mode=schedule";
         private const string ArrivalsUrl = "http://avtogaratarnovo.eu/?mode=schedule&type=arrive";
 
+        private readonly IRouteParser routeParser;
         private readonly IPlacesManager placesManager;
-        private readonly ITimeEstimator timeEstimator;
         private readonly ILegRepository repo;
         private readonly ILogger<VelikoTarnovoSouthBusStation> logger;
 
         public VelikoTarnovoSouthBusStation(
+            IRouteParser routeParser,
             IPlacesManager placesManager,
-            ITimeEstimator timeEstimator,
             ILegRepository repo,
             ICultureProvider cultureProvider,
             ILogger<VelikoTarnovoSouthBusStation> logger)
         {
+            this.routeParser = routeParser;
             this.placesManager = placesManager;
-            this.timeEstimator = timeEstimator;
             this.repo = repo;
             this.logger = logger;
             Console.OutputEncoding = cultureProvider.GetEncoding();
@@ -63,7 +63,7 @@ namespace Navred.Crawling.Crawlers
             var web = new HtmlWeb();
             var isDeparture = url.Equals(DeparturesUrl);
             var doc = await web.LoadFromWebAsync(url);
-            var legs = new List<Leg>();
+            var all = new List<Leg>();
             var trs = doc.DocumentNode.SelectNodes("//div[@class='table-responsive']//tr")
                 .TakeAllButLast(1)
                 .ToList();
@@ -74,33 +74,23 @@ namespace Navred.Crawling.Crawlers
                 {
                     var tds = tr.SelectNodes("td").ToList();
                     var region = this.GetRegion(isDeparture ? tds[2].InnerText : tds[1].InnerText);
-                    var from = this.placesManager.GetPlace(BCP.CountryName, tds[1].InnerText, region);
-                    var to = this.placesManager.GetPlace(BCP.CountryName, tds[2].InnerText, region);
-                    var departureTime = tds[3].InnerText;
+                    var stops = new List<string> { tds[1].InnerText, tds[2].InnerText };
+                    var stopTimes = new List<LegTime> { null, new LegTime(tds[3].InnerText) };
+                    var prices = new List<string> { null, tds[5].InnerText };
                     var carrier = tds[4].InnerText;
-                    var price = tds[5].InnerText.StripCurrency();
-                    var utcDepartures = Constants.AllWeek.GetValidUtcTimesAhead(departureTime, 10);
-                    var utcArrivals = utcDepartures
-                        .Select(async d => await this.timeEstimator.EstimateArrivalTimeAsync(
-                            from, to, d, Mode.Bus))
-                        .Select(t => t.Result)
-                        .ToList();
+                    var route = new Route(
+                        BCP.CountryName,
+                        Constants.AllWeek,
+                        carrier,
+                        Mode.Bus,
+                        stopTimes,
+                        stops,
+                        prices: prices,
+                        info: isDeparture ? DeparturesUrl : ArrivalsUrl);
+                    var legs = await routeParser.ParseRouteAsync(
+                        route, StopTimeOptions.EstimateDeparture);
 
-                    foreach (var (departure, arrival) in utcDepartures.Zip(utcArrivals))
-                    {
-                        var leg = new Leg(
-                            from: from,
-                            to: to,
-                            utcDeparture: departure,
-                            utcArrival: arrival,
-                            carrier: carrier,
-                            mode: Mode.Bus,
-                            info: DeparturesUrl,
-                            price: price,
-                            arrivalEstimated: true);
-
-                        legs.Add(leg);
-                    }
+                    all.AddRange(legs);
                 }
                 catch (Exception ex)
                 {
@@ -108,7 +98,7 @@ namespace Navred.Crawling.Crawlers
                 }
             }
 
-            return legs;
+            return all;
         }
 
         private string GetRegion(string to)
