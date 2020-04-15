@@ -5,6 +5,7 @@ using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
+using Navred.Core.Models;
 using Navred.Core.Processing;
 using System;
 using System.Collections.Generic;
@@ -117,32 +118,22 @@ namespace Navred.Crawling.Crawlers
             var dow = this.cultureProvider.ToDaysOfWeek(daysOfWeekStrings);
             var addresses = doc.DocumentNode.SelectNodes(
                 "//td[@class='cityColumn' and position() mod 2 = 0]").Select(s => s.InnerText);
-            var stops = doc.DocumentNode.SelectNodes(
+            var names = doc.DocumentNode.SelectNodes(
                 "//td[@class='cityColumn' and position() mod 2 = 1]").Select(s => s.InnerText);
             var firstStopTime = doc.DocumentNode
                 .SelectNodes("//table[@class='route_table']//td[position() mod 4 = 0]")
                 .First().InnerText;
-            var stopTimes = doc.DocumentNode
+            var times = doc.DocumentNode
                 .SelectNodes("//table[@class='route_table']//td[position() mod 3 = 0]")
                 .Select(t => t.InnerText)
                 .Skip(1)
                 .ToList();
-            var allStopTimes = firstStopTime.AsList().Concat(stopTimes);
-            var legTimes = allStopTimes.Select(
-                t => string.IsNullOrWhiteSpace(t) ? null : new LegTime(t));
+            var allStopTimes = firstStopTime.AsList().Concat(times);
             var prices = doc.DocumentNode
                 .SelectNodes("//table[@class='route_table']//td[position() mod 5 = 0]")
                 .Select(t => t.InnerText).ToList();
-            var route = new Route(
-                BCP.CountryName,
-                dow,
-                carrier,
-                Mode.Bus,
-                legTimes,
-                stops,
-                addresses,
-                prices,
-                link);
+            var stops = Stop.CreateMany(names, times, prices, addresses);
+            var route = new Route(BCP.CountryName, dow, carrier, Mode.Bus, stops, link);
             var legs = await this.routeParser.ParseRouteAsync(route);
 
             return legs;

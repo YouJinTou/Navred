@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Navred.Core.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Navred.Core.Places
@@ -25,7 +26,7 @@ namespace Navred.Core.Places
             bool throwOnFail = true,
             bool doFuzzyMatch = false);
 
-        IDictionary<string, Place> DeducePlacesFromStops(
-            string country, IList<string> stops, bool throwOnUnresolvable = true);
+        IEnumerable<Stop> DeducePlacesFromStops(
+            string country, IList<Stop> stops, bool throwOnUnresolvable = true);
     }
 }

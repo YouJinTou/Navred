@@ -2,11 +2,10 @@
 using Microsoft.Extensions.Logging;
 using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
-using Navred.Core.Estimation;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
-using Navred.Core.Places;
+using Navred.Core.Models;
 using Navred.Core.Processing;
 using System;
 using System.Collections.Generic;
@@ -143,21 +142,14 @@ namespace Navred.Crawling.Crawlers
                 var timeString =
                     Regex.Match(dataRow.ChildNodes[3].InnerText, @"(\d+:\d+)").Groups[1].Value;
                 var times = isDeparture ?
-                    new List<LegTime> { new LegTime(timeString), null } :
-                    new List<LegTime> { null, new LegTime(timeString) };
-                var stops = isDeparture ? 
+                    new List<string> { timeString, null } :
+                    new List<string> { null, timeString };
+                var names = isDeparture ? 
                     new List<string> { BCP.City.Sofia, placeString } : 
                     new List<string> { placeString, BCP.City.Sofia };
                 var prices = new List<string> { dataRow.ChildNodes[5].InnerText, null };
-                var route = new Route(
-                    BCP.CountryName,
-                    dow,
-                    carrier,
-                    Mode.Bus,
-                    times,
-                    stops,
-                    prices: prices,
-                    info: url);
+                var stops = Stop.CreateMany(names, times, prices);
+                var route = new Route(BCP.CountryName, dow, carrier, Mode.Bus, stops, url);
                 var legs = await this.routeParser.ParseRouteAsync(route);
 
                 all.AddRange(legs);

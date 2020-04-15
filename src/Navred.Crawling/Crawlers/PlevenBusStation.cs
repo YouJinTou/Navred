@@ -5,6 +5,7 @@ using Navred.Core.Abstractions;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
+using Navred.Core.Models;
 using Navred.Core.Processing;
 using Navred.Crawling.Models.PlevenBusStation;
 using Newtonsoft.Json;
@@ -83,16 +84,10 @@ namespace Navred.Crawling.Crawlers
                         .ChainReplace(this.replacements);
                     var pattern = @$"([\d]{{2}}:[\d]{{2}})\s*?([{BCP.AllLetters}\s]+)";
                     var matches = Regex.Matches(legString, pattern);
-                    var stops = matches.Select(m => m.Groups[2].Value.Trim());
-                    var times = matches.Select(m => new LegTime(m.Groups[1].Value));
-                    var route = new Route(
-                        BCP.CountryName,
-                        dow,
-                        v.Carrier,
-                        Mode.Bus,
-                        times,
-                        stops,
-                        info: url);
+                    var names = matches.Select(m => m.Groups[2].Value.Trim());
+                    var times = matches.Select(m => m.Groups[1].Value);
+                    var stops = Stop.CreateMany(names, times);
+                    var route = new Route(BCP.CountryName, dow, v.Carrier, Mode.Bus, stops, url);
                     var legs = await this.routeParser.ParseRouteAsync(route);
 
                     all.AddRange(legs);

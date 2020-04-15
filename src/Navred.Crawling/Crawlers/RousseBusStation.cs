@@ -4,6 +4,7 @@ using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
+using Navred.Core.Models;
 using Navred.Core.Processing;
 using System;
 using System.Collections.Generic;
@@ -91,18 +92,11 @@ namespace Navred.Crawling.Crawlers
             var carrier = Regex.Match(infoBoxParagraphs[3].InnerText, @"-\s+(.*)").Groups[1].Value;
             var info = this.GetInfo(url, infoBoxParagraphs[4].InnerText);
             var dow = this.GetDow(infoBoxParagraphs[5].InnerText);
-            var stops = doc.DocumentNode.SelectNodes("//div[@class='panel style1']//a")
+            var names = doc.DocumentNode.SelectNodes("//div[@class='panel style1']//a")
                .Select(a => a.InnerText).ToList();
-            var (stopTimes, prices) = this.GetStopData(doc.DocumentNode, rev);
-            var route = new Route(
-                this.cultureProvider.Name, 
-                dow, 
-                carrier, 
-                Mode.Bus, 
-                stopTimes, 
-                stops, 
-                prices: prices, 
-                info: info);
+            var (times, prices) = this.GetStopData(doc.DocumentNode, rev);
+            var stops = Stop.CreateMany(names, times, prices);
+            var route = new Route(this.cultureProvider.Name, dow, carrier, Mode.Bus, stops, info);
             var legs = await this.routeParser.ParseRouteAsync(route);
 
             return legs;
@@ -131,11 +125,11 @@ namespace Navred.Crawling.Crawlers
             return result;
         }
 
-        private (IEnumerable<LegTime>, IEnumerable<string>) GetStopData(
+        private (IEnumerable<string>, IEnumerable<string>) GetStopData(
             HtmlNode doc, string rev)
         {
             var data = doc.SelectNodes("//div[@class='panel-content']").ToList();
-            var stopTimes = new List<LegTime>();
+            var times = new List<string>();
             var prices = new List<string>();
             var isDeparture = rev.Equals(Departures);
 
@@ -153,12 +147,12 @@ namespace Navred.Crawling.Crawlers
                 price = string.IsNullOrWhiteSpace(price) ? 
                     null : isDeparture ? price : null;
 
-                stopTimes.Add(departure);
+                times.Add(departure);
 
                 prices.Add(price);
             }
 
-            return (stopTimes, prices);
+            return (times, prices);
         }
     }
 }

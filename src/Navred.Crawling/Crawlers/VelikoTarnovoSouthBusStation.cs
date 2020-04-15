@@ -6,6 +6,7 @@ using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
+using Navred.Core.Models;
 using Navred.Core.Places;
 using Navred.Core.Processing;
 using System;
@@ -74,19 +75,18 @@ namespace Navred.Crawling.Crawlers
                 {
                     var tds = tr.SelectNodes("td").ToList();
                     var region = this.GetRegion(isDeparture ? tds[2].InnerText : tds[1].InnerText);
-                    var stops = new List<string> { tds[1].InnerText, tds[2].InnerText };
-                    var stopTimes = new List<LegTime> { null, new LegTime(tds[3].InnerText) };
+                    var names = new List<string> { tds[1].InnerText, tds[2].InnerText };
+                    var times = new List<string> { null, tds[3].InnerText };
                     var prices = new List<string> { null, tds[5].InnerText };
+                    var stops = Stop.CreateMany(names, times, prices);
                     var carrier = tds[4].InnerText;
                     var route = new Route(
                         BCP.CountryName,
                         Constants.AllWeek,
                         carrier,
                         Mode.Bus,
-                        stopTimes,
-                        stops,
-                        prices: prices,
-                        info: isDeparture ? DeparturesUrl : ArrivalsUrl);
+                        stops, 
+                        isDeparture ? DeparturesUrl : ArrivalsUrl);
                     var legs = await routeParser.ParseRouteAsync(
                         route, StopTimeOptions.EstimateDeparture);
 

@@ -5,6 +5,7 @@ using Navred.Core.Abstractions;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
+using Navred.Core.Models;
 using Navred.Core.Processing;
 using System;
 using System.Collections.Generic;
@@ -70,20 +71,13 @@ namespace Navred.Crawling.Crawlers
                 var dow = this.GetDaysOfWeek(scheduleString);
                 var matches = Regex.Matches(
                     scheduleString, @$"([{BCP.AllLetters} .]+)\s*\((\d+:\d+)\)");
-                var stops = matches
+                var names = matches
                     .Select(m => m.Groups[1].Value.ChainReplace(this.stopTrims))
                     .ToList();
                 var addresses = matches.Select(m => m.Groups[1].Value);
-                var stopTimes = matches.Select(m => new LegTime(m.Groups[2].Value));
-                var route = new Route(
-                    BCP.CountryName,
-                    dow,
-                    "Бойдеви",
-                    Mode.Bus,
-                    stopTimes,
-                    stops,
-                    addresses,
-                    info: url);
+                var times = matches.Select(m => m.Groups[2].Value);
+                var stops = Stop.CreateMany(names, times, addresses: addresses);
+                var route = new Route(BCP.CountryName, dow, "Бойдеви", Mode.Bus, stops, url);
                 var legs = await this.routeParser.ParseRouteAsync(route);
 
                 all.AddRange(legs);

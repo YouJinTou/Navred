@@ -175,17 +175,25 @@ namespace Navred.Core.Places
             return result;
         }
 
-        public IDictionary<string, Place> DeducePlacesFromStops(
-            string country, IList<string> stops, bool throwOnUnresolvable = true)
+        public IEnumerable<Stop> DeducePlacesFromStops(
+            string country, IList<Stop> stops, bool throwOnUnresolvable = true)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, stops);
 
-            var placesByStop = stops.ToDictionary(
-                kvp => kvp, kvp => this.GetPlace(country, kvp, throwOnFail: false));
+            var stopsByName = stops.ToDictionary(s => s.Name, s => new Stop
+            {
+                Address = s.Address,
+                Municipality = s.Municipality,
+                Name = s.Name,
+                Place = this.GetPlace(country, s.Name, s.Region, s.Municipality, false),
+                Price = s.Price,
+                Region = s.Region,
+                Time = s.Time
+            });
 
-            Validator.ThrowIfAllNull(placesByStop.Values, "Unresolvable itinerary.");
+            Validator.ThrowIfAllNull(stopsByName.Values, "Unresolvable itinerary.");
 
-            if (stops.Count <= 2 && placesByStop.Any(p => p.Value == null))
+            if (stops.Count <= 2 && stopsByName.Values.Any(s => s == null))
             {
                 throw new InvalidOperationException("Cannot resolve from two stops only.");
             }
@@ -197,18 +205,18 @@ namespace Navred.Core.Places
             {
                 for (int s = 1; s < stops.Count - 1; s++)
                 {
-                    var prevValue = stops[s - 1];
-                    var currentValue = stops[s];
-                    var nextValue = stops[s + 1];
-                    var previous = placesByStop[prevValue];
-                    var current = placesByStop[stops[s]];
-                    var next = placesByStop[nextValue];
+                    var prevValue = stops[s - 1].Name;
+                    var currentValue = stops[s].Name;
+                    var nextValue = stops[s + 1].Name;
+                    var previous = stopsByName[prevValue].Place;
+                    var current = stopsByName[currentValue].Place;
+                    var next = stopsByName[nextValue].Place;
 
                     if (current == null)
                     {
                         if (previous != null)
                         {
-                            this.TrySetClosest(placesByStop, country, currentValue, previous);
+                            this.TrySetClosest(stopsByName, country, currentValue, previous);
                         }
 
                         continue;
@@ -216,40 +224,40 @@ namespace Navred.Core.Places
 
                     if (previous == null)
                     {
-                        this.TrySetClosest(placesByStop, country, prevValue, current);
+                        this.TrySetClosest(stopsByName, country, prevValue, current);
                     }
 
                     if (next == null)
                     {
-                        this.TrySetClosest(placesByStop, country, nextValue, current);
+                        this.TrySetClosest(stopsByName, country, nextValue, current);
                     }
                 }
 
                 iteration++;
             }
 
-            if (throwOnUnresolvable && Validator.AnyNull(placesByStop.Values))
+            if (throwOnUnresolvable && Validator.AnyNull(stopsByName.Values))
             {
                 throw new Exception($"Unresolvable route: {string.Join(',', stops)}");
             }
 
-            return placesByStop;
+            return stopsByName.Values;
         }
 
         private void TrySetClosest(
-            IDictionary<string, Place> map, string country, string value, Place current)
+            IDictionary<string, Stop> stopsByName, string country, string name, Place current)
         {
             if (current == null)
             {
                 return;
             }
 
-            var places = this.GetPlaces(country, value);
+            var places = this.GetPlaces(country, name);
 
             if (places.Any())
             {
                 var closestPlace = places.GetMin(p => current.DistanceToInKm(p));
-                map[value] = closestPlace;
+                stopsByName[name].Place = closestPlace;
             }
         }
 
