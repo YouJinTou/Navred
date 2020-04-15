@@ -1,6 +1,5 @@
 ﻿using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
-using Navred.Core;
 using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
 using Navred.Core.Estimation;
@@ -8,6 +7,7 @@ using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
 using Navred.Core.Places;
+using Navred.Core.Processing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,30 +25,25 @@ namespace Navred.Crawling.Crawlers
         private const string ArrivalsUrl = 
             "https://www.centralnaavtogara.bg/index.php?mod=06a943c59f33a34bb5924aaf72cd2995&d=c#b";
 
+        private readonly IRouteParser routeParser;
         private readonly ILegRepository repo;
         private readonly IHttpClientFactory httpClientFactory;
-        private readonly IPlacesManager placesManager;
-        private readonly ITimeEstimator estimator;
         private readonly ICultureProvider cultureProvider;
         private readonly ILogger<SofiaCentralBusStation> logger;
-        private readonly Place sofia;
         private readonly IDictionary<string, string> replacements;
 
         public SofiaCentralBusStation(
+            IRouteParser routeParser,
             ILegRepository repo,
             IHttpClientFactory httpClientFactory,
-            IPlacesManager placesManager,
-            ITimeEstimator estimator,
             ICultureProvider cultureProvider,
             ILogger<SofiaCentralBusStation> logger)
         {
+            this.routeParser = routeParser;
             this.repo = repo;
             this.httpClientFactory = httpClientFactory;
-            this.placesManager = placesManager;
-            this.estimator = estimator;
             this.cultureProvider = cultureProvider;
             this.logger = logger;
-            this.sofia = this.placesManager.GetPlace(BCP.CountryName, BCP.City.Sofia);
             this.replacements = new Dictionary<string, string>
             {
                 { "бели мел", "Белимел" }
@@ -118,7 +113,7 @@ namespace Navred.Crawling.Crawlers
         private async Task<IEnumerable<Leg>> GetLegsAsync(
             string encodedText, string dateString, string placeString, string url)
         {
-            var legs = new List<Leg>();
+            var all = new List<Leg>();
             var doc = new HtmlDocument();
             encodedText = encodedText.Replace("\t", "").Replace("\n", "");
 
@@ -132,7 +127,7 @@ namespace Navred.Crawling.Crawlers
 
             if (tables.IsNullOrEmpty())
             {
-                return legs;
+                return all;
             }
 
             var date = DateTime.ParseExact(dateString, "dd.MM.yyyy", null);
@@ -141,138 +136,34 @@ namespace Navred.Crawling.Crawlers
             foreach (var table in tables)
             {
                 var dataRow = table.FirstChild;
-
-                if (!this.IsValidDate(date, dataRow))
-                {
-                    continue;
-                }
-
-                var place = this.ResolvePlace(table, placeString);
-                var from = isDeparture ? sofia : place;
-                var to = isDeparture ? place : sofia;
+                var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
+                    ?.Select(n => n.InnerText)?.ToList() ?? new List<string>();
+                var dow = this.cultureProvider.ToDaysOfWeek(resultDays);
                 var carrier = dataRow.ChildNodes[1].InnerText;
-                var departureTimeString =
+                var timeString =
                     Regex.Match(dataRow.ChildNodes[3].InnerText, @"(\d+:\d+)").Groups[1].Value;
-                var departure = date + TimeSpan.Parse(departureTimeString);
-                var arrival = await this.estimator.EstimateArrivalTimeAsync(
-                    from, to, departure, Mode.Bus);
-                var priceString = dataRow.ChildNodes[5].InnerText;
-                var price = priceString.StripCurrency();
-                var leg = new Leg(
-                    from,
-                    to,
-                    departure.ToUtcDateTime(Constants.BulgariaTimeZone),
-                    arrival.ToUtcDateTime(Constants.BulgariaTimeZone),
+                var times = isDeparture ?
+                    new List<LegTime> { new LegTime(timeString), null } :
+                    new List<LegTime> { null, new LegTime(timeString) };
+                var stops = isDeparture ? 
+                    new List<string> { BCP.City.Sofia, placeString } : 
+                    new List<string> { placeString, BCP.City.Sofia };
+                var prices = new List<string> { dataRow.ChildNodes[5].InnerText, null };
+                var route = new Route(
+                    BCP.CountryName,
+                    dow,
                     carrier,
                     Mode.Bus,
-                    url,
-                    price,
-                    arrivalEstimated: true);
+                    times,
+                    stops,
+                    prices: prices,
+                    info: url);
+                var legs = await this.routeParser.ParseRouteAsync(route);
 
-                legs.Add(leg);
+                all.AddRange(legs);
             }
 
-            return legs;
-        }
-
-        private bool IsValidDate(DateTime date, HtmlNode dataRow)
-        {
-            var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
-                ?.Select(n => n.InnerText)?.ToList() ?? new List<string>();
-
-            if (resultDays.IsNullOrEmpty())
-            {
-                this.logger.LogWarning($"Could not validate date: {dataRow.InnerText}");
-
-                return true;
-            }
-
-            return date.DayOfWeek switch
-            {
-                DayOfWeek.Sunday => resultDays.Contains("нд"),
-                DayOfWeek.Monday => resultDays.Contains("пн"),
-                DayOfWeek.Tuesday => resultDays.Contains("вт"),
-                DayOfWeek.Wednesday => resultDays.Contains("ср"),
-                DayOfWeek.Thursday => resultDays.Contains("чт"),
-                DayOfWeek.Friday => resultDays.Contains("пк"),
-                DayOfWeek.Saturday => resultDays.Contains("сб"),
-                _ => true,
-            };
-        }
-
-        private string GetRegionCode(string place)
-        {
-            place = place.ToLower().Trim();
-            var codeByPlace = new Dictionary<string, string>
-            {
-                { "абланица", BCP.Region.LOV },
-                { "добрич", BCP.Region.DOB },
-                { "априлци", BCP.Region.LOV },
-                { "габрово", BCP.Region.GAB },
-                { "падина", BCP.Region.KRZ },
-                { "оряхово", BCP.Region.VRC },
-                { "батак", BCP.Region.PAZ },
-                { "копиловци", BCP.Region.MON },
-                { "искър", BCP.Region.PVN },
-                { "огняново", BCP.Region.BLG },
-                { "разград", BCP.Region.RAZ },
-                { "елхово", BCP.Region.JAM },
-                { "петрич", BCP.Region.BLG },
-                { "рибарица", BCP.Region.LOV },
-                { "троян", BCP.Region.LOV },
-                { "бенковски", BCP.Region.KRZ },
-            };
-
-            return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
-        }
-
-        private string GetMunicipalityCode(string place)
-        {
-            place = place.ToLower().Trim();
-            var codeByPlace = new Dictionary<string, string>
-            {
-                { "искър", "Искър" }
-            };
-
-            return codeByPlace.ContainsKey(place) ? codeByPlace[place] : null;
-        }
-
-        private Place ResolvePlace(HtmlNode table, string placeString)
-        {
-            var formattedPlace = this.placesManager.FormatPlace(placeString);
-            formattedPlace = this.replacements.ContainsKey(formattedPlace) ? 
-                this.replacements[formattedPlace] : formattedPlace;
-            var place = this.placesManager.GetPlace(
-                BCP.CountryName,
-                formattedPlace,
-                this.GetRegionCode(formattedPlace),
-                this.GetMunicipalityCode(formattedPlace),
-                throwOnFail: false);
-
-            if (place != null)
-            {
-                return place;
-            }
-
-            var routeTd = table.Descendants("td").FirstOrDefault(
-                n => n.HasClass("sr_full_route"));
-
-            if (routeTd == null)
-            {
-                throw new Exception($"Unresolvable route for {placeString}");
-            }
-
-            var route = routeTd.InnerText;
-            var stops = route.Split('-').Select(s => this.placesManager.FormatPlace(s)).ToList();
-            var placesByName = this.placesManager.DeducePlacesFromStops(
-                BCP.CountryName, stops, false);
-
-            if (placesByName[formattedPlace] == null)
-            {
-                throw new Exception($"Unresolvable route for {placeString}");
-            }
-
-            return placesByName[formattedPlace];
+            return all;
         }
     }
 }
