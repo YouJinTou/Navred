@@ -37,7 +37,7 @@ namespace Navred.Core.Processing
         {
             var preprocessedRoute = this.PreprocessRoute(route);
             var stops = this.placesManager.DeducePlacesFromStops(
-                this.cultureProvider.Name, route.Stops, false);
+                this.cultureProvider.Name, preprocessedRoute.Stops, false);
             var schedule = new Schedule();
 
             foreach (var (current, next) in stops.AsPairs())

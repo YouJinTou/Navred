@@ -23,6 +23,11 @@ namespace Navred.Core.Models
 
         public Place Place { get; set; }
 
+        public override string ToString()
+        {
+            return $"{this.Name} {this.Time} {this.Price}";
+        }
+
         public override bool Equals(object obj)
         {
             if (!(obj is Stop other))
@@ -31,9 +36,9 @@ namespace Navred.Core.Models
             }
 
             return 
-                this.Name.Equals(other.Place) && 
-                this.Municipality.Equals(other.Municipality) && 
-                this.Region.Equals(other.Region);
+                this.Name.Equals(other.Name) && 
+                (this.Municipality?.Equals(other.Municipality) ?? true) && 
+                (this.Region?.Equals(other.Region) ?? true);
         }
 
         public override int GetHashCode()
@@ -62,14 +67,12 @@ namespace Navred.Core.Models
                 throw new ArgumentException("Stops count mismatch.");
             }
 
-            if (!addresses?.IsNullOrEmpty() ?? false &&
-                !addresses.Count().Equals(names.Count()))
+            if (!addresses.IsNullOrEmpty() && !addresses.Count().Equals(names.Count()))
             {
                 throw new ArgumentException("Addresses count mismatch.");
             }
 
-            if (!prices?.IsNullOrEmpty() ?? false &&
-                !prices.Count().Equals(names.Count()))
+            if (!prices.IsNullOrEmpty() && !prices.Count().Equals(names.Count()))
             {
                 throw new ArgumentException("Prices count mismatch.");
             }

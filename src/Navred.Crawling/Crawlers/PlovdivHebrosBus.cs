@@ -132,7 +132,7 @@ namespace Navred.Crawling.Crawlers
             var prices = doc.DocumentNode
                 .SelectNodes("//table[@class='route_table']//td[position() mod 5 = 0]")
                 .Select(t => t.InnerText).ToList();
-            var stops = Stop.CreateMany(names, times, prices, addresses);
+            var stops = Stop.CreateMany(names, allStopTimes, prices, addresses);
             var route = new Route(BCP.CountryName, dow, carrier, Mode.Bus, stops, link);
             var legs = await this.routeParser.ParseRouteAsync(route);
 
