@@ -35,53 +35,47 @@ namespace Navred.Core.Processing
         public async Task<IEnumerable<Leg>> ParseRouteAsync(
             Route route, StopTimeOptions stopTimeOptions = StopTimeOptions.None)
         {
-            var preprocessedRoute = this.PreprocessRoute(route);
-            var stops = this.placesManager.DeducePlacesFromStops(
-                this.cultureProvider.Name, preprocessedRoute.Stops, false);
+            var preprocessedRoute = await this.PreprocessRouteAsync(route, stopTimeOptions);
             var schedule = new Schedule();
 
-            foreach (var (current, next) in stops.AsPairs())
+            foreach (var (current, next) in preprocessedRoute.Stops.AsPairs())
             {
                 try
                 {
                     var departureTimes = route.DaysOfWeek.GetValidUtcTimesAhead(
-                        current.Time, Constants.CrawlLookaheadDays).ToList();
+                        current.Time, 
+                        Constants.CrawlLookaheadDays, 
+                        this.cultureProvider.GetHolidays())
+                        .ToList();
                     var arrivalTimes = route.DaysOfWeek.GetValidUtcTimesAhead(
-                        next.Time, Constants.CrawlLookaheadDays).ToList();
+                        next.Time, 
+                        Constants.CrawlLookaheadDays, 
+                        this.cultureProvider.GetHolidays())
+                        .ToList();
 
                     for (int t = 0; t < departureTimes.Count; t++)
                     {
-                        var enforceResult = await this.TryEnforceStopTimeOptionsAsync(
-                            current.Place, 
-                            next.Place, 
-                            route.Mode, 
-                            departureTimes[t], 
-                            arrivalTimes[t], 
-                            stopTimeOptions);
+                        var leg = new Leg(
+                            from: current.Place,
+                            to: next.Place,
+                            utcDeparture: departureTimes[t],
+                            utcArrival: arrivalTimes[t],
+                            carrier: route.Carrier,
+                            mode: route.Mode,
+                            info: route.Info,
+                            price: this.cultureProvider.ParsePrice(next.Price),
+                            fromSpecific: current.Address,
+                            toSpecific: next.Address,
+                            arrivalEstimated: next.Time.Estimated,
+                            priceEstimated: false);
 
-                        if (enforceResult.Item1)
-                        {
-                            var leg = new Leg(
-                                from: current.Place,
-                                to: next.Place,
-                                utcDeparture: departureTimes[t],
-                                utcArrival: enforceResult.Item2,
-                                carrier: route.Carrier,
-                                mode: route.Mode,
-                                info: route.Info,
-                                price: this.cultureProvider.ParsePrice(next.Price),
-                                fromSpecific: current.Address,
-                                toSpecific: next.Address,
-                                arrivalEstimated: next.Time.Estimated,
-                                priceEstimated: false);
-
-                            schedule.AddLeg(leg);
-                        }
+                        schedule.AddLeg(leg);
                     }
                 }
                 catch (Exception ex)
                 {
-                    this.logger.LogError(ex, current.ToString());
+                    Console.WriteLine($"{ex.Message}: {string.Join(" | ", preprocessedRoute.Stops)}");
+                    //this.logger.LogError(ex, current.ToString());
                 }
             }
 
@@ -90,68 +84,55 @@ namespace Navred.Core.Processing
             return result;
         }
 
-        private Route PreprocessRoute(Route route)
+        private async Task<Route> PreprocessRouteAsync(Route route, StopTimeOptions options)
         {
             Validator.ThrowIfNull(route, "Empty route.");
 
-            var copy = route.Copy();
+            var optionsInvalid = options & StopTimeOptions.EstimateDuplicates & StopTimeOptions.RemoveDuplicates;
 
-            return this.RemoveDuplicateStops(copy);
-        }
-
-        private Route RemoveDuplicateStops(Route route)
-        {
-            var uniqueStops = new HashSet<Stop>(route.Stops);
-            var copy = route.Copy(uniqueStops);
-
-            return copy;
-        }
-
-        private async Task<Tuple<bool, DateTime>> TryEnforceStopTimeOptionsAsync(
-            Place from,
-            Place to,
-            Mode mode,
-            DateTime utcDeparture,
-            DateTime utcArrival,
-            StopTimeOptions options)
-        {
-            if (options == StopTimeOptions.None)
-            {
-                return new Tuple<bool, DateTime>(true, utcArrival);
-            }
-
-            var invalidOptions = 
-                options & 
-                StopTimeOptions.EstimateDuplicates & 
-                StopTimeOptions.RemoveDuplicates;
-
-            if (invalidOptions > 0)
+            if (optionsInvalid > 0)
             {
                 throw new InvalidOperationException("Invalid options.");
             }
 
-            if (options.Matches(StopTimeOptions.RemoveDuplicates) && 
-                utcDeparture.Equals(utcArrival))
+            var copy = route.Copy();
+            copy.Stops = copy.Stops.Select(s =>
             {
-                return new Tuple<bool, DateTime>(false, utcArrival);
+                s.Name = string.IsNullOrWhiteSpace(s.Name) ? "EMPTY" : s.Name;
+
+                return s;
+            }).ToList();
+            copy.Stops = new HashSet<Stop>(route.Stops).ToList();
+            copy.Stops = this.placesManager.DeducePlacesFromStops(
+                this.cultureProvider.Name, copy.Stops, false).ToList();
+            copy.Stops = copy.Stops.Where(s => !s.Place.IsNull()).ToList();
+            var toRemove = new List<Stop>();
+
+            foreach (var (current, next) in copy.Stops.AsPairs())
+            {
+                var departure = DateTime.Now.Date + current.Time.Time;
+                var arrival = DateTime.Now.Date + next.Time.Time;
+
+                if (departure > arrival)
+                {
+                    arrival = await this.estimator.EstimateArrivalTimeAsync(
+                        current.Place, next.Place, departure, route.Mode);
+                    next.Time = arrival.TimeOfDay;
+                }
+
+                if (departure.Equals(arrival) && options.Matches(StopTimeOptions.RemoveDuplicates))
+                {
+                    toRemove.Add(current);
+                }
+                else if (departure.Equals(arrival) && options.Matches(StopTimeOptions.EstimateDuplicates))
+                {
+                    arrival = await this.estimator.EstimateArrivalTimeAsync(
+                        current.Place, next.Place, departure, route.Mode);
+                    next.Time = arrival.TimeOfDay;
+                }
             }
 
-            if (options.Matches(StopTimeOptions.EstimateDuplicates) && 
-                utcDeparture.Equals(utcArrival))
-            {
-                var arrival = await this.estimator.EstimateArrivalTimeAsync(
-                    from, to, utcDeparture, mode);
-
-                return new Tuple<bool, DateTime>(true, arrival);
-            }
-
-            if (options.Matches(StopTimeOptions.AdjustInvalidArrivals) && 
-                utcDeparture > utcArrival)
-            {
-                return new Tuple<bool, DateTime>(true, utcDeparture.AddMinutes(1));
-            }
-
-            return new Tuple<bool, DateTime>(true, utcArrival);
+            return copy;
         }
     }
 }

@@ -88,13 +88,17 @@ namespace Navred.Crawling.Crawlers
                     var times = matches.Select(m => m.Groups[1].Value);
                     var stops = Stop.CreateMany(names, times);
                     var route = new Route(BCP.CountryName, dow, v.Carrier, Mode.Bus, stops, url);
-                    var legs = await this.routeParser.ParseRouteAsync(route);
+                    var legs = await this.routeParser.ParseRouteAsync(
+                        route, 
+                        StopTimeOptions.AdjustInvalidArrivals | 
+                        StopTimeOptions.EstimateDuplicates);
 
                     all.AddRange(legs);
                 }
                 catch (Exception ex)
                 {
-                    this.logger.LogError(ex, r.Ref.Legs);
+                    Console.WriteLine($"{ex.Message}: {r.Ref.Legs}");
+                    //this.logger.LogError(ex, r.Ref.Legs);
                 }
             });
 
@@ -103,7 +107,7 @@ namespace Navred.Crawling.Crawlers
 
         private DaysOfWeek GetDow(string onDays)
         {
-            return onDays switch
+            return onDays.Trim().ToLower() switch
             {
                 "всички дни" => Constants.AllWeek,
                 "всеки ден" => Constants.AllWeek,
