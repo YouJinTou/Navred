@@ -135,6 +135,11 @@ namespace Navred.Core.Processing
             }
 
             copy.Stops = copy.Stops.Except(toRemove).ToList();
+            
+            if (!copy.Stops.IsAscending(s => s.Time.Time))
+            {
+                throw new InvalidOperationException("Unresolvable schedule.");
+            }
 
             return copy;
         }

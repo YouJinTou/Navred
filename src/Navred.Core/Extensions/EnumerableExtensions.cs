@@ -168,5 +168,19 @@ namespace Navred.Core.Extensions
         {
             return new List<T> { obj };
         }
+
+        public static bool IsAscending<T, TKey>(
+            this IEnumerable<T> items, Func<T, TKey> func) where TKey : IComparable<TKey>
+        {
+            foreach (var (current, next) in items.AsPairs())
+            {
+                if ((func(current).CompareTo(func(next))) > 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
