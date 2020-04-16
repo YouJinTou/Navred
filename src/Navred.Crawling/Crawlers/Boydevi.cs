@@ -67,7 +67,6 @@ namespace Navred.Crawling.Crawlers
 
             foreach (var scheduleString in scheduleStrings)
             {
-                var schedule = new Schedule();
                 var dow = this.GetDaysOfWeek(scheduleString);
                 var matches = Regex.Matches(
                     scheduleString, @$"([{BCP.AllLetters} .]+)\s*\((\d+:\d+)\)");
