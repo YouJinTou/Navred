@@ -31,8 +31,8 @@ namespace Navred.Core.Itineraries
                 throw new ArgumentException("Departure after arrival.");
             }
 
-            this.From = Validator.ReturnOrThrowIfNull(from);
-            this.To = Validator.ReturnOrThrowIfNull(to);
+            this.From = Validator.ReturnOrThrowIfNull(from, "Source empty.");
+            this.To = Validator.ReturnOrThrowIfNull(to, "Destination empty.");
             this.FromId = this.From.GetId();
             this.ToId = this.To.GetId();
             this.UtcDeparture = utcDeparture;
