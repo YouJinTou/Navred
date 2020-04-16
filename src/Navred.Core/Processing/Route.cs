@@ -19,22 +19,22 @@ namespace Navred.Core.Processing
             this.Country = Validator.ReturnOrThrowIfNullOrWhiteSpace(country, "Country is empty.");
             this.Mode = mode;
             this.DaysOfWeek = dow;
-            this.Carrier = Validator.ReturnOrThrowIfNullOrWhiteSpace(carrier, "Carrier is empty.");
+            this.Carrier = carrier;
             this.Stops = Validator.ReturnOrThrowIfNullOrEmpty(stops, "Stops empty.").ToList();
             this.Info = info;
         }
 
-        public string Country { get; }
+        public string Country { get; set; }
 
         public Mode Mode { get; set; }
 
-        public DaysOfWeek DaysOfWeek { get; }
+        public DaysOfWeek DaysOfWeek { get; set; }
 
-        public string Carrier { get; }
+        public string Carrier { get; set; }
 
-        public string Info { get; }
+        public string Info { get; set; }
 
-        public IList<Stop> Stops { get; }
+        public IList<Stop> Stops { get; set; }
 
         public Route Copy(IEnumerable<Stop> stops = null)
         {
