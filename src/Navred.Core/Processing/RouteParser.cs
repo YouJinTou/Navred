@@ -125,13 +125,16 @@ namespace Navred.Core.Processing
                 {
                     toRemove.Add(current);
                 }
-                else if (departure.Equals(arrival) && options.Matches(RouteOptions.EstimateDuplicates))
+                else if (departure.Equals(arrival) && 
+                    options.Matches(RouteOptions.EstimateDuplicates))
                 {
                     arrival = await this.estimator.EstimateArrivalTimeAsync(
                         current.Place, next.Place, departure, route.Mode);
                     next.Time = arrival.TimeOfDay;
                 }
             }
+
+            copy.Stops = copy.Stops.Except(toRemove).ToList();
 
             return copy;
         }
