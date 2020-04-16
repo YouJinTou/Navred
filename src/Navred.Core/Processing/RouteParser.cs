@@ -33,7 +33,7 @@ namespace Navred.Core.Processing
         }
 
         public async Task<IEnumerable<Leg>> ParseRouteAsync(
-            Route route, StopTimeOptions stopTimeOptions = StopTimeOptions.None)
+            Route route, RouteOptions stopTimeOptions = RouteOptions.None)
         {
             var preprocessedRoute = await this.PreprocessRouteAsync(route, stopTimeOptions);
             var schedule = new Schedule();
@@ -84,11 +84,12 @@ namespace Navred.Core.Processing
             return result;
         }
 
-        private async Task<Route> PreprocessRouteAsync(Route route, StopTimeOptions options)
+        private async Task<Route> PreprocessRouteAsync(Route route, RouteOptions options)
         {
             Validator.ThrowIfNull(route, "Empty route.");
 
-            var optionsInvalid = options & StopTimeOptions.EstimateDuplicates & StopTimeOptions.RemoveDuplicates;
+            var optionsInvalid = 
+                options & RouteOptions.EstimateDuplicates & RouteOptions.RemoveDuplicates;
 
             if (optionsInvalid > 0)
             {
@@ -120,11 +121,11 @@ namespace Navred.Core.Processing
                     next.Time = arrival.TimeOfDay;
                 }
 
-                if (departure.Equals(arrival) && options.Matches(StopTimeOptions.RemoveDuplicates))
+                if (departure.Equals(arrival) && options.Matches(RouteOptions.RemoveDuplicates))
                 {
                     toRemove.Add(current);
                 }
-                else if (departure.Equals(arrival) && options.Matches(StopTimeOptions.EstimateDuplicates))
+                else if (departure.Equals(arrival) && options.Matches(RouteOptions.EstimateDuplicates))
                 {
                     arrival = await this.estimator.EstimateArrivalTimeAsync(
                         current.Place, next.Place, departure, route.Mode);

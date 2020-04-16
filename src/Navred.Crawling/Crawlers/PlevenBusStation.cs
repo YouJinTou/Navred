@@ -90,8 +90,8 @@ namespace Navred.Crawling.Crawlers
                     var route = new Route(BCP.CountryName, dow, v.Carrier, Mode.Bus, stops, url);
                     var legs = await this.routeParser.ParseRouteAsync(
                         route, 
-                        StopTimeOptions.AdjustInvalidArrivals | 
-                        StopTimeOptions.EstimateDuplicates);
+                        RouteOptions.AdjustInvalidArrivals | 
+                        RouteOptions.EstimateDuplicates);
 
                     all.AddRange(legs);
                 }

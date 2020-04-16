@@ -20,7 +20,7 @@ namespace Navred.Core.Extensions
             return name;
         }
 
-        public static bool Matches(this StopTimeOptions options, StopTimeOptions other)
+        public static bool Matches(this RouteOptions options, RouteOptions other)
         {
             return (options & other) > 0;
         }

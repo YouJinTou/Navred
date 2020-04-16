@@ -88,7 +88,7 @@ namespace Navred.Crawling.Crawlers
                         stops, 
                         isDeparture ? DeparturesUrl : ArrivalsUrl);
                     var legs = await routeParser.ParseRouteAsync(
-                        route, StopTimeOptions.EstimateDepartureOrArrival);
+                        route, RouteOptions.EstimateDepartureOrArrival);
 
                     all.AddRange(legs);
                 }

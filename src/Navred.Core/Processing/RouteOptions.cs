@@ -3,7 +3,7 @@
 namespace Navred.Core.Processing
 {
     [Flags]
-    public enum StopTimeOptions
+    public enum RouteOptions
     {
         None = 0,
         RemoveDuplicates = 1 << 1,

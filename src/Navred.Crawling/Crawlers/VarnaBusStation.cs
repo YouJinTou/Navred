@@ -95,7 +95,7 @@ namespace Navred.Crawling.Crawlers
                             this.cultureProvider.Name, dow, carrier, Mode.Bus, stops, url);
                         var currentLegs = await this.routeParser.ParseRouteAsync(
                             route, 
-                            StopTimeOptions.RemoveDuplicates | StopTimeOptions.AdjustInvalidArrivals);
+                            RouteOptions.RemoveDuplicates | RouteOptions.AdjustInvalidArrivals);
 
                         legs.AddRange(currentLegs);
                     }
