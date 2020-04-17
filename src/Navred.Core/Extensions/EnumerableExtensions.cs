@@ -182,5 +182,17 @@ namespace Navred.Core.Extensions
 
             return true;
         }
+
+        public static IList<IEnumerable<T>> AsLists<T>(
+            this IEnumerable<T> first, params IEnumerable<T>[] lists)
+        {
+            var listOfLists = new List<IEnumerable<T>>();
+
+            listOfLists.Add(first);
+
+            listOfLists.AddRange(lists);
+
+            return listOfLists;
+        }
     }
 }
