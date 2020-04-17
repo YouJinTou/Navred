@@ -81,21 +81,42 @@ namespace Navred.Crawling.Crawlers
                         var dow = this.GetDow(row);
                         var carrier = row.SelectSingleNode(".//a[descendant::i]").InnerText;
                         var info = row.SelectSingleNode(".//span[@class='pinfo']")?.InnerText ?? url;
-                        var times = row.SelectNodes(".//span[@class='time-depart']")
-                            .Select(n => Regex.Matches(n.InnerText, "(\\d{2}:\\d{2})").Last().Groups[1].Value)
+                        var timeMatches = row.SelectNodes(".//span[@class='time-depart']")
+                            .Select(n => Regex.Matches(n.InnerText, "(\\d{2}:\\d{2})"))
                             .ToList();
+                        var departureTimes = 
+                            timeMatches.Select(m => m.First().Groups[1].Value).ToList();
+                        var arrivalTimes = 
+                            timeMatches.Select(m => m.Last().Groups[1].Value).ToList();
+                        var timeLists = departureTimes.AsLists(arrivalTimes, arrivalTimes);
                         var names = row.SelectNodes(".//div[@class='point-name']")
                             .Select(n => this.replacements.GetOrReturn(n.InnerText.Trim().ToLower()))
                             .ToList();
                         var addresses = row.SelectNodes(".//address").Select(n => n.InnerText).ToList();
                         var prices = row.SelectNodes(".//div[@class='point-price-wrap']")
                             .Select(n => n.InnerText).ToList();
-                        var stops = Stop.CreateMany(names, times, prices, addresses);
-                        var route = new Route(
-                            this.cultureProvider.Name, dow, carrier, Mode.Bus, stops, url);
-                        var currentLegs = await this.routeParser.ParseRouteAsync(route);
 
-                        legs.AddRange(currentLegs);
+                        for (int t = 0; t < timeLists.Count; t++)
+                        {
+                            try
+                            {
+                                var stops = Stop.CreateMany(names, timeLists[t], prices, addresses);
+                                var route = new Route(
+                                    this.cultureProvider.Name, dow, carrier, Mode.Bus, stops, url);
+                                var currentLegs = await this.routeParser.ParseRouteAsync(route);
+
+                                legs.AddRange(currentLegs);
+
+                                break;
+                            }
+                            catch
+                            {
+                                if (t >= timeLists.Count)
+                                {
+                                    throw;
+                                }
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
