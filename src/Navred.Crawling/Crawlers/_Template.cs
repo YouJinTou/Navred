@@ -3,7 +3,8 @@ using Microsoft.Extensions.Logging;
 using Navred.Core.Abstractions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
-using Navred.Core.Places;
+using Navred.Core.Models;
+using Navred.Core.Processing;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,14 +16,14 @@ namespace Navred.Crawling.Crawlers
         private const string DeparturesUrl = "URL";
         private const string ArrivalsUrl = "URL";
 
-        private readonly IPlacesManager placesManager;
+        private readonly IRouteParser routeParser;
         private readonly ILegRepository repo;
         private readonly ILogger<Template> logger;
 
         public Template(
-            IPlacesManager placesManager, ILegRepository repo, ILogger<Template> logger)
+            IRouteParser routeParser, ILegRepository repo, ILogger<Template> logger)
         {
-            this.placesManager = placesManager;
+            this.routeParser = routeParser;
             this.repo = repo;
             this.logger = logger;
         }
@@ -49,6 +50,8 @@ namespace Navred.Crawling.Crawlers
         {
             var web = new HtmlWeb();
             var doc = await web.LoadFromWebAsync(url);
+            var route = new Route(
+                "country", DaysOfWeek.Empty, "carrier", Mode.Bus, Stop.CreateMany(null, null), "info");
             var legs = new List<Leg>();
 
 
