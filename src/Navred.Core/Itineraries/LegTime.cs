@@ -69,21 +69,23 @@ namespace Navred.Core.Itineraries
         private TimeSpan TimeToTimeSpan(string time)
         {
             var formattedTime = time.Trim();
+            var pattern = @"\d{1,2}([:.])\d{1,2}";
 
-            if (!Regex.IsMatch(formattedTime, @"\d{1,2}:\d{1,2}"))
+            if (!Regex.IsMatch(formattedTime, pattern))
             {
                 throw new ArgumentException(
                     $"{nameof(time)} must be in the dd:dd format, where 'd' is a digit.");
             }
 
-            var hours = int.Parse(formattedTime.Split(':')[0]);
+            var separator = Regex.Match(formattedTime, pattern).Groups[1].Value;
+            var hours = int.Parse(formattedTime.Split(separator)[0]);
 
             if (hours >= 24)
             {
                 throw new ArgumentException("Hours must be up to 23, inclusive.");
             }
 
-            var minutes = int.Parse(formattedTime.Split(':')[1]);
+            var minutes = int.Parse(formattedTime.Split(separator)[1]);
 
             if (minutes >= 60)
             {
