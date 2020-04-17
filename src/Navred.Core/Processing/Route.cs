@@ -1,7 +1,6 @@
 ﻿using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Models;
-using Navred.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +18,11 @@ namespace Navred.Core.Processing
             string info,
             IEnumerable<Stop> banned = null)
         {
-            this.Country = Validator.ReturnOrThrowIfNullOrWhiteSpace(country, "Country is empty.");
+            this.Country = country.ReturnOrThrowIfNullOrWhiteSpace("Country is empty.");
             this.Mode = mode;
             this.DaysOfWeek = dow;
             this.Carrier = carrier;
-            this.Stops = Validator.ReturnOrThrowIfNullOrEmpty(stops, "Stops empty.").ToList();
+            this.Stops = stops.ReturnOrThrowIfNullOrEmpty("Stops empty.").ToList();
             this.Banned = new HashSet<Stop>(
                 banned ?? new List<Stop>(), new StopNameEqualityComparer());
             this.Info = info;

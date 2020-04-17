@@ -1,5 +1,4 @@
 ﻿using Navred.Core.Extensions;
-using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -95,7 +94,7 @@ namespace Navred.Core.Search.Algorithms
 
         private Result DoPass(Graph g)
         {
-            Validator.ThrowIfNull(g, "Graph is empty.");
+            g.ThrowIfNull("Graph is empty.");
 
             var unvisited = new HashSet<Vertex>(g.Vertices);
             var distances = g.Vertices.ToDictionary(kvp => kvp, kvp => Weight.Max);

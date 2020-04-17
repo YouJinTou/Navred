@@ -1,5 +1,5 @@
 ﻿using Navred.Core.Abstractions;
-using Navred.Core.Tools;
+using Navred.Core.Extensions;
 using System;
 using System.Text.RegularExpressions;
 
@@ -19,7 +19,7 @@ namespace Navred.Core.Itineraries
 
         public LegTime(string time, bool estimated = false)
         {
-            this.Time = this.TimeToTimeSpan(Validator.ReturnOrThrowIfNullOrWhiteSpace(time));
+            this.Time = this.TimeToTimeSpan(time.ReturnOrThrowIfNullOrWhiteSpace());
             this.Estimated = estimated;
         }
 

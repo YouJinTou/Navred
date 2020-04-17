@@ -5,7 +5,6 @@ using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Models;
 using Navred.Core.Places;
-using Navred.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,7 +88,7 @@ namespace Navred.Core.Processing
 
         private async Task<Route> PreprocessRouteAsync(Route route)
         {
-            Validator.ThrowIfNull(route, "Empty route.");
+            route.ThrowIfNull("Empty route.");
 
             var copy = route.Copy();
             copy = copy.TagEmptyStops();

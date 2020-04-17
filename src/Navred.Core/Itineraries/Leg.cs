@@ -1,7 +1,6 @@
 ﻿using Navred.Core.Abstractions;
 using Navred.Core.Extensions;
 using Navred.Core.Places;
-using Navred.Core.Tools;
 using System;
 
 namespace Navred.Core.Itineraries
@@ -31,8 +30,8 @@ namespace Navred.Core.Itineraries
                 throw new ArgumentException("Departure after arrival.");
             }
 
-            this.From = Validator.ReturnOrThrowIfNull(from, "Source empty.");
-            this.To = Validator.ReturnOrThrowIfNull(to, "Destination empty.");
+            this.From = from.ReturnOrThrowIfNull("Source empty.");
+            this.To = to.ReturnOrThrowIfNull("Destination empty.");
             this.FromId = this.From.GetId();
             this.ToId = this.To.GetId();
             this.UtcDeparture = utcDeparture;
@@ -96,7 +95,7 @@ namespace Navred.Core.Itineraries
         public bool TryMergeWith(Leg other, out Leg merged)
         {
             var isValidMerge =
-                !Validator.IsNull(other) &&
+                !other.IsNull() &&
                 (this.UtcDeparture < other.UtcArrival) &&
                 this.To.Equals(other.From) &&
                 this.Carrier.Equals(other.Carrier) &&

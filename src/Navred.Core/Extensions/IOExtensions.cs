@@ -1,5 +1,4 @@
-﻿using Navred.Core.Tools;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 
 namespace Navred.Core.Extensions
@@ -11,7 +10,7 @@ namespace Navred.Core.Extensions
             var cwd = Directory.GetCurrentDirectory();
             var path = GetFilePathRecursive(cwd, fileName);
 
-            Validator.ThrowIfNullOrWhiteSpace(path, $"File path not found: {fileName}");
+            path.ThrowIfNullOrWhiteSpace($"File path not found: {fileName}");
 
             return path;
         }

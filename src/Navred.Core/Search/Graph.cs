@@ -1,7 +1,5 @@
 ﻿using Navred.Core.Abstractions;
 using Navred.Core.Extensions;
-using Navred.Core.Search.Algorithms;
-using Navred.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,8 +13,8 @@ namespace Navred.Core.Search
             IEnumerable<Vertex> vertices,
             IEnumerable<Edge> edges)
         {
-            this.Source = Validator.ReturnOrThrowIfNull(source);
-            this.Destination = Validator.ReturnOrThrowIfNull(destination);
+            this.Source = source.ReturnOrThrowIfNull();
+            this.Destination = destination.ReturnOrThrowIfNull();
             this.Vertices = vertices ?? new List<Vertex>();
             this.Edges = edges ?? new List<Edge>();
 

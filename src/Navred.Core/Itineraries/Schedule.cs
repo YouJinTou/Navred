@@ -1,6 +1,5 @@
 ﻿using Navred.Core.Extensions;
 using Navred.Core.Places;
-using Navred.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +39,7 @@ namespace Navred.Core.Itineraries
 
         public void AddLeg(Leg leg)
         {
-            Validator.ThrowIfNull(leg);
+            leg.ThrowIfNull("Leg empty.");
 
             if (leg.IsZeroLength())
             {

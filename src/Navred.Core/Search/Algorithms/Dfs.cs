@@ -1,4 +1,4 @@
-﻿using Navred.Core.Tools;
+﻿using Navred.Core.Extensions;
 using System.Threading.Tasks;
 
 namespace Navred.Core.Search.Algorithms
@@ -7,7 +7,7 @@ namespace Navred.Core.Search.Algorithms
     {
         public GraphSearchResult FindAllPaths(Graph g)
         {
-            Validator.ThrowIfNull(g, "Graph is empty.");
+            g.ThrowIfNull("Graph is empty.");
 
             var result = new GraphSearchResult();
 

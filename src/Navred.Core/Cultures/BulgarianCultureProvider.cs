@@ -1,6 +1,5 @@
 ﻿using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
-using Navred.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -230,7 +229,7 @@ namespace Navred.Core.Cultures
 
         public DaysOfWeek ToDaysOfWeek(string dayString)
         {
-            Validator.ThrowIfNullOrWhiteSpace(dayString, "Empty day string.");
+            dayString.ThrowIfNullOrWhiteSpace("Empty day string.");
 
             var d = dayString.Trim().ToLower();
 

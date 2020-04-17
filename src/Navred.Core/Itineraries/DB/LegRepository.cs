@@ -8,7 +8,6 @@ using Navred.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Navred.Core.Itineraries.DB
@@ -57,7 +56,7 @@ namespace Navred.Core.Itineraries.DB
 
         public async Task UpdateLegsAsync(IEnumerable<Leg> legs)
         {
-            Validator.ThrowIfNull(legs);
+            legs.ThrowIfNull("Legs empty.");
 
             var dbLegs = this.GetDBLegs(legs);
 

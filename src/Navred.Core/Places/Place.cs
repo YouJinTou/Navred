@@ -21,7 +21,7 @@ namespace Navred.Core.Places
 
         public static implicit operator Place(string id)
         {
-            Validator.ThrowIfNullOrWhiteSpace(id, "Cannot create a place from an empty ID.");
+            id.ThrowIfNullOrWhiteSpace("Cannot create a place from an empty ID.");
 
             var tokens = id.Split('|');
             var place = new Place

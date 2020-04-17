@@ -44,7 +44,7 @@ namespace Navred.Core.Places
 
         public IEnumerable<Place> LoadPlacesFor(string country)
         {
-            Validator.ThrowIfNullOrWhiteSpace(country);
+            country.ThrowIfNullOrWhiteSpace("Country is empty.");
 
             if (this.cache.ContainsKey(country))
             {
@@ -71,7 +71,7 @@ namespace Navred.Core.Places
         public async Task<IEnumerable<Place>> UpdateCoordinatesForCountryAsync(
             string country)
         {
-            Validator.ThrowIfNullOrWhiteSpace(country);
+            country.ThrowIfNullOrWhiteSpace("Country is empty.");
 
             var places = this.LoadPlacesFor(country);
             var client = httpClientFactory.CreateClient();

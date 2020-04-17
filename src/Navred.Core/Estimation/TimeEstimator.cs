@@ -37,7 +37,7 @@ namespace Navred.Core.Estimation
         public async Task<DateTime> EstimateDepartureTimeAsync(
             Place from, Place to, DateTime arrival, Mode mode)
         {
-            Validator.THrowIfAnyNull(from, to);
+            Validator.ThrowIfAnyNull(from, to);
 
             var departure = await Task.FromResult(
                 this.EstimateManually(from, to, arrival, mode, false));
