@@ -36,18 +36,22 @@ namespace Navred.Core.Processing
         {
             var preprocessedRoute = await this.PreprocessRouteAsync(route);
             var schedule = new Schedule();
+            var date = DateTime.UtcNow.AddDays(1).Date;
 
             foreach (var (current, next) in preprocessedRoute.Stops.AsPairs())
             {
                 try
                 {
                     var departureTimes = route.DaysOfWeek.GetValidUtcTimesAhead(
-                        current.Time,
+                        date + current.Time.Time,
                         Constants.CrawlLookaheadDays,
                         this.cultureProvider.GetHolidays())
                         .ToList();
+                    date = (current.Time > next.Time) ?
+                        departureTimes[0].Date.ReturnBigger(date).AddDays(1) : 
+                        departureTimes[0].Date.ReturnBigger(date);
                     var arrivalTimes = route.DaysOfWeek.GetValidUtcTimesAhead(
-                        next.Time,
+                        date + next.Time.Time,
                         Constants.CrawlLookaheadDays,
                         this.cultureProvider.GetHolidays())
                         .ToList();
