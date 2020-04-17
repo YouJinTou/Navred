@@ -75,7 +75,8 @@ namespace Navred.Core.Models
             IEnumerable<string> prices = null,
             IEnumerable<string> addresses = null,
             IEnumerable<string> timesToMarkAsEstimable = null,
-            bool ignoreEmptyTimes = false)
+            bool ignoreEmptyTimes = false,
+            IEnumerable<string> regions = null)
         {
             if (!names.Count().Equals(times.Count()))
             {
@@ -92,10 +93,16 @@ namespace Navred.Core.Models
                 throw new ArgumentException("Prices count mismatch.");
             }
 
+            if (!regions.IsNullOrEmpty() && !regions.Count().Equals(names.Count()))
+            {
+                throw new ArgumentException("Regions count mismatch.");
+            }
+
             var namesList = names.ToList();
             var timesList = times.ToList();
             var pricesList = prices?.ToList();
             var addressesList = addresses?.ToList();
+            var regionsList = regions?.ToList();
             var stops = new List<Stop>();
 
             for (int i = 0; i < namesList.Count; i++)
@@ -111,7 +118,7 @@ namespace Navred.Core.Models
 
                 stops.Add(new Stop(
                     namesList[i].Trim(),
-                    null,
+                    regionsList?[i]?.Trim(),
                     null,
                     legTime,
                     addressesList?[i]?.Trim(),
