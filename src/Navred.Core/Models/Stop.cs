@@ -110,12 +110,12 @@ namespace Navred.Core.Models
                     LegTime.Estimable : timesList[i];
 
                 stops.Add(new Stop(
-                    namesList[i],
+                    namesList[i].Trim(),
                     null,
                     null,
                     legTime,
-                    addressesList?[i],
-                    pricesList?[i]));
+                    addressesList?[i]?.Trim(),
+                    pricesList?[i]?.Trim()));
             }
 
             return stops;
