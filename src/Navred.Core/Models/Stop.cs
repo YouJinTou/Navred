@@ -74,6 +74,7 @@ namespace Navred.Core.Models
             IEnumerable<string> times,
             IEnumerable<string> prices = null,
             IEnumerable<string> addresses = null,
+            IEnumerable<string> timesToMarkAsEstimable = null,
             bool ignoreEmptyTimes = false)
         {
             if (!names.Count().Equals(times.Count()))
@@ -104,11 +105,15 @@ namespace Navred.Core.Models
                     continue;
                 }
 
+                var legTime = string.IsNullOrWhiteSpace(timesList[i]) ? LegTime.Estimable : 
+                    timesToMarkAsEstimable?.Contains(timesList[i]) ?? false ? 
+                    LegTime.Estimable : timesList[i];
+
                 stops.Add(new Stop(
                     namesList[i],
                     null,
                     null,
-                    string.IsNullOrWhiteSpace(timesList[i]) ? LegTime.Estimable : timesList[i],
+                    legTime,
                     addressesList?[i],
                     pricesList?[i]));
             }

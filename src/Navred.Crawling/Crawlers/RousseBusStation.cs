@@ -95,7 +95,8 @@ namespace Navred.Crawling.Crawlers
             var names = doc.DocumentNode.SelectNodes("//div[@class='panel style1']//a")
                .Select(a => a.InnerText).ToList();
             var (times, prices) = this.GetStopData(doc.DocumentNode, rev);
-            var stops = Stop.CreateMany(names, times, prices);
+            var stops = Stop.CreateMany(
+                names, times, prices, timesToMarkAsEstimable: new[] { "00:00" });
             var route = new Route(this.cultureProvider.Name, dow, carrier, Mode.Bus, stops, info);
             var legs = await this.routeParser.ParseRouteAsync(route);
 
