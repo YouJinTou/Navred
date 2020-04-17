@@ -162,14 +162,14 @@ namespace Navred.Core.Processing
             return this;
         }
 
-        public Route Copy()
+        public Route Copy(DaysOfWeek? dow = null, IEnumerable<Stop> stops = null)
         {
             return new Route(
                 this.Country,
-                this.DaysOfWeek,
+                dow ?? this.DaysOfWeek,
                 this.Carrier,
                 this.Mode,
-                this.Stops.Select(s => s.Copy()),
+                stops ?? this.Stops.Select(s => s.Copy()),
                 this.Info,
                 this.Banned);
         }
