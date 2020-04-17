@@ -37,6 +37,16 @@ namespace Navred.Core.Itineraries
             return new LegTime(timeSpan.ToString());
         }
 
+        public static bool operator <(LegTime left, LegTime right)
+        {
+            return left.Time < right.Time;
+        }
+
+        public static bool operator >(LegTime left, LegTime right)
+        {
+            return left.Time > right.Time;
+        }
+
         public override string ToString()
         {
             return this.Time.ToString();
