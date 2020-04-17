@@ -47,7 +47,7 @@ namespace Navred.Core.Processing
         {
             get
             {
-                var currentDate = DateTime.Now.Date;
+                var currentDate = DateTime.UtcNow.Date;
                 var times = this.Stops.Select(s => s.Time.Time);
                 var lastTime = times.First();
                 var dateTimes = new List<DateTime>();
@@ -128,6 +128,7 @@ namespace Navred.Core.Processing
 
             var estimables = this.Estimables;
             var copy = this.Copy();
+            var toRemove = new List<int>();
 
             for (int s = 0; s < this.Stops.Count; s++)
             {
@@ -135,12 +136,20 @@ namespace Navred.Core.Processing
                 {
                     copy.Stops.RemoveAt(s);
 
+                    toRemove.Add(s);
+
                     if (copy.IsValid)
                     {
-                        this.Stops.RemoveAt(s);
-
                         break;
                     }
+                }
+            }
+
+            if (copy.IsValid)
+            {
+                foreach (var idx in toRemove)
+                {
+                    this.Stops.RemoveAt(idx);
                 }
             }
 
