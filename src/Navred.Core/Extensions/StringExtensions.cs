@@ -29,7 +29,7 @@ namespace Navred.Core.Extensions
             return result;
         }
 
-        public static string ReplaceTokens(this string s, IEnumerable<string> replaces)
+        public static string ReplaceTokens(this string s, IEnumerable<string> replacements)
         {
             var tokens = s.Split(" ");
             var result = new List<string>();
@@ -38,7 +38,7 @@ namespace Navred.Core.Extensions
             {
                 var current = t;
 
-                foreach (var r in replaces)
+                foreach (var r in replacements)
                 {
                     current = current.Replace(r, string.Empty);
                 }
