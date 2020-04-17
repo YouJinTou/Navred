@@ -88,20 +88,17 @@ namespace Navred.Core.Processing
             Validator.ThrowIfNull(route, "Empty route.");
 
             var copy = route.Copy();
+            copy = copy.TagEmptyStops();
+            copy = copy.RemoveDuplicates();
+            copy = copy.RemoveBanned();
+            var deduced = this.placesManager.DeducePlacesFromStops(
+                this.cultureProvider.Name, copy.Stops, false).ToList();
+            copy = copy.SetStops(deduced);
+            copy = copy.RemovePlaceless();
+            copy = await this.FixTimelineAsync(copy);
+            copy = copy.RemoveOffendingEstimables();
 
-            this.TagEmptyStops(copy);
-
-            this.RemoveDuplicates(copy);
-
-            this.RemoveBanned(copy);
-
-            this.DeducePlaces(copy);
-
-            this.RemoveNotFound(copy);
-
-            await this.FixTimelineAsync(copy);
-
-            if (!copy.Stops.IsAscending(s => s.Time.Time))
+            if (!copy.IsValid)
             {
                 throw new InvalidOperationException(
                     $"Unresolvable schedule: {string.Join(" | ", copy.Stops)}");
@@ -109,53 +106,9 @@ namespace Navred.Core.Processing
 
             return copy;
         }
-
-        private void RemoveBanned(Route route)
+        
+        private async Task<Route> FixTimelineAsync(Route route)
         {
-            route.Stops = route.Stops.Except(route.Banned, new StopNameEqualityComparer()).ToList();
-        }
-
-        private void TagEmptyStops(Route route)
-        {
-            route.Stops = route.Stops.Select(s =>
-            {
-                s.Name = string.IsNullOrWhiteSpace(s.Name) ? "EMPTY" : s.Name;
-
-                return s;
-            }).ToList();
-        }
-
-        private void RemoveDuplicates(Route route)
-        {
-            var reversed = route.Stops.Reverse();
-            reversed = new HashSet<Stop>(
-                reversed, new StopTimeEqualityComparer()).ToList();
-            var duplicatesWithEstimableTimes = reversed
-                .GroupBy(s => s.CompositeName)
-                .Where(g => g.Count() > 1)
-                .SelectMany(g => g)
-                .Where(s => s.Time.Equals(LegTime.Estimable))
-                .ToList();
-            reversed = reversed.Except(
-                duplicatesWithEstimableTimes, new StopTimeEqualityComparer()).ToList();
-            reversed = new HashSet<Stop>(reversed, new StopNameEqualityComparer()).ToList();
-            route.Stops = reversed.Reverse().ToList();
-        }
-
-        private void DeducePlaces(Route route) =>
-            route.Stops = this.placesManager.DeducePlacesFromStops(
-                this.cultureProvider.Name, route.Stops, false).ToList();
-
-        private void RemoveNotFound(Route route) =>
-            route.Stops = route.Stops.Where(s => !s.Place.IsNull()).ToList();
-
-        private async Task FixTimelineAsync(Route route)
-        {
-            var estimables = route.Stops
-                .Where(s => s.Time.Equals(LegTime.Estimable))
-                .Select(s => s.Copy())
-                .ToList();
-
             foreach (var (current, next) in route.Stops.AsPairs())
             {
                 var departure = DateTime.Now.Date + current.Time.Time;
@@ -177,8 +130,8 @@ namespace Navred.Core.Processing
                     next.Time.Estimated = true;
                 }
 
-                if (departure > arrival &&
-                    !estimables.Contains(current, new StopNameEqualityComparer()))
+                if (departure > arrival && 
+                    !route.Estimables.Contains(current, new StopNameEqualityComparer()))
                 {
                     arrival = await this.estimator.EstimateArrivalTimeAsync(
                         current.Place, next.Place, departure, route.Mode);
@@ -194,6 +147,8 @@ namespace Navred.Core.Processing
                     next.Time.Estimated = true;
                 }
             }
+
+            return route;
         }
     }
 }
