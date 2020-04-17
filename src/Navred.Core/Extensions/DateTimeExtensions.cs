@@ -11,7 +11,7 @@ namespace Navred.Core.Extensions
     {
         public static IEnumerable<DateTime> GetValidUtcTimesAhead(
             this DaysOfWeek dow,
-            LegTime legTime,
+            DateTime from,
             int daysAhead,
             IEnumerable<DateTime> holidays = null)
         {
@@ -29,14 +29,15 @@ namespace Navred.Core.Extensions
             }
 
             var offset = DateTimeOffset.Now;
-            var firstDate = GetFirstAvailableUtcDate(dow);
+            var firstDate = GetFirstAvailableUtcDate(dow, from);
             var times = new HashSet<DateTime>();
             holidays = holidays ?? new List<DateTime>();
+            var day = 0;
 
-            for (int d = 0; d < daysAhead; d++)
+            while (times.Count < daysAhead)
             {
-                var currentDate = firstDate.AddDays(d);
-                var time = currentDate.Date + legTime.Time - offset.Offset;
+                var currentDate = firstDate.AddDays(day);
+                var time = currentDate.Date + from.TimeOfDay - offset.Offset;
 
                 if (excludeHolidays && holidays.Contains(currentDate))
                 {
@@ -51,6 +52,8 @@ namespace Navred.Core.Extensions
                 {
                     times.Add(time);
                 }
+
+                day++;
             }
 
             return times;
@@ -105,15 +108,6 @@ namespace Navred.Core.Extensions
             return utcDt;
         }
 
-        public static DateTime ToUtcDateTime(this DateTime dt, string fromTimeZone)
-        {
-            var unspecified = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
-            var sourceTimeZone = TZConvert.GetTimeZoneInfo(fromTimeZone);
-            var utcDt = TimeZoneInfo.ConvertTimeToUtc(unspecified, sourceTimeZone);
-
-            return utcDt;
-        }
-
         public static IEnumerable<DateTime> GetDateTimesAhead(
             this DateTime dt, int daysAhead, bool currentInclusive = false)
         {
@@ -135,19 +129,14 @@ namespace Navred.Core.Extensions
             return new DateTimeTz(dt, Constants.UtcTimeZone);
         }
 
-        public static TimeSpan AddMinutes(this TimeSpan ts, int minutes)
-        {
-            return ts + TimeSpan.FromMinutes(minutes);
-        }
-
-        public static DateTime GetFirstAvailableUtcDate(this DaysOfWeek dow)
+        public static DateTime GetFirstAvailableUtcDate(this DaysOfWeek dow, DateTime from)
         {
             if (dow.Equals(DaysOfWeek.Empty))
             {
                 throw new InvalidOperationException("Days of week is empty.");
             }
 
-            var current = DateTime.UtcNow.Date;
+            var current = from;
 
             while (true)
             {
@@ -158,11 +147,6 @@ namespace Navred.Core.Extensions
 
                 current = current.AddDays(1);
             }
-        }
-
-        public static DateTime ToUtcDateTimeDate(this TimeSpan ts, DateTime dt)
-        {
-            return dt.Date + ts - DateTimeOffset.Now.Offset;
         }
 
         // https://www.codeproject.com/Articles/10860/Calculating-Christian-Holidays
