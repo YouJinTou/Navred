@@ -111,7 +111,7 @@ namespace Navred.Crawling.Crawlers.Regions
                 { "разград", BCP.Region.RAZ },
             };
 
-            return regionByPlace.ContainsKey(formattedTo) ? regionByPlace[formattedTo] : null;
+            return regionByPlace.GetOrDefault(formattedTo);
         }
     }
 }
