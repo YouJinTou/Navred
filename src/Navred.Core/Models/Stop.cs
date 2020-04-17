@@ -73,7 +73,8 @@ namespace Navred.Core.Models
             IEnumerable<string> names,
             IEnumerable<string> times,
             IEnumerable<string> prices = null,
-            IEnumerable<string> addresses = null)
+            IEnumerable<string> addresses = null,
+            bool ignoreEmptyTimes = false)
         {
             if (!names.Count().Equals(times.Count()))
             {
@@ -98,6 +99,11 @@ namespace Navred.Core.Models
 
             for (int i = 0; i < namesList.Count; i++)
             {
+                if (string.IsNullOrWhiteSpace(timesList[i]) && ignoreEmptyTimes)
+                {
+                    continue;
+                }
+
                 stops.Add(new Stop(
                     namesList[i],
                     null,

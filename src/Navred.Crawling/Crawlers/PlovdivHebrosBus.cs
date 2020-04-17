@@ -52,8 +52,6 @@ namespace Navred.Crawling.Crawlers
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
 
-                await this.ProcessAsync("http://hebrosbus.com/bg/pages/route-details/.6/100000794/10/0/67653/56784/1/");
-
                 await this.ProcessAsync(FromHisaryaUrl);
 
                 await this.UpdateLegsAsync(ids, true);
@@ -127,7 +125,7 @@ namespace Navred.Crawling.Crawlers
                 var prices = doc.DocumentNode
                     .SelectNodes("//table[@class='route_table']//td[position() mod 5 = 0]")
                     .Select(t => t.InnerText).ToList();
-                var stops = Stop.CreateMany(names, allStopTimes, prices, addresses);
+                var stops = Stop.CreateMany(names, allStopTimes, prices, addresses, true);
                 var route = new Route(
                     BCP.CountryName, 
                     dow, 
