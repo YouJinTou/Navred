@@ -2,6 +2,7 @@
 using Navred.Core.Itineraries;
 using Navred.Core.Models;
 using Navred.Core.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -42,10 +43,34 @@ namespace Navred.Core.Processing
 
         public ICollection<Stop> Banned { get; set; }
 
-        public bool IsValid => this.Stops.IsAscending(s => s.Time.Time);
+        public bool IsValid
+        {
+            get
+            {
+                var currentDate = DateTime.Now.Date;
+                var times = this.Stops.Select(s => s.Time.Time);
+                var lastTime = times.First();
+                var dateTimes = new List<DateTime>();
+
+                foreach (var time in times)
+                {
+                    if (lastTime > time)
+                    {
+                        currentDate = currentDate.AddDays(1);
+                        lastTime = time;
+                    }
+
+                    dateTimes.Add(currentDate + time);
+                }
+
+                var isValid = dateTimes.IsAscending(d => d);
+
+                return isValid;
+            }
+        }
 
         public ICollection<Stop> Estimables => this.Stops
-            .Where(s => s.Time.Equals(LegTime.Estimable))
+            .Where(s => s.Time.Equals(LegTime.Estimable) || s.Time.Estimated)
             .Select(s => s.Copy())
             .ToList();
 
@@ -102,13 +127,12 @@ namespace Navred.Core.Processing
             }
 
             var estimables = this.Estimables;
+            var copy = this.Copy();
 
             for (int s = 0; s < this.Stops.Count; s++)
             {
                 if (estimables.Contains(this.Stops[s], new StopNameEqualityComparer()))
                 {
-                    var copy = this.Copy();
-
                     copy.Stops.RemoveAt(s);
 
                     if (copy.IsValid)
