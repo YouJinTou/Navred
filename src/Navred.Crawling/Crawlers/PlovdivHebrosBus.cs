@@ -27,7 +27,6 @@ namespace Navred.Crawling.Crawlers
         private readonly ICultureProvider cultureProvider;
         private readonly ILogger<PlovdivHebrosBus> logger;
         private readonly string scrapeIdsUrl;
-        private readonly ICollection<string> bannedPlaces;
 
         public PlovdivHebrosBus(
             IRouteParser routeParser,
@@ -40,7 +39,6 @@ namespace Navred.Crawling.Crawlers
             this.cultureProvider = cultureProvider;
             this.logger = logger;
             this.scrapeIdsUrl = string.Format(Url, "-1", "450");
-            this.bannedPlaces = new HashSet<string> { "Точиларци" };
         }
 
         public async Task UpdateLegsAsync()
@@ -53,6 +51,8 @@ namespace Navred.Crawling.Crawlers
                     .Select(n => n.GetAttributeValue("value", null))
                     .Where(v => !string.IsNullOrWhiteSpace(v) && !v.Equals(PlovdivId))
                     .ToList();
+
+                await this.ProcessAsync("http://hebrosbus.com/bg/pages/route-details/.6/100000794/10/0/67653/56784/1/");
 
                 await this.ProcessAsync(FromHisaryaUrl);
 
@@ -84,19 +84,12 @@ namespace Navred.Crawling.Crawlers
 
                     await detailLinks.RunBatchesAsync(10, async (l) =>
                     {
-                        try
-                        {
-                            var legs = await this.ProcessAsync(l);
+                        var legs = await this.ProcessAsync(l);
 
-                            all.AddRange(legs);
-                        }
-                        catch (Exception ex)
-                        {
-                            this.logger.LogError(ex, $"{l} failed.");
-                        }
+                        all.AddRange(legs);
                     }, delayBetweenBatches: 1000, delayBetweenBatchItems: 100);
 
-                    await this.repo.UpdateLegsAsync(all);
+                    //await this.repo.UpdateLegsAsync(all);
                 }
                 catch (Exception ex)
                 {
@@ -107,36 +100,53 @@ namespace Navred.Crawling.Crawlers
 
         private async Task<IEnumerable<Leg>> ProcessAsync(string link)
         {
-            var web = new HtmlWeb();
-            var doc = await web.LoadFromWebAsync(link);
-            var carrier = doc.DocumentNode
-                .SelectNodes("//span[@class='route_details_row']")?[2]?.InnerText;
-            var daysOfWeekStrings = doc.DocumentNode
-                .SelectNodes("//span[@class='route_details_row bold_text']").Skip(4)
-                .Select(n => n.InnerText)
-                .ToList();
-            var dow = this.cultureProvider.ToDaysOfWeek(daysOfWeekStrings);
-            var addresses = doc.DocumentNode.SelectNodes(
-                "//td[@class='cityColumn' and position() mod 2 = 0]").Select(s => s.InnerText);
-            var names = doc.DocumentNode.SelectNodes(
-                "//td[@class='cityColumn' and position() mod 2 = 1]").Select(s => s.InnerText);
-            var firstStopTime = doc.DocumentNode
-                .SelectNodes("//table[@class='route_table']//td[position() mod 4 = 0]")
-                .First().InnerText;
-            var times = doc.DocumentNode
-                .SelectNodes("//table[@class='route_table']//td[position() mod 3 = 0]")
-                .Select(t => t.InnerText)
-                .Skip(1)
-                .ToList();
-            var allStopTimes = firstStopTime.AsList().Concat(times);
-            var prices = doc.DocumentNode
-                .SelectNodes("//table[@class='route_table']//td[position() mod 5 = 0]")
-                .Select(t => t.InnerText).ToList();
-            var stops = Stop.CreateMany(names, allStopTimes, prices, addresses);
-            var route = new Route(BCP.CountryName, dow, carrier, Mode.Bus, stops, link);
-            var legs = await this.routeParser.ParseRouteAsync(route);
+            try
+            {
+                var web = new HtmlWeb();
+                var doc = await web.LoadFromWebAsync(link);
+                var carrier = doc.DocumentNode
+                    .SelectNodes("//span[@class='route_details_row']")?[2]?.InnerText;
+                var daysOfWeekStrings = doc.DocumentNode
+                    .SelectNodes("//span[@class='route_details_row bold_text']").Skip(4)
+                    .Select(n => n.InnerText)
+                    .ToList();
+                var dow = this.cultureProvider.ToDaysOfWeek(daysOfWeekStrings);
+                var addresses = doc.DocumentNode.SelectNodes(
+                    "//td[@class='cityColumn' and position() mod 2 = 0]").Select(s => s.InnerText);
+                var names = doc.DocumentNode.SelectNodes(
+                    "//td[@class='cityColumn' and position() mod 2 = 1]").Select(s => s.InnerText);
+                var firstStopTime = doc.DocumentNode
+                    .SelectNodes("//table[@class='route_table']//td[position() mod 4 = 0]")
+                    .First().InnerText;
+                var times = doc.DocumentNode
+                    .SelectNodes("//table[@class='route_table']//td[position() mod 3 = 0]")
+                    .Select(t => t.InnerText)
+                    .Skip(1)
+                    .ToList();
+                var allStopTimes = firstStopTime.AsList().Concat(times);
+                var prices = doc.DocumentNode
+                    .SelectNodes("//table[@class='route_table']//td[position() mod 5 = 0]")
+                    .Select(t => t.InnerText).ToList();
+                var stops = Stop.CreateMany(names, allStopTimes, prices, addresses);
+                var route = new Route(
+                    BCP.CountryName, 
+                    dow, 
+                    carrier, 
+                    Mode.Bus, 
+                    stops, 
+                    link, 
+                    Stop.CreateBanned("Чуката", "Точиларци"));
+                var legs = await this.routeParser.ParseRouteAsync(route);
 
-            return legs;
+                return legs;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex.Message}: {link}");
+                //this.logger.LogError(ex, $"{link} failed.");
+
+                return new List<Leg>();
+            }
         }
     }
 }

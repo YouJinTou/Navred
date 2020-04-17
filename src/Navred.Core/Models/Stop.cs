@@ -1,4 +1,5 @@
-﻿using Navred.Core.Extensions;
+﻿using Navred.Core.Abstractions;
+using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Places;
 using System;
@@ -7,8 +8,26 @@ using System.Linq;
 
 namespace Navred.Core.Models
 {
-    public class Stop
+    public class Stop : ICopyable<Stop>
     {
+        public Stop(
+            string name, 
+            string region, 
+            string municipality, 
+            LegTime time, 
+            string address, 
+            string price, 
+            Place place = null)
+        {
+            this.Name = name;
+            this.Region = region;
+            this.Municipality = municipality;
+            this.Time = time;
+            this.Address = address;
+            this.Price = price;
+            this.Place = place;
+        }
+
         public string Name { get; set; }
 
         public string Region { get; set; }
@@ -23,37 +42,31 @@ namespace Navred.Core.Models
 
         public Place Place { get; set; }
 
+        public string CompositeName => $"{this.Name}|{this.Region}|{this.Municipality}";
+
         public override string ToString()
         {
             return $"{this.Name} {this.Time} {this.Price}";
         }
 
-        public override bool Equals(object obj)
+        public Stop Copy()
         {
-            if (!(obj is Stop other))
-            {
-                return false;
-            }
-
-            return 
-                this.Name.Equals(other.Name) && 
-                (this.Municipality?.Equals(other.Municipality) ?? true) && 
-                (this.Region?.Equals(other.Region) ?? true);
+            return new Stop(
+                this.Name,
+                this.Region,
+                this.Municipality,
+                this.Time.Copy(),
+                this.Address,
+                this.Price,
+                this.Place?.Copy());
         }
 
-        public override int GetHashCode()
+        public static IEnumerable<Stop> CreateBanned(params string[] names)
         {
-            int prime = 83;
-            int result = 1;
-
-            unchecked
+            foreach (var name in names)
             {
-                result *= prime + this.Name.GetHashCode();
-                result *= prime + this.Region?.GetHashCode() ?? prime;
-                result *= prime + this.Municipality?.GetHashCode() ?? prime;
+                yield return new Stop(name, null, null, LegTime.Estimable, null, null);
             }
-
-            return result;
         }
 
         public static IEnumerable<Stop> CreateMany(
@@ -85,13 +98,13 @@ namespace Navred.Core.Models
 
             for (int i = 0; i < namesList.Count; i++)
             {
-                stops.Add(new Stop
-                {
-                    Address = addressesList?[i],
-                    Name = namesList[i],
-                    Price = pricesList?[i],
-                    Time = timesList[i]
-                });
+                stops.Add(new Stop(
+                    namesList[i],
+                    null,
+                    null,
+                    string.IsNullOrWhiteSpace(timesList[i]) ? LegTime.Estimable : timesList[i],
+                    addressesList?[i],
+                    pricesList?[i]));
             }
 
             return stops;

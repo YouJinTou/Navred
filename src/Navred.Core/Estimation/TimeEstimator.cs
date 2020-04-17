@@ -28,18 +28,31 @@ namespace Navred.Core.Estimation
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to);
 
-            var arrival = await Task.FromResult(this.EstimateManually(from, to, departure, mode));
+            var arrival = await Task.FromResult(
+                this.EstimateManually(from, to, departure, mode, true));
 
             return arrival;
         }
 
-        private DateTime EstimateManually(Place from, Place to, DateTime departure, Mode mode)
+        public async Task<DateTime> EstimateDepartureTimeAsync(
+            Place from, Place to, DateTime arrival, Mode mode)
+        {
+            Validator.THrowIfAnyNull(from, to);
+
+            var departure = await Task.FromResult(
+                this.EstimateManually(from, to, arrival, mode, false));
+
+            return departure;
+        }
+
+        private DateTime EstimateManually(
+            Place from, Place to, DateTime time, Mode mode, bool isDeparture)
         {
             var distance = from.DistanceToInKm(to);
 
             if (distance == 0d)
             {
-                return departure;
+                return time;
             }
 
             double hours;
@@ -57,9 +70,9 @@ namespace Navred.Core.Estimation
             var variableDuration =
                 (int)((((int)Math.Ceiling(hours * 60)) * RoadCurvatureRate * SlackRatePerKilometer));
             var duration = new TimeSpan(0, variableDuration, 0);
-            var arrival = departure + duration;
+            var estimatedTime = isDeparture ? time + duration : time - duration;
 
-            return arrival;
+            return estimatedTime;
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using Navred.Core.Processing;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Navred.Core.Extensions
 {
@@ -18,11 +16,6 @@ namespace Navred.Core.Extensions
             var name = $"{tokens[0]} ({string.Join(", ", tokens.Skip(1))})";
 
             return name;
-        }
-
-        public static bool Matches(this RouteOptions options, RouteOptions other)
-        {
-            return (options & other) > 0;
         }
     }
 }

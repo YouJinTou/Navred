@@ -88,10 +88,7 @@ namespace Navred.Crawling.Crawlers
                     var times = matches.Select(m => m.Groups[1].Value);
                     var stops = Stop.CreateMany(names, times);
                     var route = new Route(BCP.CountryName, dow, v.Carrier, Mode.Bus, stops, url);
-                    var legs = await this.routeParser.ParseRouteAsync(
-                        route, 
-                        RouteOptions.AdjustInvalidArrivals | 
-                        RouteOptions.EstimateDuplicates);
+                    var legs = await this.routeParser.ParseRouteAsync(route);
 
                     all.AddRange(legs);
                 }

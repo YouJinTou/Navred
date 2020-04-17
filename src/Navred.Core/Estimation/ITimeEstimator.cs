@@ -9,5 +9,8 @@ namespace Navred.Core.Estimation
     {
         Task<DateTime> EstimateArrivalTimeAsync(
             Place from, Place to, DateTime departure, Mode mode);
+
+        Task<DateTime> EstimateDepartureTimeAsync(
+            Place from, Place to, DateTime arrival, Mode mode);
     }
 }

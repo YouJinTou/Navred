@@ -20,11 +20,20 @@ namespace Navred.Core.Tools
             }
 
         }
+
         public static void ThrowIfNullOrWhiteSpace(string s, string message = null)
         {
             if (string.IsNullOrWhiteSpace(s))
             {
                 throw new ArgumentNullException(message ?? "String is empty.");
+            }
+        }
+
+        public static void THrowIfAnyNull(params object[] objects)
+        {
+            foreach (var o in objects)
+            {
+                ThrowIfNull(o);
             }
         }
 

@@ -93,9 +93,7 @@ namespace Navred.Crawling.Crawlers
                         var stops = Stop.CreateMany(names, times, prices, addresses);
                         var route = new Route(
                             this.cultureProvider.Name, dow, carrier, Mode.Bus, stops, url);
-                        var currentLegs = await this.routeParser.ParseRouteAsync(
-                            route, 
-                            RouteOptions.RemoveDuplicates | RouteOptions.AdjustInvalidArrivals);
+                        var currentLegs = await this.routeParser.ParseRouteAsync(route);
 
                         legs.AddRange(currentLegs);
                     }

@@ -14,13 +14,16 @@ namespace Navred.Core.Processing
             string carrier,
             Mode mode,
             IEnumerable<Stop> stops,
-            string info)
+            string info,
+            IEnumerable<Stop> banned = null)
         {
             this.Country = Validator.ReturnOrThrowIfNullOrWhiteSpace(country, "Country is empty.");
             this.Mode = mode;
             this.DaysOfWeek = dow;
             this.Carrier = carrier;
             this.Stops = Validator.ReturnOrThrowIfNullOrEmpty(stops, "Stops empty.").ToList();
+            this.Banned = new HashSet<Stop>(
+                banned ?? new List<Stop>(), new StopNameEqualityComparer());
             this.Info = info;
         }
 
@@ -36,15 +39,18 @@ namespace Navred.Core.Processing
 
         public IList<Stop> Stops { get; set; }
 
-        public Route Copy(IEnumerable<Stop> stops = null)
+        public ICollection<Stop> Banned { get; set; }
+
+        public Route Copy()
         {
             return new Route(
                 this.Country,
                 this.DaysOfWeek,
                 this.Carrier,
                 this.Mode,
-                stops ?? this.Stops,
-                this.Info);
+                this.Stops.Select(s => s.Copy()),
+                this.Info,
+                this.Banned);
         }
     }
 }

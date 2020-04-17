@@ -1,21 +1,31 @@
-﻿using Navred.Core.Tools;
+﻿using Navred.Core.Abstractions;
+using Navred.Core.Tools;
 using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Navred.Core.Itineraries
 {
-    public class LegTime
+    public class LegTime : IEquatable<LegTime>, ICopyable<LegTime>
     {
+        public static readonly LegTime Estimable = new LegTime
+        {
+            Estimated = true,
+            Time = DateTime.MaxValue - new DateTime(3000, 1, 1, 0, 0, 0)
+        };
+
+        private LegTime()
+        {
+        }
+
         public LegTime(string time, bool estimated = false)
         {
             this.Time = this.TimeToTimeSpan(Validator.ReturnOrThrowIfNullOrWhiteSpace(time));
             this.Estimated = estimated;
         }
 
-        public TimeSpan Time { get; }
+        public TimeSpan Time { get; private set; }
 
-        public bool Estimated { get; }
+        public bool Estimated { get; set; }
 
         public static implicit operator LegTime(string time)
         {
@@ -25,6 +35,25 @@ namespace Navred.Core.Itineraries
         public static implicit operator LegTime(TimeSpan timeSpan)
         {
             return new LegTime(timeSpan.ToString());
+        }
+
+        public override string ToString()
+        {
+            return this.Time.ToString();
+        }
+
+        public bool Equals(LegTime other)
+        {
+            return (other == null) ? false : this.Time.Equals(other.Time);
+        }
+
+        public LegTime Copy()
+        {
+            return new LegTime
+            {
+                Estimated = this.Estimated,
+                Time = this.Time
+            };
         }
 
         private TimeSpan TimeToTimeSpan(string time)
@@ -56,11 +85,6 @@ namespace Navred.Core.Itineraries
             var span = hoursTimeSpan + minutesTimeSpan;
 
             return span;
-        }
-
-        public override string ToString()
-        {
-            return this.Time.ToString();
         }
     }
 }

@@ -23,8 +23,8 @@ namespace Navred.Core.Places
         private readonly Settings settings;
 
         public PlacesManager(
-            IHttpClientFactory httpClientFactory, 
-            IPlaceGeneratorFactory placeGeneratorFactory, 
+            IHttpClientFactory httpClientFactory,
+            IPlaceGeneratorFactory placeGeneratorFactory,
             ICultureProvider cultureProvider,
             Settings settings)
         {
@@ -84,7 +84,7 @@ namespace Navred.Core.Places
                     continue;
                 }
 
-                var regionMunicipality = place.Region.Equals(place.Municipality) ? 
+                var regionMunicipality = place.Region.Equals(place.Municipality) ?
                     place.Region : $"{place.Region}, {place.Municipality}";
                 var url = this.settings.BuildGeocodingUrl(
                     $"{country}, {regionMunicipality}, {place.Name}");
@@ -143,9 +143,9 @@ namespace Navred.Core.Places
         }
 
         public Place GetPlace(
-            string country, 
-            string name, 
-            string regionCode = null, 
+            string country,
+            string name,
+            string regionCode = null,
             string municipalityCode = null,
             bool throwOnFail = true,
             bool doFuzzyMatch = false)
@@ -158,7 +158,7 @@ namespace Navred.Core.Places
                 .Where(p => normalizedName.Equals(this.FormatPlace(p.Name)))
                 .ToList();
             var result = this.GetPlace(results, regionCode, municipalityCode);
-            
+
             if (result == null && doFuzzyMatch)
             {
                 var fuzzyResults = places
@@ -180,16 +180,20 @@ namespace Navred.Core.Places
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(country, stops);
 
-            var stopsByName = stops.ToDictionary(s => s.Name, s => new Stop
+            var uniqueStops = stops.Select(s =>
             {
-                Address = s.Address,
-                Municipality = s.Municipality,
-                Name = s.Name,
-                Place = this.GetPlace(country, s.Name, s.Region, s.Municipality, false),
-                Price = s.Price,
-                Region = s.Region,
-                Time = s.Time
-            });
+                s.Name = $"{s.Name}_{Guid.NewGuid()}";
+
+                return s;
+            }).ToList();
+            var stopsByName = uniqueStops.ToDictionary(s => s.Name, s => new Stop(
+                s.Name,
+                s.Region,
+                s.Municipality,
+                s.Time,
+                s.Address,
+                s.Price,
+                this.GetPlace(country, s.Name, s.Region, s.Municipality, false)));
 
             Validator.ThrowIfAllNull(stopsByName.Values, "Unresolvable itinerary.");
 
@@ -205,9 +209,9 @@ namespace Navred.Core.Places
             {
                 for (int s = 1; s < stops.Count - 1; s++)
                 {
-                    var prevValue = stops[s - 1].Name;
-                    var currentValue = stops[s].Name;
-                    var nextValue = stops[s + 1].Name;
+                    var prevValue = uniqueStops[s - 1].Name;
+                    var currentValue = uniqueStops[s].Name;
+                    var nextValue = uniqueStops[s + 1].Name;
                     var previous = stopsByName[prevValue].Place;
                     var current = stopsByName[currentValue].Place;
                     var next = stopsByName[nextValue].Place;
@@ -241,7 +245,14 @@ namespace Navred.Core.Places
                 throw new Exception($"Unresolvable route: {string.Join(',', stops)}");
             }
 
-            return stopsByName.Values;
+            var result = stopsByName.Values.Select(s =>
+            {
+                s.Name = s.Name.Split('_').First();
+
+                return s;
+            }).ToList();
+
+            return result;
         }
 
         private void TrySetClosest(
