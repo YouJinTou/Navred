@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BCP = Navred.Core.Cultures.BulgarianCultureProvider;
 
-namespace Navred.Crawling.Crawlers
+namespace Navred.Crawling.Crawlers.Companies
 {
     public class Boydevi : ICrawler
     {

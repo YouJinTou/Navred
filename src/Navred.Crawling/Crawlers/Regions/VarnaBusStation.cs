@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Navred.Crawling.Crawlers
+namespace Navred.Crawling.Crawlers.Regions
 {
     public class VarnaBusStation : ICrawler
     {
