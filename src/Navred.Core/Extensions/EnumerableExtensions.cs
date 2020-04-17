@@ -194,5 +194,30 @@ namespace Navred.Core.Extensions
 
             return listOfLists;
         }
+
+        public static IEnumerable<T> InsertBetween<T>(
+            this IEnumerable<T> headTail, T value, int totalCount)
+        {
+            if (headTail.Count() != 2)
+            {
+                throw new InvalidOperationException("Insertable must contain tail and head only.");
+            }
+
+            if (totalCount < 2)
+            {
+                throw new InvalidOperationException("Total count is less than two.");
+            }
+
+            var result = new T[totalCount];
+            result[0] = headTail.First();
+            result[totalCount - 1] = headTail.Last();
+
+            for (int i = 1; i < totalCount - 1; i++)
+            {
+                result[i] = value;
+            }
+
+            return result;
+        }
     }
 }
