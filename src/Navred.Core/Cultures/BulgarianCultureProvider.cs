@@ -83,6 +83,7 @@ namespace Navred.Core.Cultures
             public const string VelikoTarnovo = "Велико Търново";
             public const string Plovdiv = "Пловдив";
             public const string Hisarya = "Хисаря";
+            public const string Lovech = "Ловеч";
         }
 
         public string Name => CountryName;
