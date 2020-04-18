@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 using System.Web;
 using BCP = Navred.Core.Cultures.BulgarianCultureProvider;
 
-namespace Navred.Crawling.Crawlers
+namespace Navred.Crawling.Crawlers.Regions
 {
     public class LovechMunicipality : ICrawler
     {
