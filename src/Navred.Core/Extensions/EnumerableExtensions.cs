@@ -250,5 +250,24 @@ namespace Navred.Core.Extensions
 
             return items.Skip(lastIndex);
         }
+
+        public static IEnumerable<IEnumerable<T>> SplitBy<T>(
+            this IEnumerable<T> items, Func<T, bool> func)
+        {
+            var itemsList = items.ToList();
+            var result = new List<IEnumerable<T>>();
+            var indices = items
+                .Select((i, index) => func(i) ? index : -1).Where(i => i != -1).ToList();
+            var pairs = indices.AsPairs();
+
+            foreach (var (i, j) in pairs)
+            {
+                result.Add(items.Skip(i).Take(j - i).ToList());
+            }
+
+            result.Add(items.Skip(pairs.Last().Item2).ToList());
+
+            return result;
+        }
     }
 }
