@@ -112,18 +112,6 @@ namespace Navred.Core.Extensions
             }
         }
 
-        public static IEnumerable<T> TakeAllButLast<T>(this IEnumerable<T> enumerable, int last)
-        {
-            var count = enumerable.Count();
-
-            if (count < last)
-            {
-                return enumerable.Take(0);
-            }
-
-            return enumerable.Take(count - last);
-        }
-
         public static T GetMin<T, TC>(this IEnumerable<T> enumerable, Func<T, TC> func) where TC : IComparable<TC>
         {
             var currentMin = func(enumerable.First());
@@ -224,6 +212,43 @@ namespace Navred.Core.Extensions
             this IDictionary<TKey, TValue> dict, TKey key)
         {
             return dict.ContainsKey(key) ? dict[key] : default(TValue);
+        }
+
+        public static IEnumerable<T> TakeWhileInclusive<T>(
+            this IEnumerable<T> items, Func<T, bool> func)
+        {
+            var list = items.ToList();
+            var result = new List<T>();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                result.Add(list[i]);
+
+                if (func(list[i]))
+                {
+                    break;
+                }
+            }
+
+            return result;
+        }
+
+        public static IEnumerable<T> SkipUntilLast<T>(this IEnumerable<T> items, T target)
+        {
+            var index = 0;
+            var lastIndex = 0;
+
+            foreach (var item in items)
+            {
+                if (item.Equals(target))
+                {
+                    lastIndex = index;
+                }
+
+                index++;
+            }
+
+            return items.Skip(lastIndex);
         }
     }
 }

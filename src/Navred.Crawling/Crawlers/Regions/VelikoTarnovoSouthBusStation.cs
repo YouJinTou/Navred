@@ -66,7 +66,7 @@ namespace Navred.Crawling.Crawlers.Regions
             var doc = await web.LoadFromWebAsync(url);
             var all = new List<Leg>();
             var trs = doc.DocumentNode.SelectNodes("//div[@class='table-responsive']//tr")
-                .TakeAllButLast(1)
+                .SkipLast(1)
                 .ToList();
 
             foreach (var tr in trs)
