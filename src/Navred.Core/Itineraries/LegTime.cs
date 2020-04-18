@@ -7,6 +7,8 @@ namespace Navred.Core.Itineraries
 {
     public class LegTime : IEquatable<LegTime>, ICopyable<LegTime>
     {
+        private const string Pattern = @"(\d{1,2})([:.,])(\d{1,2})";
+
         public static readonly LegTime Estimable = new LegTime
         {
             Estimated = true,
@@ -47,6 +49,14 @@ namespace Navred.Core.Itineraries
             return left.Time > right.Time;
         }
 
+        public static bool IsValid(string s)
+        {
+            var formatted = s.Trim();
+            var isValid = Regex.IsMatch(formatted, Pattern);
+
+            return isValid;
+        }
+
         public override string ToString()
         {
             return this.Time.ToString();
@@ -69,23 +79,22 @@ namespace Navred.Core.Itineraries
         private TimeSpan TimeToTimeSpan(string time)
         {
             var formattedTime = time.Trim();
-            var pattern = @"\d{1,2}([:.])\d{1,2}";
 
-            if (!Regex.IsMatch(formattedTime, pattern))
+            if (!IsValid(formattedTime))
             {
                 throw new ArgumentException(
                     $"{nameof(time)} must be in the dd:dd format, where 'd' is a digit.");
             }
 
-            var separator = Regex.Match(formattedTime, pattern).Groups[1].Value;
-            var hours = int.Parse(formattedTime.Split(separator)[0]);
+            var match = Regex.Match(formattedTime, Pattern);
+            var hours = int.Parse(match.Groups[1].Value);
 
             if (hours >= 24)
             {
                 throw new ArgumentException("Hours must be up to 23, inclusive.");
             }
 
-            var minutes = int.Parse(formattedTime.Split(separator)[1]);
+            var minutes = int.Parse(match.Groups[3].Value);
 
             if (minutes >= 60)
             {
