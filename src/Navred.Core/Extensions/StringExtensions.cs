@@ -63,15 +63,26 @@ namespace Navred.Core.Extensions
             return result;
         }
 
-        public static string ChainReplace(this string s, IDictionary<string, string> replacements)
+        public static string ChainReplace(
+            this string s, IDictionary<string, string> replacements, bool orderByDescending = true)
         {
             var result = s;
 
-            foreach (var kvp in replacements.OrderByDescending(r => r.Value.Length))
+            if (orderByDescending)
             {
-                result = result.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
+                foreach (var kvp in replacements.OrderByDescending(r => r.Value.Length))
+                {
+                    result = result.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
+                }
             }
-
+            else
+            {
+                foreach (var kvp in replacements)
+                {
+                    result = result.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            
             return result;
         }
 
