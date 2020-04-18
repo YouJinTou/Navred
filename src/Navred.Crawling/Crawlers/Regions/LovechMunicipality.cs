@@ -25,7 +25,6 @@ namespace Navred.Crawling.Crawlers
         private readonly IRouteParser routeParser;
         private readonly ILegRepository repo;
         private readonly ILogger<LovechMunicipality> logger;
-        private readonly IDictionary<string, string> regions;
         private readonly IDictionary<string, string> replacements;
 
         public LovechMunicipality(
@@ -36,12 +35,6 @@ namespace Navred.Crawling.Crawlers
             this.routeParser = routeParser;
             this.repo = repo;
             this.logger = logger;
-            this.regions = new Dictionary<string, string>
-            {
-                { "лисец", BCP.Region.LOV },
-                { "скобелево", BCP.Region.LOV },
-                { "брестово", BCP.Region.LOV },
-            };
             this.replacements = new Dictionary<string, string>
             {
                 { "Автогара", BCP.City.Lovech },
@@ -83,11 +76,11 @@ namespace Navred.Crawling.Crawlers
                     .ChainReplace(this.replacements, false).ToLower().Trim().Split('-');
                 var departureNames = namesBase
                     .TakeWhileInclusive(s => s.ToLower().Equals(place2))
-                    .ToDictionary(kvp => kvp, kvp => this.regions.GetOrDefault(kvp.Trim()));
+                    .ToDictionary(kvp => kvp, kvp => BCP.Region.LOV);
                 var arrivalNames = namesBase
                     .Reverse()
                     .SkipUntilLast(place2)
-                    .ToDictionary(kvp => kvp, kvp => this.regions.GetOrDefault(kvp.Trim()));
+                    .ToDictionary(kvp => kvp, kvp => BCP.Region.LOV);
                 var weekDayDepartures = this.GetStopTimes(data[4], departureNames.Count);
                 var weekDayArrivals = this.GetStopTimes(data[5], arrivalNames.Count);
                 var weekendDepartures = this.GetStopTimes(data[6], departureNames.Count);
@@ -144,13 +137,13 @@ namespace Navred.Crawling.Crawlers
                     var stops = Stop.CreateMany(names.Keys, timesList[t], regions: names.Values);
                     var route = new Route(
                         BulgarianCultureProvider.CountryName,
-                        this.GetDow(match?.Groups[2]?.Value, dow),
+                        this.GetDow(match.Groups[2].Value, dow),
                         "Община Ловеч",
                         Mode.Bus,
                         stops,
                         Url);
                     var legs = await this.routeParser.ParseRouteAsync(route);
-                    t = string.IsNullOrWhiteSpace(match?.Groups[2]?.Value) ? t : t + 1;
+                    t = string.IsNullOrWhiteSpace(match.Groups[2].Value) ? t : t + 1;
 
                     all.AddRange(legs);
                 }
