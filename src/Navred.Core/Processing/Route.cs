@@ -42,6 +42,8 @@ namespace Navred.Core.Processing
 
         public ICollection<Stop> Banned { get; set; }
 
+        public ICollection<Stop> NotFound { get; set; }
+
         public bool IsValid
         {
             get
@@ -113,6 +115,7 @@ namespace Navred.Core.Processing
 
         public Route RemovePlaceless()
         {
+            this.NotFound = this.Stops.Where(s => s.Place.IsNull()).ToList();
             this.Stops = this.Stops.Where(s => !s.Place.IsNull()).ToList();
 
             return this;

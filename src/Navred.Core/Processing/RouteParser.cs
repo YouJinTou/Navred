@@ -18,6 +18,7 @@ namespace Navred.Core.Processing
         private readonly ITimeEstimator estimator;
         private readonly ICultureProvider cultureProvider;
         private readonly ILogger<RouteParser> logger;
+        private Route parsed;
 
         public RouteParser(
             IPlacesManager placesManager,
@@ -31,13 +32,15 @@ namespace Navred.Core.Processing
             this.logger = logger;
         }
 
+        public Route Parsed => this.parsed;
+
         public async Task<IEnumerable<Leg>> ParseRouteAsync(Route route)
         {
-            var preprocessedRoute = await this.PreprocessRouteAsync(route);
+            this.parsed = await this.PreprocessRouteAsync(route);
             var schedule = new Schedule();
             var date = DateTime.UtcNow.AddDays(1).Date;
 
-            foreach (var (current, next) in preprocessedRoute.Stops.AsPairs())
+            foreach (var (current, next) in this.parsed.Stops.AsPairs())
             {
                 try
                 {
@@ -76,7 +79,7 @@ namespace Navred.Core.Processing
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"{ex.Message}: {string.Join(" | ", preprocessedRoute.Stops)}");
+                    Console.WriteLine($"{ex.Message}: {string.Join(" | ", this.parsed.Stops)}");
                     //this.logger.LogError(ex, current.ToString());
                 }
             }

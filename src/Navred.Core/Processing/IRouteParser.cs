@@ -6,6 +6,8 @@ namespace Navred.Core.Processing
 {
     public interface IRouteParser
     {
+        Route Parsed { get; }
+
         Task<IEnumerable<Leg>> ParseRouteAsync(Route route);
     }
 }
