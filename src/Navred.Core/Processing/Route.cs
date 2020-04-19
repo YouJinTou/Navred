@@ -173,5 +173,10 @@ namespace Navred.Core.Processing
                 this.Info,
                 this.Banned);
         }
+
+        public override string ToString()
+        {
+            return $"{string.Join(" | ", this.Stops)} ({this.Carrier})";
+        }
     }
 }
