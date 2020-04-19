@@ -152,7 +152,7 @@ namespace Navred.Core.Extensions
             return key;
         }
 
-        public static IEnumerable<T> AsList<T>(this T obj)
+        public static IList<T> AsList<T>(this T obj)
         {
             return new List<T> { obj };
         }
@@ -266,6 +266,31 @@ namespace Navred.Core.Extensions
             }
 
             result.Add(items.Skip(pairs.Last().Item2).ToList());
+
+            return result;
+        }
+
+        public static IEnumerable<string> Replace(this IEnumerable<string> items, string toNullify)
+        {
+            var result = new List<string>();
+
+            foreach (var item in items)
+            {
+                result.Add(item.Replace(toNullify, string.Empty));
+            }
+
+            return result;
+        }
+
+        public static IEnumerable<T> AppendMany<T>(
+            this IEnumerable<T> items, T appendee, int count)
+        {
+            var result = new List<T>(items);
+
+            for (int i = 0; i < count; i++)
+            {
+                result.Add(appendee);
+            }
 
             return result;
         }
