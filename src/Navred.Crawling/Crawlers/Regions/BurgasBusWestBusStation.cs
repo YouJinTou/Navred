@@ -82,18 +82,14 @@ namespace Navred.Crawling.Crawlers.Regions
             {
                 try
                 {
-                    var names = g.First()
-                        .Split(new char[] { '–', '-' })
-                        .Replace(this.replacements)
-                        .Trim()
-                        .ToLower()
-                        .SkipWhile(n => !n.ToLower().Contains(BCP.City.Bourgas.ToLower()))
-                        .ToDictionary(kvp => kvp, kvp => this.regions.GetOrDefault(kvp.ToLower()));
-                    var data = g.Skip(1).Where(s => !s.Contains("сектор")).Select(t =>
+                    var data = g.Skip(1).Where(s => !s.Contains("сектор"));
+
+                    foreach (var d in data)
                     {
-                        var carrierMatch = Regex.Match(t, @$"([{BCP.AllLetters}\-\s]+)");
+                        var tokens = d.Split("\n").ToList();
+                        var carrierMatch = Regex.Match(d, @$"([{BCP.AllLetters}\-\s]+)");
                         var dowTimeMatches =
-                            Regex.Matches(t, @"(\d{1,2}:\d{1,2})\s?(?:(?:\/|\()(.*?)(?:\/|\)))?");
+                            Regex.Matches(d, @"(\d{1,2}:\d{1,2})\s?(?:(?:\/|\()(.*?)(?:\/|\)))?");
                         var dowParsed = this.TryGetDow(
                             carrierMatch.Groups[1].Value, out DaysOfWeek dow);
                         var carrier = dowParsed ?
@@ -106,28 +102,29 @@ namespace Navred.Crawling.Crawlers.Regions
                                 this.TryGetDow(m.Groups[2].Value, out dow) ? dow : Constants.AllWeek,
                             Time = m.Groups[1].Value
                         }).ToList();
+                        var names = g.First()
+                            .Split(new char[] { '–', '-' })
+                            .Replace(this.replacements)
+                            .Trim()
+                            .ToLower()
+                            .SkipWhile(n => !n.ToLower().Contains(BCP.City.Bourgas.ToLower()))
+                            .ToDictionary(kvp => kvp, kvp => this.regions.GetOrDefault(kvp.ToLower()));
+                        var routes = times
+                            .Select(t => new Route(
+                                BCP.CountryName,
+                                t.Dow,
+                                carrier,
+                                Mode.Bus,
+                                Stop.CreateMany(
+                                    names.Keys,
+                                    t.Time.AsList().AppendMany(null, names.Count() - 1),
+                                    regions: names.Values),
+                                    url))
+                            .Where(r => !this.banned.Contains(r.Carrier))
+                            .ToList();
 
-                        return new
-                        {
-                            Carrier = carrier,
-                            DowTimes = times,
-                        };
-                    }).ToList();
-                    var routes = data.SelectMany(d => d.DowTimes
-                        .Select(t => new Route(
-                            BCP.CountryName,
-                            t.Dow,
-                            d.Carrier,
-                            Mode.Bus,
-                            Stop.CreateMany(
-                                names.Keys,
-                                t.Time.AsList().AppendMany(null, names.Count() - 1),
-                                regions: names.Values),
-                                url))
-                        .Where(r => !this.banned.Contains(r.Carrier))
-                        .ToList());
-
-                    allRoutes.AddRange(routes);
+                        allRoutes.AddRange(routes);
+                    }
                 }
                 catch (Exception ex)
                 {

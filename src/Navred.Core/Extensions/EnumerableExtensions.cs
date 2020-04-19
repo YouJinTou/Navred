@@ -23,16 +23,6 @@ namespace Navred.Core.Extensions
             return enumerable.Count() == 1;
         }
 
-        public static bool IsNullOrEmpty(this System.Collections.IEnumerable enumerable)
-        {
-            if (enumerable == null || IsEmpty(enumerable))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> enumerable)
         {
             if (enumerable == null || IsEmpty(enumerable))
@@ -259,6 +249,13 @@ namespace Navred.Core.Extensions
             var indices = items
                 .Select((i, index) => func(i) ? index : -1).Where(i => i != -1).ToList();
             var pairs = indices.AsPairs();
+
+            if (pairs.IsEmpty())
+            {
+                result.Add(items);
+
+                return result;
+            }
 
             foreach (var (i, j) in pairs)
             {
