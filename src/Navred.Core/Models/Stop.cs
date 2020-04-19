@@ -80,7 +80,7 @@ namespace Navred.Core.Models
         {
             if (!names.Count().Equals(times.Count()))
             {
-                throw new ArgumentException("Stops count mismatch.");
+                throw new ArgumentException("Times count mismatch.");
             }
 
             if (!addresses.IsNullOrEmpty() && !addresses.Count().Equals(names.Count()))
