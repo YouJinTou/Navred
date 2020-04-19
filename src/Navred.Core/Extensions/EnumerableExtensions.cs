@@ -270,13 +270,40 @@ namespace Navred.Core.Extensions
             return result;
         }
 
-        public static IEnumerable<string> Replace(this IEnumerable<string> items, string toNullify)
+        public static IEnumerable<string> Replace(
+            this IEnumerable<string> items, 
+            IDictionary<string, string> replacements, 
+            bool orderByDescending = true)
         {
             var result = new List<string>();
 
             foreach (var item in items)
             {
-                result.Add(item.Replace(toNullify, string.Empty));
+                result.Add(item.ChainReplace(replacements, orderByDescending));
+            }
+
+            return result;
+        }
+
+        public static IEnumerable<string> Trim(this IEnumerable<string> items)
+        {
+            var result = new List<string>();
+
+            foreach (var item in items)
+            {
+                result.Add(item.Trim());
+            }
+
+            return result;
+        }
+
+        public static IEnumerable<string> ToLower(this IEnumerable<string> items)
+        {
+            var result = new List<string>();
+
+            foreach (var item in items)
+            {
+                result.Add(item.ToLower());
             }
 
             return result;
