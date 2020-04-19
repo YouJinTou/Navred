@@ -318,5 +318,14 @@ namespace Navred.Core.Extensions
 
             return result;
         }
+
+        public static Dictionary<TKey, TValue> ReverseDict<TKey, TValue>(
+            this IDictionary<TKey, TValue> dict)
+        {
+            var reversedList = dict.Reverse();
+            var reversedDict = new Dictionary<TKey, TValue>(reversedList);
+
+            return reversedDict;
+        }
     }
 }
