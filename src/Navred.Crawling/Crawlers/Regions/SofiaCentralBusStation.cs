@@ -1,11 +1,13 @@
 ﻿using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using Navred.Core;
 using Navred.Core.Abstractions;
 using Navred.Core.Cultures;
 using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using Navred.Core.Itineraries.DB;
 using Navred.Core.Models;
+using Navred.Core.Places;
 using Navred.Core.Processing;
 using System;
 using System.Collections.Generic;
@@ -21,23 +23,27 @@ namespace Navred.Crawling.Crawlers.Regions
     {
         private const string DeparturesUrl =
             "https://www.centralnaavtogara.bg/index.php?mod=0461ebd2b773878eac9f78a891912d65";
-        private const string ArrivalsUrl = 
+        private const string ArrivalsUrl =
             "https://www.centralnaavtogara.bg/index.php?mod=06a943c59f33a34bb5924aaf72cd2995&d=c#b";
 
+        private readonly IPlacesManager placesManager;
         private readonly IRouteParser routeParser;
         private readonly ILegRepository repo;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly ICultureProvider cultureProvider;
         private readonly ILogger<SofiaCentralBusStation> logger;
         private readonly IDictionary<string, string> replacements;
+        private readonly IDictionary<string, string> regions;
 
         public SofiaCentralBusStation(
+            IPlacesManager placesManager,
             IRouteParser routeParser,
             ILegRepository repo,
             IHttpClientFactory httpClientFactory,
             ICultureProvider cultureProvider,
             ILogger<SofiaCentralBusStation> logger)
         {
+            this.placesManager = placesManager;
             this.routeParser = routeParser;
             this.repo = repo;
             this.httpClientFactory = httpClientFactory;
@@ -45,7 +51,47 @@ namespace Navred.Crawling.Crawlers.Regions
             this.logger = logger;
             this.replacements = new Dictionary<string, string>
             {
-                { "бели мел", "Белимел" }
+                { "БЕЛИ МЕЛ", "Белимел" },
+                { "В.ТЪРНОВО", "Велико Търново" },
+                { "Г.ДЕЛЧЕВ", "Гоце Делчев" },
+                { "ГЕН.ТОШЕВО", "Генерал Тошево" },
+                { "Д.ЦЕРОВЕНЕ", "Долно Церовене" },
+                { "СТ.ЗАГОРА", "Стара Загора" },
+                { "СЛ.БРЯГ", "Слънчев бряг" },
+                { "СВ.ВЛАС", "Свети Влас" },
+                { "ЗЛ.ПЯСЪЦИ", "Златни пясъци" },
+                { "ЛЮТИ ДОЛ", "Лютидол" },
+                { "НАР.БАНИ", "Нареченски бани" },
+                { "Г.ГЕНОВО", "Гаврил Геново" },
+                { "Г.ДАМЯНОВО", "Георги Дамяново" },
+                { "Н.КОНОМЛАДИ", "Ново Кономлади" },
+                { "Д.ВЕРЕНИЦА", "Долна Вереница" },
+                { "Д.ЦИБЪР", "Долни Цибър" },
+                { "Г.ВЕРЕНИЦА", "Горна Вереница" },
+                { "Г.КОВАЧИЦА", "Горна Ковачица" },
+                { "БЯЛА/РУСЕ", "Бяла" },
+                { "БЯЛА/ВАРНА", "Бяла" },
+                { "с.РАЗГРАД", "РАЗГРАД" },
+            };
+            this.regions = new Dictionary<string, string>
+            {
+                { "ГАБРОВО", "Габрово" },
+                { "ДОБРИЧ", "Добрич" },
+                { "МОКРЕШ", "Монтана" },
+                { "ПЕТРИЧ", "Благоевград" },
+                { "ТЪРГОВИЩЕ", "Търговище" },
+                { "ЧЕРНИ ВРЪХ", "Монтана" },
+                { "ГЕН.ТОШЕВО", "Добрич" },
+                { "АСПАРУХОВО", "Монтана" },
+                { "АПРИЛЦИ", "Ловеч" },
+                { "БЕЖАНОВО", "Ловеч" },
+                { "БЕНКОВСКИ", "Кърджали" },
+                { "БОРОВИЦА", "Видин" },
+                { "БЯЛА/РУСЕ", "Русе" },
+                { "БЯЛА/ВАРНА", "Варна" },
+                { "ПОПОВО", "Търговище" },
+                { "РАЗГРАД", "Разград" },
+                { "с.РАЗГРАД", "Монтана" },
             };
             Console.OutputEncoding = this.cultureProvider.GetEncoding();
         }
@@ -76,7 +122,7 @@ namespace Navred.Crawling.Crawlers.Regions
                 .Distinct()
                 .ToList();
             var httpClient = this.httpClientFactory.CreateClient();
-            var dates = DateTime.UtcNow.GetDateTimesAhead(Defaults.DaysAhead)
+            var dates = DateTime.UtcNow.GetDateTimesAhead(1)
                 .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
 
             foreach (var date in dates)
@@ -131,24 +177,39 @@ namespace Navred.Crawling.Crawlers.Regions
 
             var date = DateTime.ParseExact(dateString, "dd.MM.yyyy", null);
             var isDeparture = url.Equals(DeparturesUrl);
+            var formattedName = this.placesManager.FormatPlace(placeString);
 
             foreach (var table in tables)
             {
                 var dataRow = table.FirstChild;
                 var resultDays = dataRow.SelectNodes("//li[@class='rd_green']//text()")
                     ?.Select(n => n.InnerText)?.ToList() ?? new List<string>();
-                var dow = this.cultureProvider.ToDaysOfWeek(resultDays);
+                var dow = this.cultureProvider.ToDaysOfWeek(resultDays).IsEmpty() ?
+                    Constants.AllWeek : this.cultureProvider.ToDaysOfWeek(resultDays);
                 var carrier = dataRow.ChildNodes[1].InnerText;
                 var timeString =
                     Regex.Match(dataRow.ChildNodes[3].InnerText, @"(\d+:\d+)").Groups[1].Value;
+                var fromTo = new Dictionary<string, string>
+                {
+                    { BCP.City.Sofia, BCP.Region.SOF },
+                    { this.replacements.GetOrReturn(placeString), this.regions.GetOrDefault(placeString) }
+                };
+                var fullRoute = table.SelectSingleNode(
+                    ".//td[contains(@class, 'sr_full_route')]")?.InnerText
+                    ?.Split("-", StringSplitOptions.RemoveEmptyEntries)
+                    ?.ToDictionary(
+                        kvp => this.replacements.GetOrReturn(kvp.Trim()),
+                        kvp => this.regions.GetOrDefault(kvp.Trim()));
+                var names = isDeparture ?
+                    fullRoute.IsNull() ? fromTo : fullRoute :
+                    fullRoute.IsNull() ? fromTo.ReverseDict() : fullRoute.ReverseDict();
                 var times = isDeparture ?
-                    new List<string> { timeString, null } :
-                    new List<string> { null, timeString };
-                var names = isDeparture ? 
-                    new List<string> { BCP.City.Sofia, placeString } : 
-                    new List<string> { placeString, BCP.City.Sofia };
-                var prices = new List<string> { dataRow.ChildNodes[5].InnerText, null };
-                var stops = Stop.CreateMany(names, times, prices);
+                    new[] { timeString, null }.InsertBetween(null, names.Count) :
+                    new[] { null, timeString }.InsertBetween(null, names.Count);
+                var prices = names.Select(
+                    n => this.placesManager.FormatPlace(n.Key).Equals(formattedName) ? 
+                        dataRow.ChildNodes[5].InnerText : null).ToList();
+                var stops = Stop.CreateMany(names.Keys, times, prices, regions: names.Values);
                 var route = new Route(BCP.CountryName, dow, carrier, Mode.Bus, stops, url);
                 var legs = await this.routeParser.ParseRouteAsync(route);
 
