@@ -29,7 +29,7 @@ namespace Navred.Core.Extensions
             }
 
             var offset = DateTimeOffset.Now;
-            var firstDate = GetFirstAvailableUtcDate(dow, from);
+            var firstDate = GetFirstAvailableUtcDate(dow, from, holidays);
             var times = new HashSet<DateTime>();
             holidays = holidays ?? new List<DateTime>();
             var day = 0;
@@ -39,12 +39,12 @@ namespace Navred.Core.Extensions
                 var currentDate = firstDate.AddDays(day);
                 var time = currentDate.Date + from.TimeOfDay - offset.Offset;
 
-                if (excludeHolidays && holidays.Contains(currentDate))
+                if (excludeHolidays && holidays.Contains(currentDate.Date))
                 {
                     continue;
                 }
 
-                if (includeHolidays && holidays.Contains(currentDate))
+                if (includeHolidays && holidays.Contains(currentDate.Date))
                 {
                     times.Add(time);
                 }
@@ -80,6 +80,16 @@ namespace Navred.Core.Extensions
                 default:
                     throw new ArgumentException($"{dayOfWeek} invalid.");
             }
+        }
+
+        public static bool IsHolidayOnly(this DaysOfWeek dow)
+        {
+            return ((dow & DaysOfWeek.HolidayInclusive) > 0) && ((dow & Constants.AllWeek) == 0);
+        }
+
+        public static bool IsHolidayExclusive(this DaysOfWeek dow)
+        {
+            return ((dow & DaysOfWeek.HolidayExclusive) > 0) && ((dow & Constants.AllWeek) == 0);
         }
 
         public static long ToUtcTimestamp(this DateTime utcDt)
@@ -129,17 +139,33 @@ namespace Navred.Core.Extensions
             return new DateTimeTz(dt, Constants.UtcTimeZone);
         }
 
-        public static DateTime GetFirstAvailableUtcDate(this DaysOfWeek dow, DateTime from)
+        public static DateTime GetFirstAvailableUtcDate(
+            this DaysOfWeek dow, DateTime from, IEnumerable<DateTime> holidays = null)
         {
             if (dow.Equals(DaysOfWeek.Empty))
             {
                 throw new InvalidOperationException("Days of week is empty.");
             }
 
+            if ((dow.IsHolidayOnly() || dow.IsHolidayExclusive()) && holidays.IsNullOrEmpty())
+            {
+                throw new InvalidOperationException("No holidays provided.");
+            }
+
             var current = from;
 
             while (true)
             {
+                if (dow.IsHolidayOnly() && holidays.Contains(current.Date))
+                {
+                    return current;
+                }
+
+                if (dow.IsHolidayExclusive() && !holidays.Contains(current.Date))
+                {
+                    return current;
+                }
+
                 if (current.DayOfWeek.Matches(dow))
                 {
                     return current;
