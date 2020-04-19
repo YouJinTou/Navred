@@ -71,6 +71,7 @@ namespace Navred.Core.Processing
                             price: this.cultureProvider.ParsePrice(next.Price),
                             fromSpecific: current.Address,
                             toSpecific: next.Address,
+                            departureEstimated: current.Time.Estimated,
                             arrivalEstimated: next.Time.Estimated,
                             priceEstimated: false);
 

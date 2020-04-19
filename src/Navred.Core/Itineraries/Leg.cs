@@ -23,6 +23,7 @@ namespace Navred.Core.Itineraries
             string fromSpecific = null,
             string toSpecific = null,
             bool arrivalEstimated = false,
+            bool departureEstimated = false,
             bool priceEstimated = false)
         {
             if (utcDeparture >= utcArrival)
@@ -42,6 +43,7 @@ namespace Navred.Core.Itineraries
             this.Price = price;
             this.FromSpecific = fromSpecific?.Trim();
             this.ToSpecific = toSpecific?.Trim();
+            this.DepartureEstimated = departureEstimated;
             this.ArrivalEstimated = arrivalEstimated;
             this.PriceEstimated = priceEstimated;
         }
@@ -75,6 +77,8 @@ namespace Navred.Core.Itineraries
         public string FromSpecific { get; private set; }
 
         public string ToSpecific { get; private set; }
+
+        public bool DepartureEstimated { get; private set; }
 
         public bool ArrivalEstimated { get; private set; }
 
@@ -121,6 +125,7 @@ namespace Navred.Core.Itineraries
                 this.Price + other.Price,
                 this.FromSpecific,
                 other.ToSpecific,
+                this.DepartureEstimated || other.DepartureEstimated,
                 this.ArrivalEstimated || other.ArrivalEstimated,
                 this.PriceEstimated || other.PriceEstimated);
 
@@ -147,6 +152,7 @@ namespace Navred.Core.Itineraries
                 this.Price, 
                 this.FromSpecific, 
                 this.ToSpecific, 
+                this.DepartureEstimated,
                 this.ArrivalEstimated,
                 this.PriceEstimated);
         }
@@ -164,7 +170,9 @@ namespace Navred.Core.Itineraries
                 this.Price,
                 this.ToSpecific,
                 this.FromSpecific,
-                this.ArrivalEstimated);
+                this.DepartureEstimated,
+                this.ArrivalEstimated,
+                this.PriceEstimated);
         }
     }
 }

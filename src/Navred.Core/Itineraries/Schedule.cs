@@ -106,6 +106,7 @@ namespace Navred.Core.Itineraries
                             price: legs[j].Price,
                             fromSpecific: legs[i].FromSpecific,
                             toSpecific: legs[j].ToSpecific,
+                            departureEstimated: legs[i].DepartureEstimated,
                             arrivalEstimated: legs[j].ArrivalEstimated,
                             priceEstimated: legs[j].PriceEstimated);
 
