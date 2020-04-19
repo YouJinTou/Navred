@@ -25,6 +25,8 @@ namespace Navred.Crawling.Crawlers.Regions
         private readonly ILegRepository repo;
         private readonly ILogger<BurgasBusWestBusStation> logger;
         private readonly ICollection<string> banned;
+        private readonly IDictionary<string, string> replacements;
+        private readonly IDictionary<string, string> regions;
 
         public BurgasBusWestBusStation(
             IRouteParser routeParser, ILegRepository repo, ILogger<BurgasBusWestBusStation> logger)
@@ -36,6 +38,17 @@ namespace Navred.Crawling.Crawlers.Regions
             {
                 "ВАЖНО",
                 "часове на връщане от Средец"
+            };
+            this.replacements = new Dictionary<string, string>
+            {
+                { "линия", string.Empty },
+                { "В. Търново", "Велико Търново" },
+                { "Ст. Караджово", "Стефан Караджово" },
+                { "Желязово/Орлинци", "Желязово" },
+            };
+            this.regions = new Dictionary<string, string>
+            {
+                { "горица", BCP.Region.BGS }
             };
         }
 
@@ -67,45 +80,59 @@ namespace Navred.Crawling.Crawlers.Regions
 
             foreach (var g in groups)
             {
-                var names = g.First()
-                    .Split(new char[] { '–', '-' })
-                    .Replace("линия")
-                    .SkipWhile(n => !n.ToLower().Contains(BCP.City.Bourgas.ToLower()));
-                var data = g.Skip(1).Where(s => !s.Contains("сектор")).Select(t =>
+                try
                 {
-                    var carrierMatch = Regex.Match(t, @$"([{BCP.AllLetters}\-\s]+)");
-                    var dowTimeMatches = 
-                        Regex.Matches(t, @"(\d{1,2}:\d{1,2})\s?(?:(?:\/|\()(.*?)(?:\/|\)))?");
-                    var dowParsed = this.TryGetDow(
-                        carrierMatch.Groups[1].Value, out DaysOfWeek dow);
-                    var carrier = dowParsed ? 
-                        Regex.Match(g.ToList()[1], @$"([{BCP.AllLetters}\-\s]+)").Groups[1].Value : 
-                        carrierMatch.Groups[1].Value;
-                    var times = dowTimeMatches.Select(m => new
+                    var names = g.First()
+                        .Split(new char[] { '–', '-' })
+                        .Replace(this.replacements)
+                        .Trim()
+                        .ToLower()
+                        .SkipWhile(n => !n.ToLower().Contains(BCP.City.Bourgas.ToLower()))
+                        .ToDictionary(kvp => kvp, kvp => this.regions.GetOrDefault(kvp.ToLower()));
+                    var data = g.Skip(1).Where(s => !s.Contains("сектор")).Select(t =>
                     {
-                        Dow = dowParsed ? 
-                            dow : 
-                            this.TryGetDow(m.Groups[2].Value, out dow) ? dow : Constants.AllWeek,
-                        Time = m.Groups[1].Value
+                        var carrierMatch = Regex.Match(t, @$"([{BCP.AllLetters}\-\s]+)");
+                        var dowTimeMatches =
+                            Regex.Matches(t, @"(\d{1,2}:\d{1,2})\s?(?:(?:\/|\()(.*?)(?:\/|\)))?");
+                        var dowParsed = this.TryGetDow(
+                            carrierMatch.Groups[1].Value, out DaysOfWeek dow);
+                        var carrier = dowParsed ?
+                            Regex.Match(g.ToList()[1], @$"([{BCP.AllLetters}\-\s]+)").Groups[1].Value :
+                            carrierMatch.Groups[1].Value;
+                        var times = dowTimeMatches.Select(m => new
+                        {
+                            Dow = dowParsed ?
+                                dow :
+                                this.TryGetDow(m.Groups[2].Value, out dow) ? dow : Constants.AllWeek,
+                            Time = m.Groups[1].Value
+                        }).ToList();
+
+                        return new
+                        {
+                            Carrier = carrier,
+                            DowTimes = times,
+                        };
                     }).ToList();
+                    var routes = data.SelectMany(d => d.DowTimes
+                        .Select(t => new Route(
+                            BCP.CountryName,
+                            t.Dow,
+                            d.Carrier,
+                            Mode.Bus,
+                            Stop.CreateMany(
+                                names.Keys,
+                                t.Time.AsList().AppendMany(null, names.Count() - 1),
+                                regions: names.Values),
+                                url))
+                        .Where(r => !this.banned.Contains(r.Carrier))
+                        .ToList());
 
-                    return new
-                    {
-                        Carrier = carrier,
-                        DowTimes = times,
-                    };
-                }).ToList();
-                var routes = data.SelectMany(d =>  d.DowTimes.Select(t => new Route(
-                    BCP.CountryName,
-                    t.Dow,
-                    d.Carrier,
-                    Mode.Bus,
-                    Stop.CreateMany(names, t.Time.AsList().AppendMany(null, names.Count() - 1)),
-                    url))
-                    .Where(r => !this.banned.Contains(r.Carrier))
-                    .ToList());
-
-                allRoutes.AddRange(routes);
+                    allRoutes.AddRange(routes);
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogError(ex, string.Join(" | ", g));
+                }
             }
 
             var legs = new List<Leg>();
