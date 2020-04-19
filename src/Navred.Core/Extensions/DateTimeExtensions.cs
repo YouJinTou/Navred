@@ -92,6 +92,11 @@ namespace Navred.Core.Extensions
             return ((dow & DaysOfWeek.HolidayExclusive) > 0) && ((dow & Constants.AllWeek) == 0);
         }
 
+        public static bool IsEmpty(this DaysOfWeek dow)
+        {
+            return dow.Equals(DaysOfWeek.Empty);
+        }
+
         public static long ToUtcTimestamp(this DateTime utcDt)
         {
             var realUtcDt = DateTime.SpecifyKind(utcDt, DateTimeKind.Utc);
