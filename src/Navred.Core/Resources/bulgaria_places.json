@@ -42081,7 +42081,7 @@
   },
   {
     "Country": "Bulgaria",
-    "Name": "Златни Пясъци",
+    "Name": "Златни пясъци",
     "Region": "Варна",
     "Municipality": "Варна",
     "Longitude": 28.0406,
@@ -42089,7 +42089,7 @@
   },
   {
     "Country": "Bulgaria",
-    "Name": "Слънчев Бряг",
+    "Name": "Слънчев бряг",
     "Region": "Бургас",
     "Municipality": "Несебър",
     "Longitude": 27.7139,
@@ -42118,5 +42118,29 @@
     "Municipality": "Левски",
     "Longitude": 24.6058,
     "Latitude": 42.7806
-  }
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Петрохан",
+    "Region": "Монтана",
+    "Municipality": "Берковица",
+    "Longitude": 23.1253,
+    "Latitude": 43.1225
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Фалковец",
+    "Region": "Видин",
+    "Municipality": "Димово",
+    "Longitude": 22.7690148,
+    "Latitude": 43.5922086
+  },
+  {
+    "Country": "Bulgaria",
+    "Name": "Извос",
+    "Region": "Видин",
+    "Municipality": "Белоградчик",
+    "Longitude": 22.6569528,
+    "Latitude": 43.6124614
+  },
 ]
