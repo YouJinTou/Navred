@@ -26,7 +26,6 @@ namespace Navred.Core.Search.Algorithms
         {
             var graphResult = new GraphSearchResult();
             var forwardPass = this.DoPass(g);
-
             graphResult.Add(forwardPass.BestPath);
 
             var reversed = g.Reverse();
@@ -37,17 +36,17 @@ namespace Navred.Core.Search.Algorithms
             foreach (var v in forwardPass.BestPath.Vertices)
             {
                 var nonBestEdges = v.Edges
-                    .Where(e => 
-                        !forwardPass.BestPath.Contains(e) && 
+                    .Where(e =>
+                        !forwardPass.BestPath.Contains(e) &&
                         !seenVertices.Contains(e.Destination))
                     .ToList();
 
                 foreach (var nonBestEdge in nonBestEdges)
                 {
                     var diff =
-                        backwardPass.Distances[nonBestEdge.Destination] -
-                        backwardPass.Distances[nonBestEdge.Source] +
-                        nonBestEdge.Weight;
+                    backwardPass.Distances[nonBestEdge.Destination] -
+                    backwardPass.Distances[nonBestEdge.Source] +
+                    nonBestEdge.Weight;
 
                     diffs.Add(nonBestEdge, diff);
                 }
@@ -69,7 +68,7 @@ namespace Navred.Core.Search.Algorithms
                 var pathFromShortestDestination = this.RetrievePath(
                     nextShortestEdge.Key.Destination, g.Destination, forwardPass, g, nextShortestEdge.Key);
 
-                if (pathFromShortestDestination.IsEmpty() && pathFromSource.IsEmpty())
+                if (pathFromShortestDestination.IsEmpty() || pathFromSource.IsEmpty())
                 {
                     return graphResult.Finalize();
                 }
@@ -90,6 +89,8 @@ namespace Navred.Core.Search.Algorithms
             var finalResult = graphResult.Finalize();
 
             return finalResult;
+
+            return null;
         }
 
         private Result DoPass(Graph g)
