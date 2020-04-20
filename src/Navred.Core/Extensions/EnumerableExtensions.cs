@@ -327,5 +327,22 @@ namespace Navred.Core.Extensions
 
             return reversedDict;
         }
+
+        public static IEnumerable<(T, T)> SquaredFor<T>(this IEnumerable<T> items)
+        {
+            var itemsList = items.ToList();
+
+            for (int i = 0; i < itemsList.Count; i++)
+            {
+                var current = itemsList[i];
+
+                for (int j = i + 1; j < itemsList.Count; j++)
+                {
+                    var next = itemsList[j];
+
+                    yield return (current, next);
+                }
+            }
+        }
     }
 }

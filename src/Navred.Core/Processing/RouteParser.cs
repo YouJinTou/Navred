@@ -40,55 +40,48 @@ namespace Navred.Core.Processing
             var legs = new List<Leg>();
             var date = DateTime.UtcNow.AddDays(1).Date;
 
-            for (int s = 0; s < this.parsed.Stops.Count; s++)
+            foreach (var (current, next) in this.parsed.Stops.SquaredFor())
             {
-                var current = this.parsed.Stops[s];
-
-                for (int n = s + 1; n < this.parsed.Stops.Count; n++)
+                try
                 {
-                    var next = this.parsed.Stops[n];
+                    var departureTimes = route.DaysOfWeek.GetValidUtcTimesAhead(
+                        date + current.Time.Time,
+                        Constants.CrawlLookaheadDays,
+                        this.cultureProvider.GetHolidays())
+                        .ToList();
+                    date = (current.Time > next.Time) ?
+                        departureTimes[0].Date.ReturnBigger(date).AddDays(1) :
+                        departureTimes[0].Date.ReturnBigger(date);
+                    var arrivalTimes = route.DaysOfWeek.GetValidUtcTimesAhead(
+                        date + next.Time.Time,
+                        Constants.CrawlLookaheadDays,
+                        this.cultureProvider.GetHolidays())
+                        .ToList();
 
-                    try
+                    for (int t = 0; t < departureTimes.Count; t++)
                     {
-                        var departureTimes = route.DaysOfWeek.GetValidUtcTimesAhead(
-                            date + current.Time.Time,
-                            Constants.CrawlLookaheadDays,
-                            this.cultureProvider.GetHolidays())
-                            .ToList();
-                        date = (current.Time > next.Time) ?
-                            departureTimes[0].Date.ReturnBigger(date).AddDays(1) :
-                            departureTimes[0].Date.ReturnBigger(date);
-                        var arrivalTimes = route.DaysOfWeek.GetValidUtcTimesAhead(
-                            date + next.Time.Time,
-                            Constants.CrawlLookaheadDays,
-                            this.cultureProvider.GetHolidays())
-                            .ToList();
+                        var leg = new Leg(
+                            from: current.Place,
+                            to: next.Place,
+                            utcDeparture: departureTimes[t],
+                            utcArrival: arrivalTimes[t],
+                            carrier: route.Carrier,
+                            mode: route.Mode,
+                            info: route.Info,
+                            price: route.GetPrice(current, next, out bool priceEstimated),
+                            fromSpecific: current.Address,
+                            toSpecific: next.Address,
+                            departureEstimated: current.Time.Estimated,
+                            arrivalEstimated: next.Time.Estimated,
+                            priceEstimated: priceEstimated);
 
-                        for (int t = 0; t < departureTimes.Count; t++)
-                        {
-                            var leg = new Leg(
-                                from: current.Place,
-                                to: next.Place,
-                                utcDeparture: departureTimes[t],
-                                utcArrival: arrivalTimes[t],
-                                carrier: route.Carrier,
-                                mode: route.Mode,
-                                info: route.Info,
-                                price: route.GetPrice(current, next, out bool priceEstimated),
-                                fromSpecific: current.Address,
-                                toSpecific: next.Address,
-                                departureEstimated: current.Time.Estimated,
-                                arrivalEstimated: next.Time.Estimated,
-                                priceEstimated: priceEstimated);
-
-                            legs.Add(leg);
-                        }
+                        legs.Add(leg);
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"{ex.Message}: {string.Join(" | ", this.parsed.Stops)}");
-                        //this.logger.LogError(ex, current.ToString());
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"{ex.Message}: {string.Join(" | ", this.parsed.Stops)}");
+                    //this.logger.LogError(ex, current.ToString());
                 }
             }
 
@@ -118,7 +111,7 @@ namespace Navred.Core.Processing
 
             return copy;
         }
-        
+
         private async Task<Route> FixTimelineAsync(Route route)
         {
             foreach (var (current, next) in route.Stops.AsPairs())
@@ -142,7 +135,7 @@ namespace Navred.Core.Processing
                     next.Time.Estimated = true;
                 }
 
-                if (departure > arrival && 
+                if (departure > arrival &&
                     !route.Estimables.Contains(current, new StopNameEqualityComparer()))
                 {
                     arrival = await this.estimator.EstimateArrivalTimeAsync(
