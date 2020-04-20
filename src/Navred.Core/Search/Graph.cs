@@ -16,7 +16,7 @@ namespace Navred.Core.Search
             this.Source = source.ReturnOrThrowIfNull();
             this.Destination = destination.ReturnOrThrowIfNull();
             this.Vertices = vertices ?? new List<Vertex>();
-            this.Edges = edges ?? new List<Edge>();
+            this.Edges = new HashSet<Edge>(edges ?? new List<Edge>());
 
             if (this.Source.Edges.IsEmpty())
             {
