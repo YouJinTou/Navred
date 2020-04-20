@@ -285,22 +285,22 @@ namespace Navred.Core.Itineraries.DB
             Place from, Place to, IEnumerable<VertexWindow> vertexWindows)
         {
             var toIgnore = new List<string>();
-            from = this.placesManager.GetPlace(from);
-            to = this.placesManager.GetPlace(to);
-            var fromToDistance = from.DistanceToInKm(to);
+            //from = this.placesManager.GetPlace(from);
+            //to = this.placesManager.GetPlace(to);
+            //var fromToDistance = from.DistanceToInKm(to);
 
-            foreach (var vw in vertexWindows)
-            {
-                var vwPlace = this.placesManager.GetPlace(vw.Vertex);
-                var fromVwDistance = from.DistanceToInKm(vwPlace);
-                var vwToDistance = to.DistanceToInKm(vwPlace);
-                var totalDistance = fromVwDistance + vwToDistance;
+            //foreach (var vw in vertexWindows)
+            //{
+            //    var vwPlace = this.placesManager.GetPlace(vw.Vertex);
+            //    var fromVwDistance = from.DistanceToInKm(vwPlace);
+            //    var vwToDistance = to.DistanceToInKm(vwPlace);
+            //    var totalDistance = fromVwDistance + vwToDistance;
 
-                if (totalDistance > fromToDistance)
-                {
-                    toIgnore.Add(vw.Vertex);
-                }
-            }
+            //    if (totalDistance > fromToDistance)
+            //    {
+            //        toIgnore.Add(vw.Vertex);
+            //    }
+            //}
 
             return toIgnore;
         }
