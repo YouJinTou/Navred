@@ -208,27 +208,6 @@ namespace Navred.Core.Cultures
             return result;
         }
 
-        public decimal? ParsePrice(string priceString)
-        {
-            if (string.IsNullOrWhiteSpace(priceString))
-            {
-                return null;
-            }
-
-            var info = new CultureInfo("bg-BG");
-            var parsed = decimal.TryParse(
-                priceString.Trim(), NumberStyles.Any, info,  out decimal price);
-
-            if (parsed)
-            {
-                return price;
-            }
-
-            var fallback = Regex.Match(priceString.Trim(), @"(\d+[\.,]?\d*)").Groups[1].Value;
-
-            return string.IsNullOrWhiteSpace(fallback) ? (decimal?)null : decimal.Parse(fallback);
-        }
-
         public DaysOfWeek ToDaysOfWeek(string dayString)
         {
             dayString.ThrowIfNullOrWhiteSpace("Empty day string.");

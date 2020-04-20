@@ -100,9 +100,13 @@ namespace Navred.Crawling.Crawlers.Regions
         {
             try
             {
-                await this.UpdateAsync(DeparturesUrl);
+                var departures = await this.UpdateAsync(DeparturesUrl);
+                var arrivals = await this.UpdateAsync(ArrivalsUrl);
+                var all = new List<Leg>(departures);
 
-                await this.UpdateAsync(ArrivalsUrl);
+                all.AddRange(arrivals);
+
+                await this.repo.UpdateLegsAsync(all);
             }
             catch (Exception ex)
             {
@@ -110,7 +114,7 @@ namespace Navred.Crawling.Crawlers.Regions
             }
         }
 
-        private async Task UpdateAsync(string url)
+        private async Task<IEnumerable<Leg>> UpdateAsync(string url)
         {
             var web = new HtmlWeb();
             var doc = await web.LoadFromWebAsync(
@@ -122,13 +126,33 @@ namespace Navred.Crawling.Crawlers.Regions
                 .Distinct()
                 .ToList();
             var httpClient = this.httpClientFactory.CreateClient();
-            var dates = DateTime.UtcNow.GetDateTimesAhead(1)
+            var dates = DateTime.UtcNow.GetDateTimesAhead(Defaults.DaysAhead)
                 .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
+            var legs = new List<Leg>();
 
             foreach (var date in dates)
             {
-                var legs = new List<Leg>();
+                foreach (var d in destinations)
+                {
+                    try
+                    {
+                        var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+                        {
+                            new KeyValuePair<string, string>("city_menu", d),
+                            new KeyValuePair<string, string>("for_date", date),
+                        });
+                        var response = await httpClient.PostAsync(url, content);
+                        var responseText = await response.Content.ReadAsByteArrayAsync();
+                        var encodedText = this.cultureProvider.GetEncoding().GetString(responseText);
+                        var currentLegs = await this.GetLegsAsync(encodedText, date, d, url);
 
+                        legs.AddRange(currentLegs);
+                    }
+                    catch (Exception ex)
+                    {
+                        this.logger.LogError(ex, $"{d} failed.");
+                    }
+                }
                 await destinations.RunBatchesAsync(20, async (d) =>
                 {
                     try
@@ -150,9 +174,9 @@ namespace Navred.Crawling.Crawlers.Regions
                         this.logger.LogError(ex, $"{d} failed.");
                     }
                 }, 200, 5, maxRetries: 3);
-
-                await this.repo.UpdateLegsAsync(legs);
             }
+
+            return legs;
         }
 
         private async Task<IEnumerable<Leg>> GetLegsAsync(
@@ -192,7 +216,10 @@ namespace Navred.Crawling.Crawlers.Regions
                 var fromTo = new Dictionary<string, string>
                 {
                     { BCP.City.Sofia, BCP.Region.SOF },
-                    { this.replacements.GetOrReturn(placeString), this.regions.GetOrDefault(placeString) }
+                    { 
+                        this.replacements.GetOrReturn(placeString), 
+                        this.regions.GetOrDefault(placeString) 
+                    }
                 };
                 var fullRoute = table.SelectSingleNode(
                     ".//td[contains(@class, 'sr_full_route')]")?.InnerText

@@ -19,8 +19,6 @@ namespace Navred.Core.Cultures
 
         IEnumerable<DateTime> GetHolidays(uint yearsAhead = 2);
 
-        decimal? ParsePrice(string priceString);
-
         Encoding GetEncoding();
     }
 }

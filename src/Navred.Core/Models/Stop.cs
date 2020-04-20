@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Navred.Core.Models
 {
-    public class Stop : ICopyable<Stop>
+    public class Stop : ICopyable<Stop>, IEquatable<Stop>
     {
         public Stop(
             string name, 
@@ -16,7 +16,7 @@ namespace Navred.Core.Models
             string municipality, 
             LegTime time, 
             string address, 
-            string price, 
+            StopPrice price, 
             Place place = null)
         {
             this.Name = name;
@@ -38,7 +38,7 @@ namespace Navred.Core.Models
 
         public string Address { get; set; }
 
-        public string Price { get; set; }
+        public StopPrice Price { get; set; }
 
         public Place Place { get; set; }
 
@@ -47,6 +47,36 @@ namespace Navred.Core.Models
         public override string ToString()
         {
             return $"{this.Name} {this.Time} {this.Price}";
+        }
+
+        public bool Equals(Stop other)
+        {
+            if (other.IsNull())
+            {
+                return false;
+            }
+
+            if (!this.Name?.Equals(other.Name) ?? false)
+            {
+                return false;
+            }
+
+            if (!this.Region?.Equals(other.Region) ?? false)
+            {
+                return false;
+            }
+
+            if (!this.Municipality?.Equals(other.Municipality) ?? false)
+            {
+                return false;
+            }
+
+            if (!this.Time?.Equals(other.Time) ?? false)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public Stop Copy()
@@ -122,7 +152,7 @@ namespace Navred.Core.Models
                     null,
                     legTime,
                     addressesList?[i]?.Trim(),
-                    pricesList?[i]?.Trim()));
+                    new StopPrice(pricesList?[i]?.Trim())));
             }
 
             return stops;
