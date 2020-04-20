@@ -89,7 +89,6 @@ namespace Navred.Core.Processing
                         Console.WriteLine($"{ex.Message}: {string.Join(" | ", this.parsed.Stops)}");
                         //this.logger.LogError(ex, current.ToString());
                     }
-
                 }
             }
 
