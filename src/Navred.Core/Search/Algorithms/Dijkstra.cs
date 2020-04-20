@@ -44,9 +44,9 @@ namespace Navred.Core.Search.Algorithms
                 foreach (var nonBestEdge in nonBestEdges)
                 {
                     var diff =
-                    backwardPass.Distances[nonBestEdge.Destination] -
-                    backwardPass.Distances[nonBestEdge.Source] +
-                    nonBestEdge.Weight;
+                        backwardPass.Distances[nonBestEdge.Destination] -
+                        backwardPass.Distances[nonBestEdge.Source] +
+                        nonBestEdge.Weight;
 
                     diffs.Add(nonBestEdge, diff);
                 }
@@ -89,8 +89,6 @@ namespace Navred.Core.Search.Algorithms
             var finalResult = graphResult.Finalize();
 
             return finalResult;
-
-            return null;
         }
 
         private Result DoPass(Graph g)
