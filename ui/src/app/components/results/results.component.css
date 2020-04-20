@@ -1,0 +1,19 @@
+.place {
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    background-color: black;
+    display: inline-block;
+}
+
+.line {
+    display: table;
+    border-left: 2px dashed lightseagreen;
+    height: 75px;
+    padding: 5px;
+}
+
+.info {
+    display: table-cell;
+    vertical-align: middle;
+}

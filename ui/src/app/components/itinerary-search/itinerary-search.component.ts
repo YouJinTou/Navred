@@ -98,7 +98,8 @@ export class ItinerarySearchComponent implements OnInit {
               "price": null
           }
       }
-  ]
+  ];
+  this.findItineraries();
   }
 
   setFrom(place: string) {
