@@ -1,0 +1,17 @@
+<div class="results-container">
+    <div *ngFor="let path of paths">
+        <div *ngFor="let leg of path.legs">
+            {{ leg.fromSpecific ? leg.fromSpecific : leg.from.name }} -
+            {{ leg.toSpecific ? leg.toSpecific : leg.to.name }}
+            <hr />
+            {{ leg.utcDeparture }} -- {{ leg.utcArrival }}
+            {{ leg.arrivalEstimated ? '(estimated)' : '' }}
+            ({{ leg.duration }})
+            <hr />
+            {{ leg.carrier }}{{ leg.price == null ? '' : ' | ' + leg.price }}
+        </div>
+
+        <br />
+        <br />
+    </div>
+</div>

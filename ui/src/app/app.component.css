@@ -7,12 +7,6 @@ mat-sidenav, mat-sidenav-content {
 }
 
 mat-sidenav {
-    background-color: black;
+    background-color: lightcoral;
     width: 350px;
-}
-
-.search-box {
-    background-color: white;
-    width: 100px;
-    height: 100px;
 }

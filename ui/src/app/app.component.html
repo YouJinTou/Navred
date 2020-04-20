@@ -1,9 +1,9 @@
 <mat-sidenav-container>
     <mat-sidenav mode="side" opened>
-        <app-search class="search-box"></app-search>
-        <app-search class="search-box"></app-search>
+        <app-itinerary-search (onResultFound)="onResultFound($event)"></app-itinerary-search>
     </mat-sidenav>
     <mat-sidenav-content>
+        <app-results [paths]="result"></app-results>
         <router-outlet></router-outlet>
     </mat-sidenav-content>
 </mat-sidenav-container>
