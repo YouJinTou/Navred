@@ -77,8 +77,10 @@ namespace Navred.Core.Processing
             .Select(s => s.Copy())
             .ToList();
 
-        public decimal? GetPrice(Stop from, Stop to)
+        public decimal? GetPrice(Stop from, Stop to, out bool priceEstimated)
         {
+            priceEstimated = false;
+
             if (!to.Price.Value.HasValue)
             {
                 return null;
@@ -99,7 +101,14 @@ namespace Navred.Core.Processing
             var price = (to.Price - from.Price);
             var isFree = price.Equals(0m);
 
-            return isFree ? null : price;
+            if (isFree)
+            {
+                return null;
+            }
+
+            priceEstimated = true;
+
+            return price;
         }
 
         public Route TagEmptyStops()

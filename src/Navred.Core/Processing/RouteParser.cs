@@ -74,12 +74,12 @@ namespace Navred.Core.Processing
                                 carrier: route.Carrier,
                                 mode: route.Mode,
                                 info: route.Info,
-                                price: route.GetPrice(current, next),
+                                price: route.GetPrice(current, next, out bool priceEstimated),
                                 fromSpecific: current.Address,
                                 toSpecific: next.Address,
                                 departureEstimated: current.Time.Estimated,
                                 arrivalEstimated: next.Time.Estimated,
-                                priceEstimated: false);
+                                priceEstimated: priceEstimated);
 
                             legs.Add(leg);
                         }
