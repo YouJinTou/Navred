@@ -35,6 +35,13 @@ namespace Navred.Core.Places
             return place;
         }
 
+        public static implicit operator string(Place place)
+        {
+            place.ThrowIfNull("Place is empty.");
+
+            return place.GetId();
+        }
+
         public double DistanceToInKm(Place other)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(

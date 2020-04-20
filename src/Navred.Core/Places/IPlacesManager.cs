@@ -18,6 +18,8 @@ namespace Navred.Core.Places
 
         IEnumerable<Place> GetPlaces(string country, string name);
 
+        Place GetPlace(string id);
+
         Place GetPlace(
             string country, 
             string name, 
