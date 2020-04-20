@@ -16,13 +16,18 @@ namespace Navred.Core.Itineraries.DB
     {
         private readonly IAmazonDynamoDB db;
         private readonly ICultureProvider cultureProvider;
+        private readonly IPlacesManager placesManager;
         private readonly Settings settings;
 
         public LegRepository(
-            IAmazonDynamoDB db, ICultureProvider cultureProvider, Settings settings)
+            IAmazonDynamoDB db, 
+            ICultureProvider cultureProvider, 
+            IPlacesManager placesManager,
+            Settings settings)
         {
             this.db = db;
             this.cultureProvider = cultureProvider;
+            this.placesManager = placesManager;
             this.settings = settings;
         }
 
@@ -31,7 +36,7 @@ namespace Navred.Core.Itineraries.DB
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to, window);
 
             var queried = new HashSet<string> { from.GetId(), to.GetId() };
-            var dbLegs = await this.GetLegsRecursiveAsync(from.GetId(), to.GetId(), window, queried);
+            var dbLegs = await this.GetLegsRecursiveAsync(from, to, window, queried);
             var legs = new List<Leg>();
 
             foreach (var dbl in dbLegs)
@@ -141,7 +146,7 @@ namespace Navred.Core.Itineraries.DB
             return dbLegs;
         }
 
-        private async Task<IEnumerable<DBLeg>> GetLegs(string from, TimeWindow window)
+        private async Task<IEnumerable<DBLeg>> GetLegs(Place from, TimeWindow window)
         {
             var request = new QueryRequest();
             request.TableName = this.settings.ItinerariesTable;
@@ -153,7 +158,7 @@ namespace Navred.Core.Itineraries.DB
             };
             request.ExpressionAttributeValues = new Dictionary<string, AttributeValue>
             {
-                { ":v_source", new AttributeValue { S = from } },
+                { ":v_source", new AttributeValue { S = from.GetId() } },
                 { ":start", new AttributeValue { N = window.FromUtcTimestamp.ToString() } },
                 { ":end", new AttributeValue { N = window.ToUtcTimestmap.ToString() } },
             };
@@ -178,12 +183,12 @@ namespace Navred.Core.Itineraries.DB
         }
 
         private async Task<IEnumerable<DBLeg>> GetLegsRecursiveAsync(
-            string from, string to, TimeWindow window, ICollection<string> queried)
+            Place from, Place to, TimeWindow window, ICollection<string> queried)
         {
             var legs = (await this.GetLegs(from, window)).ToList();
             var toVertices = legs
                 .SelectMany(l => l.Tos)
-                .Select(t => new
+                .Select(t => new VertexWindow
                 {
                     Vertex = t.ToId,
                     Window = new TimeWindow(
@@ -191,6 +196,8 @@ namespace Navred.Core.Itineraries.DB
                         t.UtcArrival.ToUtcDateTimeTz() + TimeSpan.FromHours(5))
                 })
                 .ToList();
+
+            queried.AddRange(this.DoHeuristicsTrim(from, to, toVertices));
 
             foreach (var v in toVertices)
             {
@@ -272,6 +279,37 @@ namespace Navred.Core.Itineraries.DB
             result = firstLetter + result.Substring(0, 5) + index;
 
             return result;
+        }
+
+        private ICollection<string> DoHeuristicsTrim(
+            Place from, Place to, IEnumerable<VertexWindow> vertexWindows)
+        {
+            var toIgnore = new List<string>();
+            from = this.placesManager.GetPlace(from);
+            to = this.placesManager.GetPlace(to);
+            var fromToDistance = from.DistanceToInKm(to);
+
+            foreach (var vw in vertexWindows)
+            {
+                var vwPlace = this.placesManager.GetPlace(vw.Vertex);
+                var fromVwDistance = from.DistanceToInKm(vwPlace);
+                var vwToDistance = to.DistanceToInKm(vwPlace);
+                var totalDistance = fromVwDistance + vwToDistance;
+
+                if (totalDistance > fromToDistance)
+                {
+                    toIgnore.Add(vw.Vertex);
+                }
+            }
+
+            return toIgnore;
+        }
+
+        private class VertexWindow
+        {
+            public string Vertex { get; set; }
+
+            public TimeWindow Window { get; set; }
         }
     }
 }
