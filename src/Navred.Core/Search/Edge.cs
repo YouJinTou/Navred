@@ -68,6 +68,7 @@ namespace Navred.Core.Search
         public bool Equals(Edge other) => 
             this.Source.Equals(other.Source) && 
             this.Destination.Equals(other.Destination) && 
+            this.Leg.Carrier.Equals(other.Leg.Carrier) &&
             this.Leg.UtcDeparture.Equals(other.Leg.UtcDeparture) &&
             this.Leg.UtcArrival.Equals(other.Leg.UtcArrival) &&
             this.Weight.Equals(other.Weight);
@@ -81,6 +82,7 @@ namespace Navred.Core.Search
             {
                 result *= prime + this.Source.GetHashCode();
                 result *= prime + this.Destination.GetHashCode();
+                result *= prime + this.Leg.Carrier.GetHashCode();
                 result *= prime + this.Leg.UtcDeparture.GetHashCode();
                 result *= prime + this.Leg.UtcArrival.GetHashCode();
                 result *= prime + this.Weight.GetHashCode();
