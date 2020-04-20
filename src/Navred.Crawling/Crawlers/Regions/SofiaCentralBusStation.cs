@@ -126,7 +126,7 @@ namespace Navred.Crawling.Crawlers.Regions
                 .Distinct()
                 .ToList();
             var httpClient = this.httpClientFactory.CreateClient();
-            var dates = DateTime.UtcNow.GetDateTimesAhead(Defaults.DaysAhead)
+            var dates = DateTime.UtcNow.GetDateTimesAhead(Constants.CrawlLookaheadDays)
                 .Select(dt => dt.ToString("dd.MM.yyyy")).ToList();
             var legs = new List<Leg>();
 
