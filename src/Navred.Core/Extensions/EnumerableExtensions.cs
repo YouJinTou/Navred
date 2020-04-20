@@ -33,6 +33,14 @@ namespace Navred.Core.Extensions
             return false;
         }
 
+        public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> items)
+        {
+            foreach (var item in items)
+            {
+                collection.Add(item);
+            }
+        }
+
         public static System.Collections.IEnumerable ToGenericEnumerable(
             this System.Collections.IEnumerable enumerable, Type type)
         {
