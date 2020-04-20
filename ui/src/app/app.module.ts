@@ -11,12 +11,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material';
 import { ItinerarySearchComponent } from './components/itinerary-search/itinerary-search.component';
 import { HttpClientModule } from '@angular/common/http';
+import { SidebarComponent } from './components/sidebar/sidebar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     SearchComponent,
-    ItinerarySearchComponent
+    ItinerarySearchComponent,
+    SidebarComponent
   ],
   imports: [
     BrowserModule,
