@@ -28,7 +28,6 @@ namespace Navred.Core.Processing
             this.Banned = new HashSet<Stop>(
                 banned ?? new List<Stop>(), new StopNameEqualityComparer());
             this.Info = info;
-            this.pricesPerStop = this.CalculatePricesPerStop(stops);
         }
 
         public string Country { get; set; }
@@ -208,27 +207,6 @@ namespace Navred.Core.Processing
         public override string ToString()
         {
             return $"{string.Join(" | ", this.Stops)} ({this.Carrier})";
-        }
-
-        private IDictionary<Stop, IDictionary<Stop, decimal?>> CalculatePricesPerStop(
-            IEnumerable<Stop> stops)
-        {
-            var stopsList = stops.ToList();
-            var result = new Dictionary<Stop, IDictionary<Stop, decimal?>>();
-
-            for (int s = 0; s < stopsList.Count; s++)
-            {
-                result.Add(stopsList[s], new Dictionary<Stop, decimal?>());
-
-                for (int n = s + 1; n < stopsList.Count; n++)
-                {
-                    var price = stopsList[n].Price - stopsList[s].Price;
-
-                    result[stopsList[s]].Add(stopsList[n], price);
-                }
-            }
-
-            return result;
         }
     }
 }
