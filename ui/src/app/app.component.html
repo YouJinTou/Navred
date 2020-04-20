@@ -3,7 +3,7 @@
         <app-itinerary-search (onResultFound)="onResultFound($event)"></app-itinerary-search>
     </mat-sidenav>
     <mat-sidenav-content>
-        <app-results [paths]="result"></app-results>
         <router-outlet></router-outlet>
+        <app-results [paths]="result"></app-results>
     </mat-sidenav-content>
 </mat-sidenav-container>
