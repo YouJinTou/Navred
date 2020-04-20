@@ -54,7 +54,7 @@ namespace Navred.Core.Search
                 Leg = m,
                 Weight = new Weight
                 {
-                    Duration = m.Duration,
+                    Duration = m.Duration + m.UtcDeparture.TimeOfDay,
                     Price = m.Price
                 }
             };

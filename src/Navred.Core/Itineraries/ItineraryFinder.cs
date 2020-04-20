@@ -43,7 +43,7 @@ namespace Navred.Core.Itineraries
                 Destination = vertices.Single(v => v.Name == l.To.GetId()),
                 Weight = new Weight
                 {
-                    Duration = l.Duration,
+                    Duration = l.Duration + l.UtcDeparture.TimeOfDay,
                     Price = l.Price,
                 },
                 Leg = l
