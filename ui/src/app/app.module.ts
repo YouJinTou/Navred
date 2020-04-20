@@ -9,16 +9,15 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material';
+import { MatSidenavModule } from '@angular/material';
 import { ItinerarySearchComponent } from './components/itinerary-search/itinerary-search.component';
 import { HttpClientModule } from '@angular/common/http';
-import { SidebarComponent } from './components/sidebar/sidebar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     SearchComponent,
-    ItinerarySearchComponent,
-    SidebarComponent
+    ItinerarySearchComponent
   ],
   imports: [
     BrowserModule,
@@ -28,6 +27,7 @@ import { SidebarComponent } from './components/sidebar/sidebar.component';
     MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSidenavModule,
     HttpClientModule
   ],
   providers: [],

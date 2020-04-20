@@ -1,4 +1,9 @@
-<div class="main">
-    <app-itinerary-search></app-itinerary-search>
-    <router-outlet></router-outlet>
-</div>
+<mat-sidenav-container>
+    <mat-sidenav mode="side" opened>
+        <app-search class="search-box"></app-search>
+        <app-search class="search-box"></app-search>
+    </mat-sidenav>
+    <mat-sidenav-content>
+        <router-outlet></router-outlet>
+    </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,4 +1,4 @@
-.search-container {
+/* .search-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     padding: 2em;
@@ -9,4 +9,8 @@
 
 .results-container {
     padding: 10px;
+} */
+
+.search-box {
+    background-color: white;
 }

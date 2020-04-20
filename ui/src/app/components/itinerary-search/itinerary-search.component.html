@@ -1,7 +1,7 @@
 <div class="container">
     <div class="search-container">
-        <app-search (onPlaceSelected)='setFrom($event)'></app-search>
-        <app-search (onPlaceSelected)='setTo($event)'></app-search>
+        <app-search class="search-box" (onPlaceSelected)='setFrom($event)'></app-search>
+        <app-search class="search-box" (onPlaceSelected)='setTo($event)'></app-search>
     </div>
     <div class="results-container">
         <div *ngFor="let path of paths">
