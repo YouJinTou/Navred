@@ -2,6 +2,7 @@
 using Amazon.DynamoDBv2.Model;
 using Navred.Core.Configuration;
 using Navred.Core.Cultures;
+using Navred.Core.Estimation;
 using Navred.Core.Extensions;
 using Navred.Core.Places;
 using Navred.Core.Tools;
@@ -17,26 +18,35 @@ namespace Navred.Core.Itineraries.DB
         private readonly IAmazonDynamoDB db;
         private readonly ICultureProvider cultureProvider;
         private readonly IPlacesManager placesManager;
+        private readonly ITimeEstimator estimator;
         private readonly Settings settings;
+        private readonly object locker;
 
         public LegRepository(
-            IAmazonDynamoDB db, 
-            ICultureProvider cultureProvider, 
+            IAmazonDynamoDB db,
+            ICultureProvider cultureProvider,
             IPlacesManager placesManager,
+            ITimeEstimator estimator,
             Settings settings)
         {
             this.db = db;
             this.cultureProvider = cultureProvider;
             this.placesManager = placesManager;
+            this.estimator = estimator;
             this.settings = settings;
+            this.locker = new object();
         }
 
         public async Task<IEnumerable<Leg>> GetLegsAsync(Place from, Place to, TimeWindow window)
         {
             Validator.ThrowIfAnyNullOrWhiteSpace(from, to, window);
 
+            from = this.placesManager.GetPlace(from);
+            to = this.placesManager.GetPlace(to);
             var queried = new HashSet<string> { from.GetId(), to.GetId() };
-            var dbLegs = await this.GetLegsRecursiveAsync(from, to, window, queried);
+            var threshold = await this.estimator.EstimateArrivalTimeAsync(
+                from, to, window.To.DateTime, Mode.Bus);
+            var dbLegs = await this.GetLegsRecursiveAsync(from, to, window, queried, threshold);
             var legs = new List<Leg>();
 
             foreach (var dbl in dbLegs)
@@ -146,6 +156,59 @@ namespace Navred.Core.Itineraries.DB
             return dbLegs;
         }
 
+        private async Task<IEnumerable<DBLeg>> GetLegsRecursiveAsync(
+            Place from,
+            Place to,
+            TimeWindow window,
+            ICollection<string> queried,
+            DateTime threshold)
+        {
+            if (window.To.DateTime >= threshold)
+            {
+                return new List<DBLeg>();
+            }
+
+            var legs = (await this.GetLegs(from, window)).ToList();
+            var toVertices = legs
+                .SelectMany(l => l.Tos)
+                .Select(t => new VertexWindow
+                {
+                    Vertex = t.ToId,
+                    Window = new TimeWindow(
+                        t.UtcArrival.ToUtcDateTimeTz(),
+                        t.UtcArrival.ToUtcDateTimeTz() + TimeSpan.FromHours(5))
+                })
+                .ToList();
+
+            lock (this.locker)
+            {
+                queried.AddRange(this.DoHeuristicsTrim(from, to, toVertices));
+            }
+
+            await toVertices.RunBatchesAsync(10, async (v) =>
+            {
+                lock (this.locker)
+                {
+                    if (queried.Contains(v.Vertex))
+                    {
+                        return;
+                    }
+
+                    queried.Add(v.Vertex);
+                }
+
+                var nextItineraries = await this.GetLegsRecursiveAsync(
+                    v.Vertex, to, v.Window, queried, threshold);
+
+                lock (this.locker)
+                {
+                    legs.AddRange(nextItineraries);
+                }
+            });
+
+            return legs;
+        }
+
         private async Task<IEnumerable<DBLeg>> GetLegs(Place from, TimeWindow window)
         {
             var request = new QueryRequest();
@@ -177,41 +240,6 @@ namespace Navred.Core.Itineraries.DB
                     .ToList();
 
                 legs.Add(leg);
-            }
-
-            return legs;
-        }
-
-        private async Task<IEnumerable<DBLeg>> GetLegsRecursiveAsync(
-            Place from, Place to, TimeWindow window, ICollection<string> queried)
-        {
-            var legs = (await this.GetLegs(from, window)).ToList();
-            var toVertices = legs
-                .SelectMany(l => l.Tos)
-                .Select(t => new VertexWindow
-                {
-                    Vertex = t.ToId,
-                    Window = new TimeWindow(
-                        t.UtcArrival.ToUtcDateTimeTz(),
-                        t.UtcArrival.ToUtcDateTimeTz() + TimeSpan.FromHours(5))
-                })
-                .ToList();
-
-            queried.AddRange(this.DoHeuristicsTrim(from, to, toVertices));
-
-            foreach (var v in toVertices)
-            {
-                if (queried.Contains(v.Vertex))
-                {
-                    continue;
-                }
-
-                queried.Add(v.Vertex);
-
-                var nextItineraries = await this.GetLegsRecursiveAsync(
-                    v.Vertex, to, v.Window, queried);
-
-                legs.AddRange(nextItineraries);
             }
 
             return legs;
@@ -285,22 +313,25 @@ namespace Navred.Core.Itineraries.DB
             Place from, Place to, IEnumerable<VertexWindow> vertexWindows)
         {
             var toIgnore = new List<string>();
-            //from = this.placesManager.GetPlace(from);
-            //to = this.placesManager.GetPlace(to);
-            //var fromToDistance = from.DistanceToInKm(to);
+            from = this.placesManager.GetPlace(from);
+            to = this.placesManager.GetPlace(to);
+            var fromToDistance = from.DistanceToInKm(to);
 
-            //foreach (var vw in vertexWindows)
-            //{
-            //    var vwPlace = this.placesManager.GetPlace(vw.Vertex);
-            //    var fromVwDistance = from.DistanceToInKm(vwPlace);
-            //    var vwToDistance = to.DistanceToInKm(vwPlace);
-            //    var totalDistance = fromVwDistance + vwToDistance;
+            foreach (var vw in vertexWindows)
+            {
+                var vwPlace = this.placesManager.GetPlace(vw.Vertex);
+                var fromVwDistance = from.DistanceToInKm(vwPlace);
+                var vwToDistance = to.DistanceToInKm(vwPlace);
+                var totalDistance = fromVwDistance + vwToDistance;
+                var slackRatio = 2.0d;
 
-            //    if (totalDistance > fromToDistance)
-            //    {
-            //        toIgnore.Add(vw.Vertex);
-            //    }
-            //}
+                if (totalDistance > (fromToDistance * slackRatio))
+                {
+                    toIgnore.Add(vw.Vertex);
+                }
+            }
+
+            Console.WriteLine(toIgnore.Count);
 
             return toIgnore;
         }
