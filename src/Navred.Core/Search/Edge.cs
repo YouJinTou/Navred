@@ -1,9 +1,6 @@
 ﻿using Navred.Core.Abstractions;
-using Navred.Core.Extensions;
 using Navred.Core.Itineraries;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Navred.Core.Search
 {
@@ -100,34 +97,6 @@ namespace Navred.Core.Search
                 Weight = this.Weight.Copy(),
                 Leg = this.Leg.Copy()
             };
-        }
-
-        public Edge FindClosestInTime(IEnumerable<Edge> edges)
-        {
-            var diffs = new Dictionary<Edge, TimeSpan>();
-
-            foreach (var e in edges)
-            {
-                if (this.Leg.UtcArrival > e.Leg.UtcDeparture)
-                {
-                    continue;
-                }
-
-                var arrivalDiff = (this.Leg.UtcArrival - e.Leg.UtcArrival).Duration();
-                var departureDiff = (this.Leg.UtcDeparture - e.Leg.UtcDeparture).Duration();
-                var diff = arrivalDiff + departureDiff;
-
-                diffs.Add(e, diff);
-            }
-
-            if (diffs.IsEmpty())
-            {
-                return null;
-            }
-
-            var closest = diffs.GetMin(d => d.Value);
-
-            return closest.Key;
         }
     }
 }

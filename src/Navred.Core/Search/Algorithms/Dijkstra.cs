@@ -29,8 +29,8 @@ namespace Navred.Core.Search.Algorithms
 
             graphResult.Add(forwardPass.BestPath);
 
-            var reversed = g.Reverse();
-            var backwardPass = this.DoPass(reversed);
+            var r = g.Reverse();
+            var backwardPass = this.DoPass(r);
             var seenVertices = new HashSet<Vertex>();
             var diffs = new Dictionary<Edge, Weight>();
 
@@ -57,20 +57,20 @@ namespace Navred.Core.Search.Algorithms
 
             while (k >= 0 && !diffs.IsEmpty())
             {
-                var shortest = diffs.GetMin(kvp => kvp.Value);
+                var best = diffs.GetMin(kvp => kvp.Value);
                 var path = new GraphSearchPath();
                 var fromSource = this.RetrievePath(
-                    g.Source, shortest.Key.Source, forwardPass, g, shortest.Key);
-                var fromShortestDestinationToDestination = this.RetrievePath(
-                    shortest.Key.Destination, g.Destination, forwardPass, g, shortest.Key);
+                    g.Source, best.Key.Source, forwardPass, g, best.Key, false);
+                var fromReversedSource = this.RetrievePath(
+                    r.Source, best.Key.Destination, backwardPass, r, best.Key.Reverse(), true);
 
                 path.AddMany(fromSource);
 
-                path.Add(shortest.Key);
+                path.Add(best.Key);
 
-                path.AddMany(fromShortestDestinationToDestination);
+                path.AddMany(fromReversedSource.Select(e => e.Reverse()));
 
-                diffs.Remove(shortest.Key);
+                diffs.Remove(best.Key);
 
                 if (!(path.Source.Equals(g.Source) && path.Destination.Equals(g.Destination)))
                 {
@@ -135,7 +135,7 @@ namespace Navred.Core.Search.Algorithms
         }
 
         private IEnumerable<Edge> RetrievePath(
-            Vertex from, Vertex to, Result result, Graph g, Edge e)
+            Vertex from, Vertex to, Result result, Graph g, Edge e, bool fromReversed)
         {
             var edges = new Stack<Edge>();
             var current = to;
@@ -144,18 +144,25 @@ namespace Navred.Core.Search.Algorithms
             {
                 var prev = result.Previous[current];
 
-                if (prev == null)
+                if (prev.IsNull())
                 {
                     return new List<Edge>();
                 }
 
-                var weight = result.Distances[current] - result.Distances[prev];
-                var edge = g.FindEdge(prev, current, weight, e);
+                var recoverableEdges = g.Edges.Where(ed =>
+                    ed.Source.Equals(from) &&
+                    ed.Destination.Equals(to) &&
+                    (fromReversed ? 
+                        ed.Leg.UtcDeparture >= e.Leg.UtcArrival: 
+                        ed.Leg.UtcArrival <= e.Leg.UtcDeparture))
+                    .ToList();
 
-                if (edge == null)
+                if (recoverableEdges.IsEmpty())
                 {
                     return new List<Edge>();
                 }
+
+                var edge = recoverableEdges.GetMin(ed => ed.Leg.UtcDeparture);
 
                 edges.Push(edge);
 

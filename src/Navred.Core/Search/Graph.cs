@@ -46,24 +46,6 @@ namespace Navred.Core.Search
 
         public IEnumerable<Edge> Edges { get; private set; }
 
-        public Edge FindEdge(Vertex from, Vertex to, Weight weight, Edge neighbor)
-        {
-            var edges = this.Edges.Where(e =>
-                e.Source.Equals(from) && 
-                e.Destination.Equals(to) && 
-                e.Weight.Equals(weight))
-                .ToList();
-
-            if (edges.IsEmpty())
-            {
-                return null;
-            }
-
-            var edge = neighbor.FindClosestInTime(edges);
-
-            return edge;
-        }
-
         public Graph Copy()
         {
             var graph = new Graph(
