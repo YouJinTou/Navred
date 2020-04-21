@@ -103,8 +103,7 @@ namespace Navred.Core.Itineraries
                 (this.UtcDeparture < other.UtcArrival) &&
                 this.To.Equals(other.From) &&
                 this.Carrier.Equals(other.Carrier) &&
-                this.Mode.Equals(other.Mode) &&
-                (this.Price.HasValue && other.Price.HasValue);
+                this.Mode.Equals(other.Mode);
             merged = null;
 
             if (!isValidMerge)
