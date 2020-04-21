@@ -108,11 +108,21 @@ namespace Navred.Core.Search
 
             foreach (var e in edges)
             {
+                if (this.Leg.UtcArrival > e.Leg.UtcDeparture)
+                {
+                    continue;
+                }
+
                 var arrivalDiff = (this.Leg.UtcArrival - e.Leg.UtcArrival).Duration();
                 var departureDiff = (this.Leg.UtcDeparture - e.Leg.UtcDeparture).Duration();
                 var diff = arrivalDiff + departureDiff;
 
                 diffs.Add(e, diff);
+            }
+
+            if (diffs.IsEmpty())
+            {
+                return null;
             }
 
             var closest = diffs.GetMin(d => d.Value);

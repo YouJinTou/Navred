@@ -36,8 +36,21 @@ namespace Navred.Core.Search
             => this.Path.Any(e => e.Source.Equals(edge.Destination));
 
         public bool Contains(Edge edge)
-            => this.Path.Any(
-                e => e.Source.Equals(edge.Source) && e.Destination.Equals(edge.Destination));
+        {
+            foreach (var e in this.Path)
+            {
+                if (
+                    e.Source.Equals(edge.Source) && 
+                    e.Destination.Equals(edge.Destination) && 
+                    e.Leg.UtcDeparture.Equals(edge.Leg.UtcDeparture) &&
+                    e.Leg.UtcArrival.Equals(edge.Leg.UtcArrival))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public void Add(Edge edge)
         {

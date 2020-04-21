@@ -26,6 +26,7 @@ namespace Navred.Core.Search.Algorithms
         {
             var graphResult = new GraphSearchResult();
             var forwardPass = this.DoPass(g);
+
             graphResult.Add(forwardPass.BestPath);
 
             var reversed = g.Reverse();
@@ -54,34 +55,29 @@ namespace Navred.Core.Search.Algorithms
                 seenVertices.Add(v);
             }
 
-            if (diffs.IsEmpty())
-            {
-                return graphResult.Finalize();
-            }
-
             while (k >= 0 && !diffs.IsEmpty())
             {
-                var nextShortestEdge = diffs.GetMin(kvp => kvp.Value);
+                var shortest = diffs.GetMin(kvp => kvp.Value);
                 var path = new GraphSearchPath();
-                var pathFromSource = this.RetrievePath(
-                    g.Source, nextShortestEdge.Key.Source, forwardPass, g, nextShortestEdge.Key);
-                var pathFromShortestDestination = this.RetrievePath(
-                    nextShortestEdge.Key.Destination, g.Destination, forwardPass, g, nextShortestEdge.Key);
+                var fromSource = this.RetrievePath(
+                    g.Source, shortest.Key.Source, forwardPass, g, shortest.Key);
+                var fromShortestDestinationToDestination = this.RetrievePath(
+                    shortest.Key.Destination, g.Destination, forwardPass, g, shortest.Key);
 
-                if (pathFromShortestDestination.IsEmpty() || pathFromSource.IsEmpty())
+                path.AddMany(fromSource);
+
+                path.Add(shortest.Key);
+
+                path.AddMany(fromShortestDestinationToDestination);
+
+                diffs.Remove(shortest.Key);
+
+                if (!(path.Source.Equals(g.Source) && path.Destination.Equals(g.Destination)))
                 {
-                    return graphResult.Finalize();
+                    continue;
                 }
 
-                path.AddMany(pathFromSource);
-
-                path.Add(nextShortestEdge.Key);
-
-                path.AddMany(pathFromShortestDestination);
-
                 graphResult.Add(path);
-
-                diffs.Remove(nextShortestEdge.Key);
 
                 k--;
             }
