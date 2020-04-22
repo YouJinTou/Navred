@@ -32,7 +32,6 @@ namespace Navred.Core.Search.Algorithms
             var r = g.Reverse();
             var backwardPass = this.DoPass(r);
             var seenVertices = new HashSet<Vertex>();
-            var diffs = new Dictionary<Edge, Weight>();
 
             foreach (var v in forwardPass.BestPath.Vertices)
             {
@@ -42,44 +41,40 @@ namespace Navred.Core.Search.Algorithms
                         !seenVertices.Contains(e.Destination))
                     .ToList();
 
-                foreach (var nonBestEdge in nonBestEdges)
+                foreach (var edge in nonBestEdges)
                 {
-                    var diff =
-                        backwardPass.Distances[nonBestEdge.Destination] -
-                        backwardPass.Distances[nonBestEdge.Source] +
-                        nonBestEdge.Weight;
+                    var pathsFromSource = this.RetrievePaths(
+                        g.Source, edge.Source, forwardPass, g, edge, false);
+                    var pathsFromReversedSource = this.RetrievePaths(
+                        r.Source, edge.Destination, backwardPass, r, edge.Reverse(), true);
+                    pathsFromSource = pathsFromSource.IsEmpty() ?
+                        new List<List<Edge>> { new List<Edge> { null } } :
+                        pathsFromSource;
+                    pathsFromReversedSource = pathsFromReversedSource.IsEmpty() ?
+                        new List<List<Edge>> { new List<Edge> { null } } :
+                        pathsFromReversedSource;
 
-                    diffs.Add(nonBestEdge, diff);
+                    foreach (var pathFromSource in pathsFromSource)
+                    {
+                        var pathStart = new GraphSearchPath(pathFromSource);
+
+                        pathStart.Add(edge);
+
+                        foreach (var pathFromReversedSource in pathsFromReversedSource)
+                        {
+                            var path = new GraphSearchPath(pathStart.Path);
+
+                            path.AddMany(pathFromReversedSource.Select(e => e?.Reverse()));
+
+                            if (path.Source.Equals(g.Source) && path.Destination.Equals(g.Destination))
+                            {
+                                graphResult.Add(path);
+                            }
+                        }
+                    }
                 }
 
                 seenVertices.Add(v);
-            }
-
-            while (k >= 0 && !diffs.IsEmpty())
-            {
-                var best = diffs.GetMin(kvp => kvp.Value);
-                var path = new GraphSearchPath();
-                var fromSource = this.RetrievePath(
-                    g.Source, best.Key.Source, forwardPass, g, best.Key, false);
-                var fromReversedSource = this.RetrievePath(
-                    r.Source, best.Key.Destination, backwardPass, r, best.Key.Reverse(), true);
-
-                path.AddMany(fromSource);
-
-                path.Add(best.Key);
-
-                path.AddMany(fromReversedSource.Select(e => e.Reverse()));
-
-                diffs.Remove(best.Key);
-
-                if (!(path.Source.Equals(g.Source) && path.Destination.Equals(g.Destination)))
-                {
-                    continue;
-                }
-
-                graphResult.Add(path);
-
-                k--;
             }
 
             var finalResult = graphResult.Finalize();
@@ -134,44 +129,66 @@ namespace Navred.Core.Search.Algorithms
             return result;
         }
 
-        private IEnumerable<Edge> RetrievePath(
-            Vertex from, Vertex to, Result result, Graph g, Edge e, bool fromReversed)
+        private IEnumerable<IEnumerable<Edge>> RetrievePaths(
+           Vertex from, Vertex to, Result result, Graph g, Edge e, bool fromReversed)
         {
-            var edges = new Stack<Edge>();
-            var current = to;
-            var lastNeighbor = e;
+            var traversed = new HashSet<Edge>();
+            var paths = new List<IEnumerable<Edge>>();
 
-            while (!current.Equals(from))
+            while (true)
             {
-                var prev = result.Previous[current];
+                var edges = new Stack<Edge>();
+                var current = to;
+                var lastNeighbor = e;
+                var shouldAddPath = false;
 
-                if (prev.IsNull())
+                while (!current.Equals(from))
                 {
-                    return new List<Edge>();
+                    var prev = result.Previous[current];
+
+                    if (prev.IsNull())
+                    {
+                        shouldAddPath = false;
+
+                        break;
+                    }
+
+                    var recoverableEdges = g.Edges.Where(ed =>
+                        ed.Source.Equals(prev) &&
+                        ed.Destination.Equals(current) &&
+                        !traversed.Contains(ed) &&
+                        (fromReversed ?
+                            ed.Leg.UtcDeparture >= lastNeighbor.Leg.UtcArrival :
+                            ed.Leg.UtcArrival <= lastNeighbor.Leg.UtcDeparture))
+                        .ToList();
+
+                    if (recoverableEdges.IsEmpty())
+                    {
+                        shouldAddPath = false;
+
+                        break;
+                    }
+
+                    shouldAddPath = true;
+                    var edge = recoverableEdges.GetMin(ed => ed.Leg.UtcDeparture);
+                    lastNeighbor = edge;
+                    current = prev;
+
+                    traversed.Add(edge);
+                    edges.Push(edge);
                 }
 
-                var recoverableEdges = g.Edges.Where(ed =>
-                    ed.Source.Equals(from) &&
-                    ed.Destination.Equals(to) &&
-                    (fromReversed ? 
-                        ed.Leg.UtcDeparture >= lastNeighbor.Leg.UtcArrival: 
-                        ed.Leg.UtcArrival <= lastNeighbor.Leg.UtcDeparture))
-                    .ToList();
-
-                if (recoverableEdges.IsEmpty())
+                if (shouldAddPath)
                 {
-                    return new List<Edge>();
+                    paths.Add(edges);
                 }
-
-                var edge = recoverableEdges.GetMin(ed => ed.Leg.UtcDeparture);
-                lastNeighbor = edge;
-
-                edges.Push(edge);
-
-                current = prev;
+                else
+                {
+                    break;
+                }
             }
 
-            return edges;
+            return paths;
         }
     }
 }
