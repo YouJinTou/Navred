@@ -127,12 +127,12 @@ namespace Navred.Crawling.Crawlers.Companies
                     .Select(t => t.InnerText).ToList();
                 var stops = Stop.CreateMany(names, allStopTimes, prices, addresses);
                 var route = new Route(
-                    BCP.CountryName, 
-                    dow, 
-                    carrier, 
-                    Mode.Bus, 
-                    stops, 
-                    link, 
+                    BCP.CountryName,
+                    dow,
+                    carrier,
+                    Mode.Bus,
+                    stops,
+                    link,
                     Stop.CreateBanned("Чуката", "Точиларци"));
                 var legs = await this.routeParser.ParseRouteAsync(route);
 

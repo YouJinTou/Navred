@@ -12,7 +12,7 @@ namespace Navred.Core.Configuration
         {
             var stage = Env.GetVar(Constants.StageUpper);
             var env = string.IsNullOrWhiteSpace(stage) ?
-                Env.GetVar("ASPNETCORE_ENVIRONMENT", "Development") : 
+                Env.GetVar("ASPNETCORE_ENVIRONMENT", "Development") :
                 (stage == "prod") ? "Production" : "Development";
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())

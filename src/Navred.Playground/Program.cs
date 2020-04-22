@@ -30,7 +30,7 @@ namespace Navred.Playground
             {
                 Source = i,
                 Destination = h,
-                Weight = new Weight { Duration = TimeSpan.FromHours(15)}
+                Weight = new Weight { Duration = TimeSpan.FromHours(15) }
             };
             var ig = new Edge
             {
@@ -104,7 +104,7 @@ namespace Navred.Playground
                 Destination = a,
                 Weight = new Weight { Duration = TimeSpan.FromHours(24) }
             };
-            var edges = new List<Edge> 
+            var edges = new List<Edge>
             { 
                 //ih, ig, @if, 
                 //gf, gd,

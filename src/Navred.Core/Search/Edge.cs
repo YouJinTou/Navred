@@ -59,12 +59,12 @@ namespace Navred.Core.Search
             return true;
         }
 
-        public override string ToString() => this.Leg?.ToString() ?? 
+        public override string ToString() => this.Leg?.ToString() ??
             $"{this.Source} - {this.Destination} | {this.Weight}";
 
-        public bool Equals(Edge other) => 
-            this.Source.Equals(other.Source) && 
-            this.Destination.Equals(other.Destination) && 
+        public bool Equals(Edge other) =>
+            this.Source.Equals(other.Source) &&
+            this.Destination.Equals(other.Destination) &&
             this.Leg.Carrier.Equals(other.Leg.Carrier) &&
             this.Leg.UtcDeparture.Equals(other.Leg.UtcDeparture) &&
             this.Leg.UtcArrival.Equals(other.Leg.UtcArrival) &&

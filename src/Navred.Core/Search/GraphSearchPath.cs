@@ -29,7 +29,7 @@ namespace Navred.Core.Search
 
         public Edge Tail => this.Path.Last();
 
-        public IEnumerable<Vertex> Vertices => 
+        public IEnumerable<Vertex> Vertices =>
             new List<Vertex>(this.Path.Select(p => p.Source)) { this.Tail.Destination };
 
         public bool Touches(Edge edge)
@@ -40,8 +40,8 @@ namespace Navred.Core.Search
             foreach (var e in this.Path)
             {
                 if (
-                    e.Source.Equals(edge.Source) && 
-                    e.Destination.Equals(edge.Destination) && 
+                    e.Source.Equals(edge.Source) &&
+                    e.Destination.Equals(edge.Destination) &&
                     e.Leg.UtcDeparture.Equals(edge.Leg.UtcDeparture) &&
                     e.Leg.UtcArrival.Equals(edge.Leg.UtcArrival))
                 {

@@ -141,16 +141,16 @@ namespace Navred.Core.Itineraries
         public Leg Copy()
         {
             return new Leg(
-                this.From.Copy(), 
-                this.To.Copy(), 
-                this.UtcDeparture, 
-                this.UtcArrival, 
-                this.Carrier, 
-                this.Mode, 
-                this.Info, 
-                this.Price, 
-                this.FromSpecific, 
-                this.ToSpecific, 
+                this.From.Copy(),
+                this.To.Copy(),
+                this.UtcDeparture,
+                this.UtcArrival,
+                this.Carrier,
+                this.Mode,
+                this.Info,
+                this.Price,
+                this.FromSpecific,
+                this.ToSpecific,
                 this.DepartureEstimated,
                 this.ArrivalEstimated,
                 this.PriceEstimated);

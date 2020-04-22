@@ -30,7 +30,7 @@ namespace Navred.Core.Itineraries
             {
                 return new List<GraphSearchPath>();
             }
-           
+
             var vertices = legs
                 .Select(l => new List<string> { l.From.GetId(), l.To.GetId() })
                 .SelectMany(s => s)
@@ -48,11 +48,11 @@ namespace Navred.Core.Itineraries
                 },
                 Leg = l
             }).ToList();
-           var graph = new Graph(
-                vertices.Single(v => v.Name == from.GetId()), 
-                vertices.Single(v => v.Name == to.GetId()),
-                vertices, 
-                edges);
+            var graph = new Graph(
+                 vertices.Single(v => v.Name == from.GetId()),
+                 vertices.Single(v => v.Name == to.GetId()),
+                 vertices,
+                 edges);
             var result = new Dijkstra().FindKShortestPaths(graph, 4);
 
             return result.Paths;

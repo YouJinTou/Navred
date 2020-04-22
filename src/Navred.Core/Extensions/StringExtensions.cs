@@ -82,7 +82,7 @@ namespace Navred.Core.Extensions
                     result = result.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
                 }
             }
-            
+
             return result;
         }
 

@@ -85,7 +85,7 @@ namespace Navred.Crawling.Crawlers.Regions
                         Constants.AllWeek,
                         carrier,
                         Mode.Bus,
-                        stops, 
+                        stops,
                         isDeparture ? DeparturesUrl : ArrivalsUrl);
                     var legs = await routeParser.ParseRouteAsync(route);
 

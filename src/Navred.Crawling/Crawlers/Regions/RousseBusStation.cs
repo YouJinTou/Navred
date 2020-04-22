@@ -145,7 +145,7 @@ namespace Navred.Crawling.Crawlers.Regions
                 var price = Regex.Match(
                     datum.InnerText,
                     @"(\d+[\.,]?\d*)\s*(?:(?:лева)|(?:лв\.?))").Groups[1].Value.Replace(',', '.');
-                price = string.IsNullOrWhiteSpace(price) ? 
+                price = string.IsNullOrWhiteSpace(price) ?
                     null : isDeparture ? price : null;
 
                 times.Add(departure);

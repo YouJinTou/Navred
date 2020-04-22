@@ -276,8 +276,8 @@ namespace Navred.Core.Extensions
         }
 
         public static IEnumerable<string> Replace(
-            this IEnumerable<string> items, 
-            IDictionary<string, string> replacements, 
+            this IEnumerable<string> items,
+            IDictionary<string, string> replacements,
             bool orderByDescending = true)
         {
             var result = new List<string>();

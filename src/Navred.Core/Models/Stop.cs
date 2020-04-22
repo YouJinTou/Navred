@@ -11,12 +11,12 @@ namespace Navred.Core.Models
     public class Stop : ICopyable<Stop>, IEquatable<Stop>
     {
         public Stop(
-            string name, 
-            string region, 
-            string municipality, 
-            LegTime time, 
-            string address, 
-            StopPrice price, 
+            string name,
+            string region,
+            string municipality,
+            LegTime time,
+            string address,
+            StopPrice price,
             Place place = null)
         {
             this.Name = name;
@@ -142,8 +142,8 @@ namespace Navred.Core.Models
                     continue;
                 }
 
-                var legTime = string.IsNullOrWhiteSpace(timesList[i]) ? LegTime.Estimable : 
-                    timesToMarkAsEstimable?.Contains(timesList[i]) ?? false ? 
+                var legTime = string.IsNullOrWhiteSpace(timesList[i]) ? LegTime.Estimable :
+                    timesToMarkAsEstimable?.Contains(timesList[i]) ?? false ?
                     LegTime.Estimable : timesList[i];
 
                 stops.Add(new Stop(

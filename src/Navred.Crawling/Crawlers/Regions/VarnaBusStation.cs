@@ -84,9 +84,9 @@ namespace Navred.Crawling.Crawlers.Regions
                         var timeMatches = row.SelectNodes(".//span[@class='time-depart']")
                             .Select(n => Regex.Matches(n.InnerText, "(\\d{2}:\\d{2})"))
                             .ToList();
-                        var departureTimes = 
+                        var departureTimes =
                             timeMatches.Select(m => m.First().Groups[1].Value).ToList();
-                        var arrivalTimes = 
+                        var arrivalTimes =
                             timeMatches.Select(m => m.Last().Groups[1].Value).ToList();
                         var timeLists = departureTimes.AsLists(arrivalTimes, arrivalTimes);
                         var names = row.SelectNodes(".//div[@class='point-name']")

@@ -15,6 +15,8 @@ namespace Navred.Core.Itineraries.DB
 {
     public class LegRepository : ILegRepository
     {
+        private const int MaxDepth = 3;
+
         private readonly IAmazonDynamoDB db;
         private readonly ICultureProvider cultureProvider;
         private readonly IPlacesManager placesManager;
@@ -46,7 +48,8 @@ namespace Navred.Core.Itineraries.DB
             var queried = new HashSet<string> { from.GetId(), to.GetId() };
             var threshold = await this.estimator.EstimateArrivalTimeAsync(
                 from, to, window.To.DateTime, Mode.Bus);
-            var dbLegs = await this.GetLegsRecursiveAsync(from, to, window, queried, threshold);
+            var dbLegs = await this.GetLegsRecursiveAsync(
+                from, to, window, queried, threshold, MaxDepth, 0);
             var legs = new List<Leg>();
 
             foreach (var dbl in dbLegs)
@@ -161,9 +164,11 @@ namespace Navred.Core.Itineraries.DB
             Place to,
             TimeWindow window,
             ICollection<string> queried,
-            DateTime threshold)
+            DateTime threshold,
+            int maxDepth,
+            int currentDepth)
         {
-            if (window.To.DateTime >= threshold)
+            if (window.To.DateTime >= threshold || currentDepth >= maxDepth)
             {
                 return new List<DBLeg>();
             }
@@ -197,12 +202,12 @@ namespace Navred.Core.Itineraries.DB
                     queried.Add(v.Vertex);
                 }
 
-                var nextItineraries = await this.GetLegsRecursiveAsync(
-                    v.Vertex, to, v.Window, queried, threshold);
+                var nextLegs = await this.GetLegsRecursiveAsync(
+                    v.Vertex, to, v.Window, queried, threshold, maxDepth, currentDepth + 1);
 
                 lock (this.locker)
                 {
-                    legs.AddRange(nextItineraries);
+                    legs.AddRange(nextLegs);
                 }
             });
 

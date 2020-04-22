@@ -1,5 +1,4 @@
-﻿using Navred.Core.Itineraries;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Navred.Core.Models
 {
@@ -7,8 +6,8 @@ namespace Navred.Core.Models
     {
         public bool Equals(Stop x, Stop y)
         {
-            return 
-                x.CompositeName.ToLower().Equals(y.CompositeName.ToLower()) && 
+            return
+                x.CompositeName.ToLower().Equals(y.CompositeName.ToLower()) &&
                 x.Time.Equals(y.Time);
         }
 

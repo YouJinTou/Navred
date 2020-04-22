@@ -109,7 +109,7 @@ namespace Navred.Crawling.Crawlers.Companies
 
             if (scheduleString.Contains("празничн"))
             {
-                daysOfWeek = isFound ? 
+                daysOfWeek = isFound ?
                     daysOfWeek | DaysOfWeek.HolidayInclusive : DaysOfWeek.HolidayInclusive;
                 isFound = true;
             }

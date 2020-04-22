@@ -21,9 +21,9 @@ namespace Navred.Core.Places
         Place GetPlace(string id);
 
         Place GetPlace(
-            string country, 
-            string name, 
-            string regionCode = null, 
+            string country,
+            string name,
+            string regionCode = null,
             string municipalityCode = null,
             bool throwOnFail = true,
             bool doFuzzyMatch = false);

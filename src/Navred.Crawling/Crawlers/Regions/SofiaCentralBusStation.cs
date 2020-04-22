@@ -216,9 +216,9 @@ namespace Navred.Crawling.Crawlers.Regions
                 var fromTo = new Dictionary<string, string>
                 {
                     { BCP.City.Sofia, BCP.Region.SOF },
-                    { 
-                        this.replacements.GetOrReturn(placeString), 
-                        this.regions.GetOrDefault(placeString) 
+                    {
+                        this.replacements.GetOrReturn(placeString),
+                        this.regions.GetOrDefault(placeString)
                     }
                 };
                 var fullRoute = table.SelectSingleNode(
@@ -234,7 +234,7 @@ namespace Navred.Crawling.Crawlers.Regions
                     new[] { timeString, null }.InsertBetween(null, names.Count) :
                     new[] { null, timeString }.InsertBetween(null, names.Count);
                 var prices = names.Select(
-                    n => this.placesManager.FormatPlace(n.Key).Equals(formattedName) ? 
+                    n => this.placesManager.FormatPlace(n.Key).Equals(formattedName) ?
                         dataRow.ChildNodes[5].InnerText : null).ToList();
                 var stops = Stop.CreateMany(names.Keys, times, prices, regions: names.Values);
                 var route = new Route(BCP.CountryName, dow, carrier, Mode.Bus, stops, url);
