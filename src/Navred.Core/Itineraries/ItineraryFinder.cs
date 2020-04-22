@@ -30,7 +30,7 @@ namespace Navred.Core.Itineraries
             {
                 return new List<GraphSearchPath>();
             }
-
+           
             var vertices = legs
                 .Select(l => new List<string> { l.From.GetId(), l.To.GetId() })
                 .SelectMany(s => s)

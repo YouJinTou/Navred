@@ -54,6 +54,11 @@ namespace Navred.Core.Search
 
         public void Add(Edge edge)
         {
+            if (edge == null)
+            {
+                return;
+            }
+
             this.Weight = this.Weight ?? new Weight();
             this.Weight += edge.Weight;
 
