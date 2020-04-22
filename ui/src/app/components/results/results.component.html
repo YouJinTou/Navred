@@ -5,7 +5,7 @@
                 {{ path.legs | routeString }}
             </mat-expansion-panel-header>
             <div *ngFor="let leg of path.legs">
-                <div class="place"></div> {{ leg.from.name }} {{ leg.utcDeparture }}
+                <div class="place"></div> {{ leg.from.name }} {{ leg.utcDeparture | date: 'hh:mm' }}
                 <div class="line">
                     <div class="info">
                         {{ leg.price }}
@@ -13,7 +13,7 @@
                     </div>
                 </div>
             </div>
-            <div class="place"></div> {{ path.legs.slice(-1)[0].to.name }} {{ path.legs.slice(-1)[0].utcArrival }}
+            <div class="place"></div> {{ path.legs.slice(-1)[0].to.name }} {{ path.legs.slice(-1)[0].utcArrival | date: 'hh:mm' }}
         </mat-expansion-panel>
     </mat-accordion>
 </div>
