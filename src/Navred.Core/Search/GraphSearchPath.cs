@@ -199,8 +199,8 @@ namespace Navred.Core.Search
         public override string ToString()
         {
             var destination = this.Destination.ToString();
-            var legs = string.Join(" - ", this.Path.Select(p => p.Source));
-            var result = $"{legs} - {destination} | {this.Weight}";
+            var legs = string.Join(" - ", this.Path.Select(p => $"{p.Source} {p.Leg.UtcDeparture}"));
+            var result = $"{legs} - {destination} {this.Tail.Leg.UtcArrival} | {this.Weight}";
 
             return result;
         }
