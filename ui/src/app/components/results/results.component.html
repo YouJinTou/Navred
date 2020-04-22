@@ -1,14 +1,18 @@
 <div class="results-container">
-    <div *ngFor="let path of paths">
-        <div *ngFor="let leg of path.legs">
-            <div class="place"></div> {{ leg.from.name }} {{ leg.utcDeparture }}
-            <div class="line">
-                <div class="info">
-                    {{ leg.price }}
-                    {{ leg.carrier }}
+    <mat-accordion>
+        <mat-expansion-panel *ngFor="let path of paths">
+            <mat-expansion-panel-header>
+            </mat-expansion-panel-header>
+            <div *ngFor="let leg of path.legs">
+                <div class="place"></div> {{ leg.from.name }} {{ leg.utcDeparture }}
+                <div class="line">
+                    <div class="info">
+                        {{ leg.price }}
+                        {{ leg.carrier }}
+                    </div>
                 </div>
+                <div class="place"></div> {{ leg.to.name }} {{ leg.utcArrival }}
             </div>
-            <div class="place"></div> {{ leg.to.name }} {{ leg.utcArrival }}
-        </div>
-    </div>
+        </mat-expansion-panel>
+    </mat-accordion>
 </div>

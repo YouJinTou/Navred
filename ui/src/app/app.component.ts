@@ -7,9 +7,9 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'Navred';
-  result: any[];
+  paths: any[];
 
   onResultFound(paths: any[]) {
-    this.result = paths;
+    this.paths = paths;
   }
 }

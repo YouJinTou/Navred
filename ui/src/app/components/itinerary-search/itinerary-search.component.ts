@@ -11,94 +11,94 @@ export class ItinerarySearchComponent implements OnInit {
   @Output() onResultFound = new EventEmitter<any[]>();
   private from: string;
   private to: string;
-  private result: any;
 
   constructor(private httpClient: HttpClient) { }
 
   ngOnInit() {
-  //   this.result = [
-  //     {
-  //         "legs": [
-  //             {
-  //                 "from": {
-  //                     "country": "Bulgaria",
-  //                     "name": "Плевен",
-  //                     "region": "Плевен",
-  //                     "municipality": "Плевен",
-  //                     "longitude": null,
-  //                     "latitude": null
-  //                 },
-  //                 "fromId": "Bulgaria|Плевен|Плевен|Плевен",
-  //                 "to": {
-  //                     "country": "Bulgaria",
-  //                     "name": "Гривица",
-  //                     "region": "Плевен",
-  //                     "municipality": "Плевен",
-  //                     "longitude": null,
-  //                     "latitude": null
-  //                 },
-  //                 "toId": "Bulgaria|Гривица|Плевен|Плевен",
-  //                 "utcArrival": "2020-04-22T04:10:00",
-  //                 "utcDeparture": "2020-04-22T04:00:00",
-  //                 "duration": "00:10:00",
-  //                 "carrier": "Игнатов транс ЕООД",
-  //                 "mode": 0,
-  //                 "info": null,
-  //                 "price": null,
-  //                 "fromSpecific": null,
-  //                 "toSpecific": null,
-  //                 "departureEstimated": false,
-  //                 "arrivalEstimated": false,
-  //                 "priceEstimated": false
-  //             }
-  //         ],
-  //         "weight": {
-  //             "duration": "00:10:00",
-  //             "price": null
-  //         }
-  //     },
-  //     {
-  //         "legs": [
-  //             {
-  //                 "from": {
-  //                     "country": "Bulgaria",
-  //                     "name": "Плевен",
-  //                     "region": "Плевен",
-  //                     "municipality": "Плевен",
-  //                     "longitude": null,
-  //                     "latitude": null
-  //                 },
-  //                 "fromId": "Bulgaria|Плевен|Плевен|Плевен",
-  //                 "to": {
-  //                     "country": "Bulgaria",
-  //                     "name": "Гривица",
-  //                     "region": "Плевен",
-  //                     "municipality": "Плевен",
-  //                     "longitude": null,
-  //                     "latitude": null
-  //                 },
-  //                 "toId": "Bulgaria|Гривица|Плевен|Плевен",
-  //                 "utcArrival": "2020-04-22T04:10:00",
-  //                 "utcDeparture": "2020-04-22T04:00:00",
-  //                 "duration": "00:10:00",
-  //                 "carrier": "Игнатов транс ЕООД",
-  //                 "mode": 0,
-  //                 "info": null,
-  //                 "price": null,
-  //                 "fromSpecific": null,
-  //                 "toSpecific": null,
-  //                 "departureEstimated": false,
-  //                 "arrivalEstimated": false,
-  //                 "priceEstimated": false
-  //             }
-  //         ],
-  //         "weight": {
-  //             "duration": "00:10:00",
-  //             "price": null
-  //         }
-  //     }
-  // ];
-  // this.findItineraries();
+    const result = [
+      {
+        "legs": [
+          {
+            "from": {
+              "country": "Bulgaria",
+              "name": "Плевен",
+              "region": "Плевен",
+              "municipality": "Плевен",
+              "longitude": null,
+              "latitude": null
+            },
+            "fromId": "Bulgaria|Плевен|Плевен|Плевен",
+            "to": {
+              "country": "Bulgaria",
+              "name": "Гривица",
+              "region": "Плевен",
+              "municipality": "Плевен",
+              "longitude": null,
+              "latitude": null
+            },
+            "toId": "Bulgaria|Гривица|Плевен|Плевен",
+            "utcArrival": "2020-04-22T04:10:00",
+            "utcDeparture": "2020-04-22T04:00:00",
+            "duration": "00:10:00",
+            "carrier": "Игнатов транс ЕООД",
+            "mode": 0,
+            "info": null,
+            "price": null,
+            "fromSpecific": null,
+            "toSpecific": null,
+            "departureEstimated": false,
+            "arrivalEstimated": false,
+            "priceEstimated": false
+          }
+        ],
+        "weight": {
+          "duration": "00:10:00",
+          "price": null
+        }
+      },
+      {
+        "legs": [
+          {
+            "from": {
+              "country": "Bulgaria",
+              "name": "Плевен",
+              "region": "Плевен",
+              "municipality": "Плевен",
+              "longitude": null,
+              "latitude": null
+            },
+            "fromId": "Bulgaria|Плевен|Плевен|Плевен",
+            "to": {
+              "country": "Bulgaria",
+              "name": "Гривица",
+              "region": "Плевен",
+              "municipality": "Плевен",
+              "longitude": null,
+              "latitude": null
+            },
+            "toId": "Bulgaria|Гривица|Плевен|Плевен",
+            "utcArrival": "2020-04-22T04:10:00",
+            "utcDeparture": "2020-04-22T04:00:00",
+            "duration": "00:10:00",
+            "carrier": "Игнатов транс ЕООД",
+            "mode": 0,
+            "info": null,
+            "price": null,
+            "fromSpecific": null,
+            "toSpecific": null,
+            "departureEstimated": false,
+            "arrivalEstimated": false,
+            "priceEstimated": false
+          }
+        ],
+        "weight": {
+          "duration": "00:10:00",
+          "price": null
+        }
+      }
+    ];
+
+    this.onResultFound.emit(result);
   }
 
   setFrom(place: string) {
