@@ -12,8 +12,8 @@
                         {{ leg.carrier }}
                     </div>
                 </div>
-                <div class="place"></div> {{ leg.to.name }} {{ leg.utcArrival }}
             </div>
+            <div class="place"></div> {{ path.legs.slice(-1)[0].to.name }} {{ path.legs.slice(-1)[0].utcArrival }}
         </mat-expansion-panel>
     </mat-accordion>
 </div>
