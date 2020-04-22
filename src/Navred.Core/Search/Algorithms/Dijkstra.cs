@@ -139,6 +139,7 @@ namespace Navred.Core.Search.Algorithms
         {
             var edges = new Stack<Edge>();
             var current = to;
+            var lastNeighbor = e;
 
             while (!current.Equals(from))
             {
@@ -153,8 +154,8 @@ namespace Navred.Core.Search.Algorithms
                     ed.Source.Equals(from) &&
                     ed.Destination.Equals(to) &&
                     (fromReversed ? 
-                        ed.Leg.UtcDeparture >= e.Leg.UtcArrival: 
-                        ed.Leg.UtcArrival <= e.Leg.UtcDeparture))
+                        ed.Leg.UtcDeparture >= lastNeighbor.Leg.UtcArrival: 
+                        ed.Leg.UtcArrival <= lastNeighbor.Leg.UtcDeparture))
                     .ToList();
 
                 if (recoverableEdges.IsEmpty())
@@ -163,6 +164,7 @@ namespace Navred.Core.Search.Algorithms
                 }
 
                 var edge = recoverableEdges.GetMin(ed => ed.Leg.UtcDeparture);
+                lastNeighbor = edge;
 
                 edges.Push(edge);
 
