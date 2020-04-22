@@ -391,3 +391,4 @@ Thumbs.db
 
 ui/src/environments/environment.prod.ts
 ui/src/environments/environment.ts
+ui/dist
