@@ -13,13 +13,15 @@ import { MatSidenavModule } from '@angular/material';
 import { ItinerarySearchComponent } from './components/itinerary-search/itinerary-search.component';
 import { HttpClientModule } from '@angular/common/http';
 import { ResultsComponent } from './components/results/results.component';
+import { RouteStringPipe } from './pipes/route-string.pipe';
 
 @NgModule({
   declarations: [
     AppComponent,
     SearchComponent,
     ItinerarySearchComponent,
-    ResultsComponent
+    ResultsComponent,
+    RouteStringPipe
   ],
   imports: [
     BrowserModule,

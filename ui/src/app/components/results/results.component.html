@@ -2,6 +2,7 @@
     <mat-accordion>
         <mat-expansion-panel *ngFor="let path of paths">
             <mat-expansion-panel-header>
+                {{ path.legs | routeString }}
             </mat-expansion-panel-header>
             <div *ngFor="let leg of path.legs">
                 <div class="place"></div> {{ leg.from.name }} {{ leg.utcDeparture }}
