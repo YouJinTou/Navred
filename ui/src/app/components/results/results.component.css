@@ -17,3 +17,8 @@
     display: table-cell;
     vertical-align: middle;
 }
+
+.legs-details {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+}
