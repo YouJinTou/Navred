@@ -30,21 +30,21 @@ namespace Navred.Core.Processing
             this.Info = info;
         }
 
-        public string Country { get; set; }
+        public string Country { get; private set; }
 
-        public Mode Mode { get; set; }
+        public Mode Mode { get; private set; }
 
-        public DaysOfWeek DaysOfWeek { get; set; }
+        public DaysOfWeek DaysOfWeek { get; private set; }
 
-        public string Carrier { get; set; }
+        public string Carrier { get; private set; }
 
-        public string Info { get; set; }
+        public string Info { get; private set; }
 
-        public IList<Stop> Stops { get; set; }
+        public IList<Stop> Stops { get; private set; }
 
-        public ICollection<Stop> Banned { get; set; }
+        public ICollection<Stop> Banned { get; private set; }
 
-        public ICollection<Stop> NotFound { get; set; }
+        public ICollection<Stop> NotFound { get; private set; }
 
         public bool IsValid
         {
